@@ -31,37 +31,18 @@ while [ $downisoflag = 1 -a $retry -lt 3 ]; do
     fi
     cp precise/$product/builds/$dailyfolder/*.iso daily.iso # 125.227.238.56's
     #cp iso/$product/builds/$dailyfolder/*.iso daily.iso # 192.168.163.254's
-    ## Check filesize ##
-    #size=`du daily.iso|awk '{print $1}'`
-    #if [ 2000000 -gt $size ]; then
-    #    echo "ISO file size is less than 2G!!!"
-    #    exit 1
-    #fi
 
     ## Check md5sum ##
-    # get iso commit id from 192.168.168.8
-    server_iso=`sudo ssh bruce@$md5server "ls /home/jenkins/jobs/$product/lastSuccessful/*.iso" | awk -F "/" '{print $NF}'`
-    server_iso_commit=`sudo ssh bruce@$md5server "ls /home/jenkins/jobs/$product/lastSuccessful/*.iso" | awk -F "/" '{print $NF}' | awk -F "~" '{print $NF}'`
-    
-    download_iso=`ls precise/$product/builds/$dailyfolder/*.iso | awk -F "/" '{print $NF}'`
-    download_iso_commit=`ls precise/$product/builds/$dailyfolder/*.iso | awk -F "/" '{print $NF}' | awk -F "~" '{print $NF}'`
-    
     echo Start to check md5
-    if [ ${server_iso_commit} != ${download_iso_commit} ]; then
-        echo [Warning]  Commit ID is different, maybe not sync to ${md5server}, so not to check md5.
-        echo Download ISO is: ${download_iso}, Server ISO is: ${server_iso}.
-        break
-    else   
-        isomd5sum=`md5sum daily.iso | awk '{print $1}'`
-        expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/lastSuccessful/*.iso" | awk '{print $1}'`
-        echo Download: $isomd5sum, Server: $expectedmd5sum
-        if [ "$isomd5sum" != "$expectedmd5sum" ]; then
-            echo "File md5sum check is failed!!!"
-            retry=$((retry+1)) && continue
-        fi
-        echo "ISO is downloaded successfully!"
-        break
+    isomd5sum=`md5sum daily.iso | awk '{print $1}'`
+    expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/lastSuccessfulBuild/archive/*.iso" | awk '{print $1}'`
+    echo Download: $isomd5sum, Server: $expectedmd5sum
+    if [ "$isomd5sum" != "$expectedmd5sum" ]; then
+        echo "File md5sum check is failed!!!"
+        retry=$((retry+1)) && continue
     fi
+    echo "ISO is downloaded successfully!"
+    break
 }
 done
 
