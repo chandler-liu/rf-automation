@@ -1,0 +1,10 @@
+*** Settings ***
+Resource          ../00_commonconfig.txt
+Resource          ../00_commonkeyword.txt
+Resource          00_accountkeywords.txt
+Library           SSHLibrary
+Library           HttpLibrary.HTTP
+Library           Collections
+Library           OperatingSystem
+
+*** Keywords ***

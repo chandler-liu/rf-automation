@@ -1,0 +1,29 @@
+*** Settings ***
+Library           SSHLibrary
+Library           HttpLibrary.HTTP
+Library           Collections
+
+*** Keywords ***
+SDS Admin Add
+    [Arguments]    ${user_name}    ${virtual_storage}=Default
+    Set Request Body    user_ids=%5B%22${user_name}%22%5D&gwgroups=%5B%22${virtual_storage}%22%5D
+    POST    /cgi-bin/ezs3/json/sds_admin_add
+    Response Status Code Should Equal    200 OK
+
+SDS Admin Edit
+    [Arguments]    ${user_name}
+    Set Request Body    user_id=${user_name}&gwgroups=%5B%5D
+    POST    /cgi-bin/ezs3/json/sds_admin_edit
+    Response Status Code Should Equal    200 OK
+
+SDS Admin Remove
+    [Arguments]    ${user_name}
+    Set Request Body    user_ids=%5B%22${user_name}%22%5D
+    POST    /cgi-bin/ezs3/json/sds_admin_remove
+    Response Status Code Should Equal    200 OK
+
+Delete User
+    [Arguments]    ${user_name}
+    Set Request Body    user_ids=%5B%22${user_name}%22%5D
+    POST    /cgi-bin/ezs3/json/del_multi_user
+    Response Status Code Should Equal    200 OK

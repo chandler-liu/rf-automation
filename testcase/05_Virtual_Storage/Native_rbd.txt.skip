@@ -1,0 +1,21 @@
+*** Settings ***
+Resource          ../config.txt
+
+*** Test Cases ***
+rbd name contains chinese character
+    [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
+    [Tags]    RAT
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
+    log    Create native rbd
+    Open Connection    @{PUBLICIP}[0]
+    ${con_output}=    Login    ${USERNAME}    ${PASSWORD}
+    Should Contain    ${con_output}    Last login    ${PASSWORD}
+    Start Command    rbd create -p data --size 100 --image-format 2 \ --image '增加'
+    Start Command    rbd ls -p data | grep "增加"
+    ${stdout}=    Read Command Output
+    Should Be Equal    ${stdout}    增加
+    log    Create native rbd RRS task
+    ${task_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
+    Return Code Should be 0    /cgi-bin/ezs3/json/create_replication_task?op=create&id=&name=${task_name}&type=native_rbd&src_vs=Default&src=data/增加&dst_vs=Default&dst=data/增加&server=${REMOTE_IP}&snapshot_max=1&autoconf=1&useoplog=0&schedule=now
+    log    Delete Native rbd RRS task
+    Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_replication_task?id_list=ezbak_672288

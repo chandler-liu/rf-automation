@@ -1,0 +1,110 @@
+*** Settings ***
+Library           SSHLibrary
+Library           HttpLibrary.HTTP
+Library           Collections
+Library           OperatingSystem
+
+*** Variables ***
+@{SCALER_LICENSE}    CLAWAE-WGXVZW-58PNT0-ZIY9AV-6RLAEH-N8NPNH-6QY7IJ    CLB2IW-N2AQ0S-0HWBR5-BVVOJ7-68LJBA-JKXFDQ-WWHYKI    CLB8RE-DNNK1O-84LGUU-NZ9QW5-5AE880-QCN4JM-9MOKYG    # License of scaler
+@{CONTROLLER_LICENSE}    3TZ8AE-IESL9W-84XPQF-G9F2LR-8FX9ZP-CPQ9ZW-1UP63RT    3TYPKX-AMQFUC-73ZZZ4-991LZT-3WAM8F-FW244D-16KLECD    3TYVTF-1839V8-5ZCCAL-RBQCPS-0MIQYV-SC0SWW-HIQ7ZZ    # License of controller
+@{CONVERGER_LICENSE}    LCN0UQ-ESK664-3XDZQG-MM8BK1-3HBMSJ-UUNZW7-1FCWQR7    LCN738-5DX070-5JT20N-YFR9YJ-8ODRMF-QXKVBM-7448HZ    LCNDBP-VZ9U7W-7QUC9T-POP89A-5RSOCB-U4G0CL-1NPZB6T    # License of converger
+${NTPSERVER}      202.108.6.95
+
+*** Keywords ***
+Add Storage Volume
+    [Arguments]    ${storage_ip}    ${osd_name}    ${sv_type}=0    ${journal_dev}=data    ${cache_dev}=    ${spare_devs}=%5B%5D
+    ...    ${dedup}=False    ${compress}=False    ${BatFlag}=False    @{data_devs}    # \ BatFlag, Whether the batch mode, default value is False
+    log    sv_type vlues is : ${sv_type}
+    Run Keyword If    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
+    ...    ELSE IF    ${sv_type}==${0} and ${BatFlag}==${True}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%2C%22%2Fdev%2F@{data_devs}[1]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
+    POST    /cgi-bin/ezs3/json/storage_volume_add
+    Response Status Code Should Equal    200 OK
+
+Get Create Cluster Progress
+    ${time_stamp}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    cat /var/log/ezcloudstor/ezarpc.log| grep "node.join_cluster has been updated with info {'progress': 100}" | sort -rn | head -1 | awk -F " " '{print $1,$2}' | sed 's/\\[/\"/' | sed 's/\\]/\"/'
+    log    ${time_stamp}
+    ${time_seconds}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    date -d ${time_stamp} +%s
+    log    ${time_seconds}
+    ${current_time}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    date +%s
+    ${time_diff}=    Evaluate    ${current_time} - ${time_seconds}
+    log    ${time_diff}
+    ${check_progress}=    Set Variable    False
+    log    ---------------- \ ${check_progress} \ ----------------
+    ${check_progress}    Run Keyword If    ${time_diff} > 300    Set Variable    False
+    ...    ELSE    Set Variable    True
+    Should Be Equal    ${check_progress}    True
+    [Return]    ${check_progress}
+
+Get Cluster Health Status
+    [Documentation]    To get cluster current health status
+    ${health_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph health detail
+    Should Be Equal    ${health_status}    HEALTH_OK
+    [Return]    ${health_status}
+
+Wizard Enable All MON
+    log    login UI with root account on @{PUBLICIP}[1]
+    Open HTTP Connection And Log In    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}
+    Return Code Should be    /cgi-bin/ezs3/json/join_cluster?ip=@{STORAGEIP}[1]&mon_ip=@{STORAGEIP}[0]&add_mon=true    0
+    log    login UI with root account on @{PUBLICIP}[2]
+    Open HTTP Connection And Log In    @{PUBLICIP}[2]    ${USERNAME}    ${PASSWORD}
+    Return Code Should be    /cgi-bin/ezs3/json/join_cluster?ip=@{STORAGEIP}[2]&mon_ip=@{STORAGEIP}[0]&add_mon=true    0
+
+Create Cluster
+    [Arguments]    ${test_version}='V6.2'    ${mon_num}=3    # test_version, type is string; mon_num, means create cluster enable ceph-mon numbers,defaults is 3
+    [Documentation]    Create cluster
+    log    create URL: /cgi-bin/ezs3/json/create_cluster?admin_account=${UIADMIN}&admin_passwd=${UIPASS}&cluster_name=AutoTest&license_key=&mons=&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=&rack_id=0&rep_no=2&use_rack_aware=false
+    log    ${test_version}; ${Version}
+    log    ${mon_num}
+    ${create_cluster_url}=    Run Keyword If    ${test_version}==${Version} and ${mon_num} ==3    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${UIADMIN}&admin_passwd=${UIPASS}&cluster_name=AutoTest&license_key=&mons=@{STORAGEIP}[1]+@{STORAGEIP}[2]&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=${NTPSERVER}&rack_id=0&rep_no=2&use_rack_aware=false
+    ...    ELSE IF    ${test_version}==${Version} and ${mon_num}==1    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${UIADMIN}&admin_passwd=${UIPASS}&cluster_name=AutoTest&license_key=&mons=&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=${NTPSERVER}&rack_id=0&rep_no=2&use_rack_aware=false
+    ...    ELSE IF    ${test_version}==${Version} and ${mon_num}==2    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${UIADMIN}&admin_passwd=${UIPASS}&cluster_name=AutoTest&license_key=&mons=@{STORAGEIP}[1]&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=${NTPSERVER}&rack_id=0&rep_no=2&use_rack_aware=false
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${UIADMIN}&admin_passwd=${UIPASS}&cluster_name=AutoTest&license_key=&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=&rep_no=2
+    log    ${create_cluster_url}
+    Return Code Should be    ${create_cluster_url}    0
+    log    Other nodes enable ceph-mon
+    Run Keyword If    ${mon_num}==3    Wizard Enable All MON
+    ...    ELSE IF    ${mon_num}==2    Wizard Enable Part MON
+    log    To check create cluster process
+    Return Code Should be    /cgi-bin/ezs3/json/add_cluster_nodes_progress    0
+    Wait Until Keyword Succeeds    4 min    5 sec    Get Create Cluster Progress
+
+Get OSD State
+    [Arguments]    ${storage_ip}    ${osd_state}=ONLINE    ${osd_name}=
+    ${result}=    Get Return Json    /cgi-bin/ezs3/json/storage_volume_list?host=${storage_ip}
+    log    OSD enable result: ${result}
+    ${result}=    evaluate    ${result}
+    log    Length of the list
+    ${list_len}=    Get Length    ${result}
+    log    Length of the list is : ${list_len}
+    : FOR    ${i}    IN RANGE    ${list_len}
+    \    ${res_lists_tmp}=    Get From List    ${result}    ${i}
+    \    Run Keyword If    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
+    ${res_lists}=    Set Variable    ${res_lists_tmp}
+    log    Get result of list: ${res_lists}
+    ${res_osd_state}=    Get From Dictionary    ${res_lists}    state
+    Should Be Equal As Strings    ${res_osd_state}    ${osd_state}
+    [Return]    ${osd_state}
+
+Get GW or RRS Status
+    [Arguments]    ${storage_ip}    ${expect_state}    ${keywords}=gw    ${cmp_flag}=True    # ${keywords}表示获取的json中的key字段，默认gw，表示是获取的是GW的state， 如果获取RRS的state，${keywords}=rrs;
+    [Documentation]    To get GW status
+    ...    URL like this: /cgi-bin/ezs3/json/node_roles?hosts=%5B%2210.10.10.11%22%5D
+    ...    Response like this:
+    ...    {"response": [{"gw": 0, "ip": "10.10.10.11", "rrs": 0, "osd": 2}], "name": "node_roles", "return_code": 0}
+    ...
+    ...    if "gw": 0, means GW is disabled
+    ...    if "gw": 1, means GW is starting
+    ...    if "gw": 2, means GW is enabled
+    ...    if "gw": 3, means GW is stoping
+    ...    if "gw": 4, means GW stoped failed
+    ...    if "gw": 5, means GW enable failed
+    ...
+    ...    RRS status is the same as GW
+    ${result}=    Get Return Json    /cgi-bin/ezs3/json/node_roles?hosts=%5B%22${storage_ip}%22%5D
+    log    Status :${result}
+    ${result}    evaluate    ${result}
+    ${res_lists}=    Get From List    ${result}    0
+    log    Get result of list: ${res_lists}
+    ${res_state}=    Get From Dictionary    ${res_lists}    ${keywords}
+    Run Keyword If    ${cmp_flag}==${True}    Should Be Equal As Strings    ${res_state}    ${expect_state}
+    [Return]    ${res_state}

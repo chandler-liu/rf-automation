@@ -1,0 +1,305 @@
+*** Settings ***
+Library           SSHLibrary
+Library           HttpLibrary.HTTP
+Library           Collections
+
+*** Variables ***
+@{SCALER_LICENSE}    CLAWAE-WGXVZW-58PNT0-ZIY9AV-6RLAEH-N8NPNH-6QY7IJ    CLB2IW-N2AQ0S-0HWBR5-BVVOJ7-68LJBA-JKXFDQ-WWHYKI    CLB8RE-DNNK1O-84LGUU-NZ9QW5-5AE880-QCN4JM-9MOKYG    CLB7AA-GPIDXC-7G6SBU-Y3GT45-51BV68-46ETIB-6IGL0C    # License of scaler
+@{CONTROLLER_LICENSE}    3TZ8AE-IESL9W-84XPQF-G9F2LR-8FX9ZP-CPQ9ZW-1UP63RT    3TYPKX-AMQFUC-73ZZZ4-991LZT-3WAM8F-FW244D-16KLECD    3TYVTF-1839V8-5ZCCAL-RBQCPS-0MIQYV-SC0SWW-HIQ7ZZ    3TZGO2-CIQXX8-39BHBW-AWLIET-0W17ZP-8I58RP-VQEJE6    # License of controller
+@{CONVERGER_LICENSE}    LCN0UQ-ESK664-3XDZQG-MM8BK1-3HBMSJ-UUNZW7-1FCWQR7    LCN738-5DX070-5JT20N-YFR9YJ-8ODRMF-QXKVBM-7448HZ    LCNDBP-VZ9U7W-7QUC9T-POP89A-5RSOCB-U4G0CL-1NPZB6T    LCNJK7-MKMO8S-0GKAWM-2MJ9PV-78RAQP-YRBJAC-1OWW4DA    # License of converger
+
+*** Keywords ***
+Add Storage Volume
+    [Arguments]    ${storage_ip}    ${osd_name}    ${sv_type}=0    ${journal_dev}=data    ${cache_dev}=    ${spare_devs}=%5B%5D
+    ...    ${dedup}=False    ${compress}=False    ${BatFlag}=False    @{data_devs}    # BatFlag, Whether the batch mode, default value is False
+    log    sv_type vlues is : ${sv_type}
+    Run Keyword If    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
+    ...    ELSE IF    ${sv_type}==${0} and ${BatFlag}==${True}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%2C%22%2Fdev%2F@{data_devs}[1]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
+    POST    /cgi-bin/ezs3/json/storage_volume_add
+    Response Status Code Should Equal    200 OK
+
+Check ceph-mon Status
+    [Arguments]    ${host_ip}
+    log    Check if enabled ceph-mon on ${public_ip}
+    ${node1_mon_status}=    Do SSH CMD    ${host_ip}    ${USERNAME}    ${PASSWORD}    /etc/init.d/ceph status mon
+    Should Contain    ${node1_mon_status}    running
+
+Create Replication Task
+    [Arguments]    ${name}    ${type}    ${src}    ${dst}    ${src_vs}=Default    ${dst_vs}=Default
+    ...    ${server}=${REMOTE_IP}    ${autoconf}=1    ${useoplog}=0    ${schedule}=now
+    GET    /cgi-bin/ezs3/json/create_replication_task?op=create&id=&name=${name}&type=native_rbd&src_vs=Default&src=notexistpool/english&dst_vs=Default&dst=notexistpool/english&server=10.16.17.184&snapshot_max=1&autoconf=1&useoplog=0&schedule=now
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    /return_code
+
+Disable ceph-mon
+    [Documentation]    Disable ceph-mon
+    log    Disable ceph-mon
+    Return Code Should be    /cgi-bin/ezs3/json/mon_role_disable?ip=@{STORAGEIP}[2]    0
+    log    Check ceph-mon disable progress
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/mon_role_progress?ip=@{STORAGEIP}[2]&enable=false    /response/info/progress    100
+
+First Disable GW or RRS
+    [Arguments]    ${gw_or_rrs}=gw    # Default value is gw, means enable/disable gw; if enable/disable RRS, input rrs value instead.
+    [Documentation]    To enable/disable GW service, premise condition is GW has been enabled
+    log    ${gw_or_rrs} is enabled, to disable it
+    ${public_ip}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    @{PUBLICIP}[1]
+    ...    ELSE    Set Variable    @{PUBLICIP}[0]
+    ${storage_ip}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    @{STORAGEIP}[1]
+    ...    ELSE    Set Variable    @{STORAGEIP}[0]
+    ${public_iface}=    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 ${public_ip}| grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${enable_url}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    /cgi-bin/ezs3/json/gateway_role_enable?ip=${storage_ip}&public_iface=${public_iface}
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/node_role_enable_rrs?ip=${storage_ip}&public_iface=${public_iface}
+    ${disable_url}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    /cgi-bin/ezs3/json/gateway_role_disable?ip=${storage_ip}
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/node_role_disable_rrs?ip=${storage_ip}
+    log    Disable ${gw_or_rrs}
+    Return Code Should Be    ${disable_url}    0
+    log    Check wheather GW disabled success or not
+    Wait Until Keyword Succeeds    3 min    5 sec    Get GW or RRS Status    ${storage_ip}    0    ${gw_or_rrs}
+    log    Enable ${gw_or_rrs} again
+    Return Code Should Be    ${enable_url}    0
+
+First Disable ceph-mon
+    [Documentation]    Enable/Disable ceph-mon
+    log    First Disable ceph-mon
+    Return Code Should be    /cgi-bin/ezs3/json/mon_role_disable?ip=@{STORAGEIP}[2]    0
+    log    Check ceph-mon disable progress
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/mon_role_progress?ip=@{STORAGEIP}[2]&enable=false    /response/info/progress    100
+    log    Second, start to enable ceph-mon
+    Return Code Should be    /cgi-bin/ezs3/json/mon_role_enable?ip=@{STORAGEIP}[2]    0
+    log    Check ceph-mon enable progress
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/mon_role_progress?ip=@{STORAGEIP}[2]&enable=true    /response/info/progress    100
+
+First Enable GW or RRS
+    [Arguments]    ${gw_or_rrs}=gw    # 默认是对GW做操作，如需要对RRS做操作，需要传递rrs
+    [Documentation]    To enable/disable GW service, premise condition is GW has not enabled
+    log    ${gw_or_rrs} is not enabled, to enable it
+    ${public_ip}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    @{PUBLICIP}[1]
+    ...    ELSE    Set Variable    @{PUBLICIP}[0]
+    ${storage_ip}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    @{STORAGEIP}[1]
+    ...    ELSE    Set Variable    @{STORAGEIP}[0]
+    ${public_iface}=    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${enable_url}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    /cgi-bin/ezs3/json/gateway_role_enable?ip=${storage_ip}&public_iface=${public_iface}
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/node_role_enable_rrs?ip=${storage_ip}&public_iface=${public_iface}
+    ${disable_url}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    /cgi-bin/ezs3/json/gateway_role_disable?ip=${storage_ip}
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/node_role_disable_rrs?ip=${storage_ip}
+    log    Enable ${gw_or_rrs}
+    Return Code Should Be    ${enable_url}    0
+    log    Check wheather GW or RRS enabled success or not
+    Wait Until Keyword Succeeds    3 min    5 sec    Get GW or RRS Status    ${storage_ip}    2    ${gw_or_rrs}
+    log    Disable ${gw_or_rrs}
+    Return Code Should Be    ${disable_url}    0
+    log    Check wheather GW or RRS disabled success or not
+    Wait Until Keyword Succeeds    3 min    5 sec    Get GW or RRS Status    ${storage_ip}    0    ${gw_or_rrs}
+    log    Enable ${gw_or_rrs} again
+    Return Code Should Be    ${enable_url}    0
+
+First Enable ceph-mon
+    [Documentation]    Enable/Disable ceph-mon
+    log    Start to enable ceph-mon
+    Return Code Should be    /cgi-bin/ezs3/json/mon_role_enable?ip=@{STORAGEIP}[2]    0
+    log    Check ceph-mon enable progress
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/mon_role_progress?ip=@{STORAGEIP}[2]&enable=true    /response/info/progress    100
+
+Get GW or RRS Status
+    [Arguments]    ${storage_ip}    ${expect_state}    ${keywords}=gw    ${cmp_flag}=True    # ${keywords}表示获取的json中的key字段，默认gw，表示是获取的是GW的state， 如果获取RRS的state，${keywords}=rrs;
+    [Documentation]    To get GW status
+    ...    URL like this: /cgi-bin/ezs3/json/node_roles?hosts=%5B%2210.10.10.11%22%5D
+    ...    Response like this:
+    ...    {"response": [{"gw": 0, "ip": "10.10.10.11", "rrs": 0, "osd": 2}], "name": "node_roles", "return_code": 0}
+    ...
+    ...    if "gw": 0, means GW is disabled
+    ...    if "gw": 1, means GW is starting
+    ...    if "gw": 2, means GW is enabled
+    ...    if "gw": 3, means GW is stoping
+    ...    if "gw": 4, means GW stoped failed
+    ...    if "gw": 5, means GW enable failed
+    ...
+    ...    RRS status is the same as GW
+    ${result}=    Get Return Json    /cgi-bin/ezs3/json/node_roles?hosts=%5B%22${storage_ip}%22%5D
+    log    Status :${result}
+    ${result}    evaluate    ${result}
+    ${res_lists}=    Get From List    ${result}    0
+    log    Get result of list: ${res_lists}
+    ${res_state}=    Get From Dictionary    ${res_lists}    ${keywords}
+    Run Keyword If    ${cmp_flag}==${True}    Should Be Equal As Strings    ${res_state}    ${expect_state}
+    [Return]    ${res_state}
+
+Get ceph-mon Status
+    [Documentation]    Enable/Disable ceph-mon
+    log    Check if ceph-mon is enabled or disabled
+    ${get_mon_status_url}    Set Variable    /cgi-bin/ezs3/json/node_roles?hosts=%5B%22@{STORAGEIP}[2]%22%5D
+    ${mon_status}=    Get Return Json    ${get_mon_status_url}
+    log    ${mon_status}
+    ${result}    evaluate    ${mon_status}
+    ${res_lists}=    Get From List    ${result}    -1
+    log    Get result of list: ${res_lists}
+    ${res_mon_state}=    Get From Dictionary    ${res_lists}    mon
+    [Return]    ${res_mon_state}
+
+Reset Node
+    [Documentation]    Reset cluster
+    log    SSH login, reset node
+    log    Rset node1
+    ${reset_node1}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ezs3-reset-node.py
+    Should Contain    ${reset_node1}    Reboot/Reset
+    log    reboot node1
+    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    reboot
+    log    Rset node2
+    ${reset_node2}=    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}    ezs3-reset-node.py
+    Should Contain    ${reset_node2}    Reboot/Reset
+    log    reboot node2
+    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}    reboot
+    log    Rset node3
+    ${reset_node3}=    Do SSH CMD    @{PUBLICIP}[2]    ${USERNAME}    ${PASSWORD}    ezs3-reset-node.py
+    Should Contain    ${reset_node3}    Reboot/Reset
+    log    reboot node3
+    Do SSH CMD    @{PUBLICIP}[2]    ${USERNAME}    ${PASSWORD}    reboot
+    log    sleep, wait machine rebot success.
+    Wait Until Keyword Succeeds    5 min    5 sec    Do SSH CMD    @{PUBLICIP}[2]    ${USERNAME}    ${PASSWORD}
+    ...    ls
+    ${cmp_flag}    Set Variable    True
+    ${expect_result}    Set Variable    1
+    Wait Until Keyword Succeeds    5 min    5 sec    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}
+    ...    ls /var/log/syslog | wc -l    ${cmp_flag}    ${expect_result}
+    Wait Until Keyword Succeeds    5 min    5 sec    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}
+    ...    ls /var/log/syslog | wc -l    ${cmp_flag}    ${expect_result}
+    Wait Until Keyword Succeeds    5 min    5 sec    Do SSH CMD    @{PUBLICIP}[2]    ${USERNAME}    ${PASSWORD}
+    ...    ls /var/log/syslog | wc -l    ${cmp_flag}    ${expect_result}
+    ${reset_result}    Set Variable    True
+    [Return]    ${reset_result}    # True or False
+
+Wizard Enable All MON
+    log    login UI with root account on @{PUBLICIP}[1]
+    Open HTTP Connection And Log In    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}
+    Return Code Should be    /cgi-bin/ezs3/json/join_cluster?ip=@{STORAGEIP}[1]&mon_ip=@{STORAGEIP}[0]&add_mon=true    0
+    log    login UI with root account on @{PUBLICIP}[2]
+    Open HTTP Connection And Log In    @{PUBLICIP}[2]    ${USERNAME}    ${PASSWORD}
+    Return Code Should be    /cgi-bin/ezs3/json/join_cluster?ip=@{STORAGEIP}[2]&mon_ip=@{STORAGEIP}[0]&add_mon=true    0
+
+Wizard Enable Part MON
+    log    login UI with root account on @{PUBLICIP}[1]
+    Open HTTP Connection And Log In    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}
+    Return Code Should be    /cgi-bin/ezs3/json/join_cluster?ip=@{STORAGEIP}[1]&mon_ip=@{STORAGEIP}[0]&add_mon=true    0
+
+Get OSD State
+    [Arguments]    ${storage_ip}    ${osd_state}=ONLINE    ${osd_name}=
+    ${result}=    Get Return Json    /cgi-bin/ezs3/json/storage_volume_list?host=${storage_ip}
+    log    OSD enable result: ${result}
+    ${result}=    evaluate    ${result}
+    log    Length of the list
+    ${list_len}=    Get Length    ${result}
+    log    Length of the list is : ${list_len}
+    : FOR    ${i}    IN RANGE    ${list_len}
+    \    ${res_lists_tmp}=    Get From List    ${result}    ${i}
+    \    Run Keyword If    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
+    ${res_lists}=    Set Variable    ${res_lists_tmp}
+    log    Get result of list: ${res_lists}
+    ${res_osd_state}=    Get From Dictionary    ${res_lists}    state
+    Should Be Equal As Strings    ${res_osd_state}    ${osd_state}
+    [Return]    ${osd_state}
+
+Get Res Body Info
+    [Arguments]    ${request_url}
+    Log    ${request_url}
+    GET    ${request_url}
+    ${body} =    Get response body
+    log    return info is : ${body}
+    [Return]    ${body}
+
+Remove Node From Cluster
+    [Arguments]    ${storage_ip}    # The node which will be removed
+    log    Remove one host from cluster, the storage ip is : ${storage_ip}
+    ${return_code}=    Get Return Json    /cgi-bin/ezs3/json/leave_cluster?ip=${storage_ip}    /response/${storage_ip}/return_code
+    Run Keyword If    ${return_code}==1541    log    Force to remove node
+    Run Keyword If    ${return_code}==1541    Return Code Shoule Be 0    /cgi-bin/ezs3/json/kickout_host?ip=${storage_ip}
+    log    Check remove node result
+    Open All SSH Connections    ${USERNAME}    ${PASSWORD}    @{PUBLICIP}
+    Switch Connection    @{PUBLICIP}[0]
+    Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Not Contain    ceph osd tree | grep -A 1 ${storage_ip} | grep -i osd    osd
+    log    Remove node ${storage_ip} success
+
+Add Node To Cluster
+    [Arguments]    ${public_ip}    ${storage_ip}    ${node_index}
+    log    Add node ${public_ip} to cluster
+    log    SSH to ${public_ip}, then reboot it
+    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}    reboot
+    ${cmp_flag}    Set Variable    True
+    ${expect_result}    Set Variable    1
+    Wait Until Keyword Succeeds    5 min    5 sec    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}
+    ...    ls /var/log/syslog | wc -l    ${cmp_flag}    ${expect_result}
+    sleep    10
+    log    Start to add ${storage_ip} to cluster
+    Return Code Should be 0    /cgi-bin/ezs3/json/add_cluster_nodes?new_mons=${storage_ip}&new_nodes=${storage_ip}
+    ${product_info}=    Get Product Type
+    log    The product is: ${product_info}, and input license
+    Run Keyword If    '${product_info}'== 'Controller'    Input License    ${storage_ip}    @{CONTROLLER_LICENSE}[${node_index}]
+    ...    ELSE IF    '${product_info}'== 'Scaler'    Input License    ${storage_ip}    @{SCALER_LICENSE}[${node_index}]
+    ...    ELSE IF    '${product_info}'== 'Converger'    Input License    ${storage_ip}    @{CONVERGER_LICENSE}[${node_index}]
+    log    Create OSD on node: ${public_ip}
+    @{data_devs}=    Create List    sdb
+    Add Storage Volume    ${storage_ip}    osd03    0    data    \    %5B%5D
+    ...    False    False    False    @{data_devs}
+    log    Enable OSD on node : ${public_ip}
+    log    First, get network info
+    log    Get ${public_ip} public and storage network interface
+    ${node3_public_network}=    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${node3_storage_network}=    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 ${storage_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    log    ${public_ip} public : ${node3_public_network}, storage network interface : ${node3_storage_network}
+    log    Start to enable OSD on node : ${public_ip}
+    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=${storage_ip}&sv_list=osd03&cluster_iface=${node3_storage_network}&public_iface=${node3_public_network}    0
+    log    Check if OSD is enabled on node : ${public_ip}
+    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    ONLINE    osd03
+    sleep    10
+    log    End to enabled OSD on ${public_ip}
+    log    Check if cluster health status is HEALTH_OK
+    Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
+    log    Enable Gateway on ${public_ip}
+    log    Start to enable GW on node ${public_ip}
+    Return Code Should Be    /cgi-bin/ezs3/json/gateway_role_enable?ip=${storage_ip}&public_iface=${node3_public_network}
+    log    Check Gateway enabled status on node ${public_ip}
+    Wait Until Keyword Succeeds    6 min    5 sec    Get GW or RRS Status    ${storage_ip}    2    gw
+    ...    True
+    log    End to enable Gateway on each node successfully
+    Wait Until Keyword Succeeds    4 min    5 sec    Get ctdb Status
+
+Disable and Delete OSD
+    [Arguments]    ${storage_ip}    ${osd_name}
+    log    Disable OSD
+    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=${storage_ip}&sv_list=${osd_name}&force=true    0
+    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    OFFLINE    ${osd_name}
+    sleep    10
+    log    Delete OSD
+    ${del_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
+    ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
+    POST Request    ${del_osd_body}    ${delete_osd_url}
+    sleep    5
+
+Get Cluster Health Status
+    [Documentation]    To get cluster current health status
+    ${health_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph health detail
+    Should Be Equal    ${health_status}    HEALTH_OK
+    [Return]    ${health_status}
+
+Enable GW or RRS
+    [Arguments]    ${public_ip}    ${storage_ip}    ${gw_or_rrs}=gw    # 默认是对GW做操作，如需要对RRS做操作，需要传递rrs
+    [Documentation]    To enable/disable GW service, premise condition is GW has not enabled
+    log    Start to enable ${gw_or_rrs} on node ${public_ip}
+    log    Get public interface info on node ${public_ip}
+    ${public_iface}=    Do SSH CMD    ${public_ip}    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    log    public interface is : ${public_iface}
+    ${enable_url}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    /cgi-bin/ezs3/json/gateway_role_enable?ip=${storage_ip}&public_iface=${public_iface}
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/node_role_enable_rrs?ip=${storage_ip}&public_iface=${public_iface}
+    ${disable_url}    Run Keyword If    '${gw_or_rrs}'=='gw'    Set Variable    /cgi-bin/ezs3/json/gateway_role_disable?ip=${storage_ip}
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/node_role_disable_rrs?ip=${storage_ip}
+    log    Enable ${gw_or_rrs}
+    Return Code Should Be    ${enable_url}    0
+    log    Check wheather GW or RRS enabled success or not
+    Wait Until Keyword Succeeds    3 min    5 sec    Get GW or RRS Status    ${storage_ip}    2    ${gw_or_rrs}
+
+Delete OSD
+    [Arguments]    ${storage_ip}    ${osd_name}
+    log    Delete OSD
+    ${del_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
+    ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
+    POST Request    ${del_osd_body}    ${delete_osd_url}
+    sleep    5

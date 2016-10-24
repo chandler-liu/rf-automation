@@ -1,0 +1,4 @@
+*** Settings ***
+Resource          00_commonconfig.txt
+
+*** Keywords ***

@@ -1,0 +1,93 @@
+*** Settings ***
+Documentation     This robot file includes all common keywords related to virtual storage
+Library           SSHLibrary
+Library           HttpLibrary.HTTP
+
+*** Keywords ***
+Add Replicted Pool
+    [Arguments]    ${pool_name}    ${rep_num}    ${osd_ids}
+    Return Code Should be 0    /cgi-bin/ezs3/json/pool_create?pool_name=${pool_name}&pool_type=1&settings=%7B%22r%22%3A%22${rep_num}%22%7D
+    Return Code Should be 0    /cgi-bin/ezs3/json/auto_reweight_set?pool=${pool_name}&threshold=0
+    Return Code Should be 0    /cgi-bin/ezs3/json/pool_add_node?pool_id=${pool_name}&node_ids=${osd_ids}
+
+Add Shared Folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=    ${pool}=Default
+    ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_path}=    ${migrate_copyup}=open
+    ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
+    Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+
+Add Virtual Storage
+    [Arguments]    ${vs_name}    ${vs_pool}    ${vs_gateway}
+    Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_create?name=${vs_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/sds_set_pool?gateway_group=${vs_name}&pool_list=${vs_pool}
+    Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_assign?group=${vs_name}&hosts=${vs_gateway}
+
+Add iSCSI Target
+    [Arguments]    ${gateway_group}=Default    ${target_id}=    ${pool_id}=Default
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_target?gateway_group=${gateway_group}&target_id=${target_id}&pool_id=${pool_id}
+
+Add iSCSI Volume
+    [Arguments]    ${gateway_group}=Default    ${pool_id}=Default    ${target_id}=    ${iscsi_id}=    ${size}=    ${allowed_initiators}=
+    ...    ${qos_enabled}=false    ${snapshot_enabled}=false
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add?allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+
+Assign Gateway to Virtual Storage
+    [Arguments]    ${vs_name}    ${gateway_ip}
+    Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_assign?group=${vs_name}&hosts=${gateway_ip}
+
+Assign Pool to Virtual Storage
+    [Arguments]    ${vs_name}    ${pool_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/sds_set_pool?gateway_group=${vs_name}&pool_list=${pool_name}
+
+Ctdb Should Be OK
+    [Arguments]    ${ok_num}
+    ${output}=    Execute Command    ctdb status
+    Should Contain X Times    ${output}    OK    ${ok_num}
+
+Delete Pool
+    [Arguments]    ${pool_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}
+
+Delete Shared Folder
+    [Arguments]    ${vs_name}    ${folder_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${folder_name}&gateway_group=${vs_name}
+
+Delete iSCSI LUN
+    [Arguments]    ${vs_name}    ${iscsi_target_name}    ${iscsi_lun_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_remove?gateway_group=${vs_name}&iscsi_id_list=${iscsi_lun_name}&target_id=${iscsi_target_name}
+
+Delete iSCSI Target
+    [Arguments]    ${vs_name}    ${iscsi_target_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_remove_target?gateway_group=${vs_name}&target_id=${iscsi_target_name}
+
+Disable Shared Folder
+    [Arguments]    ${name_list}    ${gateway_group}=Default
+    Return Code Should be 0    /cgi-bin/ezs3/json/disable_multi_shared_folder?name_list=${name_list}&gateway_group=${gateway_group}
+
+Disable iSCSI LUN
+    [Arguments]    ${vs_name}    ${iscsi_target_name}    ${iscsi_lun_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_disable?gateway_group=${vs_name}&iscsi_id_list=${iscsi_lun_name}&target_id=${iscsi_target_name}
+
+Enable Shared Folder
+    [Arguments]    ${name_list}    ${gateway_group}=Default
+    Return Code Should be 0    /cgi-bin/ezs3/json/enable_multi_shared_folder?name_list=${name_list}&gateway_group=${gateway_group}
+
+Enable iSCSI LUN
+    [Arguments]    ${vs_name}    ${iscsi_target_name}    ${iscsi_lun_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_enable?gateway_group=${vs_name}&iscsi_id_list=${iscsi_lun_name}&target_id=${iscsi_target_name}
+
+Modify Shared Folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=
+    Post Return Code Should be 0    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}    /cgi-bin/ezs3/json/edit_shared_folder
+
+Modify iSCSI LUN
+    [Arguments]    ${allowed_initiators}=    ${gateway_group}=Default    ${iscsi_id}=    ${qos_enabled}=false    ${size}=    ${snapshot_enabled}=false
+    ...    ${target_id}=
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_change?allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+
+Remove Virtual Storage
+    [Arguments]    ${vs_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_delete?name=${vs_name}
+

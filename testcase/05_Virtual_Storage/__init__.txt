@@ -1,0 +1,4 @@
+*** Settings ***
+Resource          ../00_commonconfig.txt
+Resource          ../00_commonkeyword.txt
+Resource          00_virtual_storage_keyword.txt
