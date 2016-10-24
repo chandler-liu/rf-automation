@@ -35,7 +35,7 @@ while [ $downisoflag = 1 -a $retry -lt 3 ]; do
     ## Check md5sum ##
     echo Start to check md5
     isomd5sum=`md5sum daily.iso | awk '{print $1}'`
-    expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/lastSuccessfulBuild/archive/*.iso" | awk '{print $1}'`
+    expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/lastSuccessful/archive/*.iso" | awk '{print $1}'`
     echo Download: $isomd5sum, Server: $expectedmd5sum
     if [ "$isomd5sum" != "$expectedmd5sum" ]; then
         echo "File md5sum check is failed!!!"
