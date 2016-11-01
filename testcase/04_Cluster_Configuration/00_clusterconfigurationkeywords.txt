@@ -1,0 +1,82 @@
+*** Settings ***
+Library           SSHLibrary
+Library           HttpLibrary.HTTP
+
+*** Keywords ***
+Create Pool
+    [Arguments]    ${pool_type}    ${pool_name}=None
+    ${settings}    Run Keyword if    ${pool_type}==1    Set Variable    %7B%22r%22%3A%222%22%7D
+    ...    ELSE    Set Variable    %7B%22k%22%3A%222%22%2C%22m%22%3A%221%22%7D
+    ${create_pool_url}    set variable    /cgi-bin/ezs3/json/pool_create?pool_name=${pool_name}&pool_type=${pool_type}&settings=${settings}
+    log    create pool url is : ${create_pool_url}
+    log    Create pool ${pool_name}
+    Return Code Should be 0    ${create_pool_url}
+
+Add OSD To Pool
+    [Arguments]    ${pool_name}=None    ${node_ids}=None
+    log    Add OSD into pool ${pool_name}
+    ${node_ids}    Run Keyword If    ${node_ids}==0    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==1    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==2    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==0+1    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==0+1+2    Set Variable    ${node_ids}
+    ${add_osd_into_pool}    set variable    /cgi-bin/ezs3/json/pool_add_node?pool_id=${pool_name}&node_ids=${node_ids}
+    Return Code Should be 0    ${add_osd_into_pool}
+    log    Check pool created result
+    ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools | grep ${pool_name}
+    Should Be Equal As Strings    ${dump_pool_name}    ${pool_name}
+
+Delete Pool
+    [Arguments]    ${pool_name}
+    ${del_pool_url}    set variable    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}
+    Return Code Should be 0    ${del_pool_url}
+    log    Check if pool is deleted
+    ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools
+    Should Not Contain    ${dump_pool_name}    ${pool_name}
+    log    Delete pool ${pool_name} success
+
+Get Cluster Health Status
+    [Documentation]    To get cluster current health status
+    ${health_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph health detail
+    Should Be Equal    ${health_status}    HEALTH_OK
+    [Return]    ${health_status}
+
+Remove OSD From Pool
+    [Arguments]    ${pool_name}=None    ${node_ids}=None
+    log    Remove OSD from pool ${pool_name}
+    ${node_ids}    Run Keyword If    ${node_ids}==0    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==1    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==2    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==0+1    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==0+1+2    Set Variable    ${node_ids}
+    ${remove_osd_from_pool}    set variable    /cgi-bin/ezs3/json/pool_del_node?pool_id=${pool_name}&node_ids=${node_ids}
+    Return Code Should be 0    ${remove_osd_from_pool}
+    log    Check osd remove from pool result
+    ${osd_nums_in_pool}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd tree | sed -n "/pool ${pool_name}/,/pool /p" |grep "osd" | grep up| wc -l
+    log    After remove OSD from pool ${pool_name}. OSD numbers in pool ${pool_name} is 2, before is 3
+    Should Be Equal As Strings    ${osd_nums_in_pool}    2
+
+Modify Pool Replication NO
+    [Arguments]    ${pool_name}    ${pool_type}    ${r}=2    ${cachesize}=0    ${dirtyratio}=0    ${fullratio}=0
+    ...    ${k}=2    ${m}=1
+    [Documentation]    Edit replication number of replicated pool
+    ${settings}    Run Keyword if    ${pool_type}==1    Set Variable    %7B%22r%22%3A%22${r}%22%2C%22cachesize%22%3A${cachesize}%2C%22dirtyratio%22%3A${dirtyratio}%2C%22fullratio%22%3A${fullratio}%7D
+    ...    ELSE    Set Variable    %7B%22k%22%3A%22${k}%22%2C%22m%22%3A%22${m}%22%7D
+    ${pool_modify_url}    set variable    /cgi-bin/ezs3/json/pool_modify?pool_name=${pool_name}&pool_type=${pool_type}&settings=${settings}
+    log    Modify pool url is : ${pool_modify_url}
+    log    Modify pool ${pool_name}
+    Return Code Should be 0    ${pool_modify_url}
+    log    Check if modify success or not
+    ${pool_replicate_no}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name}| awk -F " " '{print $6}'| sed 's/ //g'
+    Should Be Equal As Strings    ${pool_replicate_no}    ${r}
+
+Set Pool Quota
+    [Arguments]    ${pool_name}    ${quota}
+    [Documentation]    Edit replication number of replicated pool
+    ${set_pool_quota_url}    set variable    /cgi-bin/ezs3/json/pool_set_quota?pool_name=${pool_name}&quota=${quota}
+    log    Set pool quota url is : ${set_pool_quota_url}
+    log    Start to set pool quota for ${pool_name}
+    Return Code Should be 0    ${set_pool_quota_url}
+    log    Check if set pool quota success or not
+    ${pool_max_bytes}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name} | awk -F "max_bytes" '{print $2}' | awk -F " " '{print $1}' | sed 's/ //g'
+    Should Be Equal As Strings    ${pool_max_bytes}    ${quota}
