@@ -80,3 +80,113 @@ Set Pool Quota
     log    Check if set pool quota success or not
     ${pool_max_bytes}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name} | awk -F "max_bytes" '{print $2}' | awk -F " " '{print $1}' | sed 's/ //g'
     Should Be Equal As Strings    ${pool_max_bytes}    ${quota}
+
+Create And Get S3 Account
+    [Arguments]    ${account_name}
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
+    Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${account_name}&display_name=${account_name}&email=${account_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
+    ${access_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep access_key | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    ${secret_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep secret_key |head -1 | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    @{key_list}    Create List    ${access_key}    ${secret_key}
+    [Return]    @{key_list}
+
+Config S3Config
+    [Arguments]    ${account_name}    ${bucket_name}=s3://bucketAutomation
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
+    Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${account_name}&display_name=${account_name}&email=${account_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
+    ${access_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep access_key | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    ${secret_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep secret_key |head -1 | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    log    Create .s3cfg on node @{PUBLICIP}[0]
+    open Connection    @{PUBLICIP}[0]
+    Login    ${USERNAME}    ${PASSWORD}
+    sleep    2
+    log    Do s3cmd --configure
+    ${writen}=    Write    s3cmd --configure
+    sleep    5
+    ${out_put}=    Read Until    Access Key:
+    Write    ${access_key}
+    sleep    1
+    ${out_put}=    Read Until    Secret Key:
+    Write    ${secret_key}
+    sleep    1
+    ${out_put}=    Read Until    Encryption password:
+    Write    Encryption
+    sleep    1
+    ${out_put}=    Read Until    Path to GPG program [/usr/bin/gpg]:
+    Write    /usr/bin/gpg
+    sleep    1
+    ${out_put}=    Read Until    Use HTTPS protocol [No]:
+    Write    No
+    sleep    1
+    ${out_put}=    Read Until    HTTP Proxy server name:
+    Write    ProxyName
+    sleep    1
+    ${out_put}=    Read Until    HTTP Proxy server port [3128]
+    Write    312888
+    sleep    1
+    ${out_put}=    Read Until    Test access with supplied credentials? [Y/n]
+    Write    n
+    sleep    1
+    ${out_put}=    Read Until    Save settings? [y/N]
+    Write    y
+    log    Edit .s3cfg
+    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    sed -i "s/proxy_host = ProxyName/proxy_host =/" .s3cfg;sed -i "s/proxy_port = 312888/proxy_port = 0/" .s3cfg;sed -i "s/gpg_passphrase = Encryption/gpg_passphrase =/" .s3cfg;sed -i "s/s3.amazonaws.com/@{PUBLICIP}[0]/" .s3cfg
+    log    Check if set s3 config success or not
+    ${s3cmd_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
+    Should Be Empty    ${s3cmd_output}
+    log    scp .s3cfg to other node
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    scp .s3cfg root@@{PUBLICIP}[1]:/root/; scp .s3cfg root@@{PUBLICIP}[2]:/root/
+
+Input Data To Bucket
+    [Arguments]    ${bucket_name}=s3://bucketAutomation
+    log    Input data to bucket of ${bucket_name}
+    open Connection    @{PUBLICIP}[0]
+    Login    ${USERNAME}    ${PASSWORD}
+    sleep    2
+    log    put /var/log/ceph/ceph.log to bucket: ${bucket_name}
+    Write    s3cmd put /var/log/ceph/ceph.log ${bucket_name}
+    ${out_put}=    Read    delay=10s
+    log    =====${out_put}=====
+
+Get Objects By Pool
+    [Arguments]    ${pool_name}
+    ${objects_in_pool}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${pool_name} | head -n 1 | awk -F " " '{print $NF}'
+    [Return]    ${objects_in_pool}
+
+Delete Bucket
+    [Arguments]    ${bucket_name}    ${file_name}=ceph.log
+    log    Delete bucket ${bucket_name}
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd del ${bucket_name}/${file_name};s3cmd rb ${bucket_name}
+
+Create Bucket
+    [Arguments]    ${bucket_name}=s3://bucketAutomation
+    log    Create bucket
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd mb ${bucket_name}
+    log    Check create bucket result
+    ${bucket_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
+    Should Contain    ${bucket_output}    ${bucket_name}
+
+Add Cache Pool
+    [Arguments]    ${base_pool_name}    ${cache_pool_name}
+    log    Add ${cache_pool_name} to ${base_pool_name} as cache pool
+    Return Code Should Be 0    /cgi-bin/ezs3/json/pool_add_cache_pool?base_pool=${base_pool_name}&cache_pool=${cache_pool_name}&cache_size=21474836480&dirty_ratio=40&full_ratio=80
+    log    Check Add cache pool result
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/query_progress?ticket=pool.add_cache    /response/info/progress    100
+
+Remove Cache Pool
+    [Arguments]    ${base_pool_name}    ${cache_pool_name}
+    log    Remove cache pool ${cache_pool_name} from ${base_pool_name}
+    Return Code Should Be 0    /cgi-bin/ezs3/json/pool_remove_cache_pool?base_pool=${base_pool_name}&cache_pool=${cache_pool_name}
+    log    Check remove cache pool from base pool result
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/query_progress?ticket=pool.remove_cache    /response/info/progress    100
+
+Add Shared Folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=    ${pool}=Default
+    ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_path}=    ${migrate_copyup}=open
+    ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
+    Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+
+Delete Shared Folder
+    [Arguments]    ${vs_name}    ${folder_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${folder_name}&gateway_group=${vs_name}
