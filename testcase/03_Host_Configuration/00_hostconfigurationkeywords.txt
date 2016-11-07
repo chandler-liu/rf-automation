@@ -9,15 +9,6 @@ Library           Collections
 @{CONVERGER_LICENSE}    LCN0UQ-ESK664-3XDZQG-MM8BK1-3HBMSJ-UUNZW7-1FCWQR7    LCN738-5DX070-5JT20N-YFR9YJ-8ODRMF-QXKVBM-7448HZ    LCNDBP-VZ9U7W-7QUC9T-POP89A-5RSOCB-U4G0CL-1NPZB6T    LCNJK7-MKMO8S-0GKAWM-2MJ9PV-78RAQP-YRBJAC-1OWW4DA    # License of converger
 
 *** Keywords ***
-Add Storage Volume
-    [Arguments]    ${storage_ip}    ${osd_name}    ${sv_type}=0    ${journal_dev}=data    ${cache_dev}=    ${spare_devs}=%5B%5D
-    ...    ${dedup}=False    ${compress}=False    ${BatFlag}=False    @{data_devs}    # BatFlag, Whether the batch mode, default value is False
-    log    sv_type vlues is : ${sv_type}
-    Run Keyword If    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
-    ...    ELSE IF    ${sv_type}==${0} and ${BatFlag}==${True}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%2C%22%2Fdev%2F@{data_devs}[1]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
-    POST    /cgi-bin/ezs3/json/storage_volume_add
-    Response Status Code Should Equal    200 OK
-
 Check ceph-mon Status
     [Arguments]    ${host_ip}
     log    Check if enabled ceph-mon on ${public_ip}
@@ -181,23 +172,6 @@ Wizard Enable Part MON
     Open HTTP Connection And Log In    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}
     Return Code Should be    /cgi-bin/ezs3/json/join_cluster?ip=@{STORAGEIP}[1]&mon_ip=@{STORAGEIP}[0]&add_mon=true    0
 
-Get OSD State
-    [Arguments]    ${storage_ip}    ${osd_state}=ONLINE    ${osd_name}=
-    ${result}=    Get Return Json    /cgi-bin/ezs3/json/storage_volume_list?host=${storage_ip}
-    log    OSD enable result: ${result}
-    ${result}=    evaluate    ${result}
-    log    Length of the list
-    ${list_len}=    Get Length    ${result}
-    log    Length of the list is : ${list_len}
-    : FOR    ${i}    IN RANGE    ${list_len}
-    \    ${res_lists_tmp}=    Get From List    ${result}    ${i}
-    \    Run Keyword If    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
-    ${res_lists}=    Set Variable    ${res_lists_tmp}
-    log    Get result of list: ${res_lists}
-    ${res_osd_state}=    Get From Dictionary    ${res_lists}    state
-    Should Be Equal As Strings    ${res_osd_state}    ${osd_state}
-    [Return]    ${osd_state}
-
 Get Res Body Info
     [Arguments]    ${request_url}
     Log    ${request_url}
@@ -262,24 +236,6 @@ Add Node To Cluster
     log    End to enable Gateway on each node successfully
     Wait Until Keyword Succeeds    4 min    5 sec    Get ctdb Status
 
-Disable and Delete OSD
-    [Arguments]    ${storage_ip}    ${osd_name}
-    log    Disable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=${storage_ip}&sv_list=${osd_name}&force=true    0
-    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    OFFLINE    ${osd_name}
-    sleep    10
-    log    Delete OSD
-    ${del_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
-    ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
-    POST Request    ${del_osd_body}    ${delete_osd_url}
-    sleep    5
-
-Get Cluster Health Status
-    [Documentation]    To get cluster current health status
-    ${health_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph health detail
-    Should Be Equal    ${health_status}    HEALTH_OK
-    [Return]    ${health_status}
-
 Enable GW or RRS
     [Arguments]    ${public_ip}    ${storage_ip}    ${gw_or_rrs}=gw    # 默认是对GW做操作，如需要对RRS做操作，需要传递rrs
     [Documentation]    To enable/disable GW service, premise condition is GW has not enabled
@@ -295,11 +251,3 @@ Enable GW or RRS
     Return Code Should Be    ${enable_url}    0
     log    Check wheather GW or RRS enabled success or not
     Wait Until Keyword Succeeds    3 min    5 sec    Get GW or RRS Status    ${storage_ip}    2    ${gw_or_rrs}
-
-Delete OSD
-    [Arguments]    ${storage_ip}    ${osd_name}
-    log    Delete OSD
-    ${del_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
-    ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
-    POST Request    ${del_osd_body}    ${delete_osd_url}
-    sleep    5
