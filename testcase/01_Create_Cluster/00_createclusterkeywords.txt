@@ -11,15 +11,6 @@ Library           OperatingSystem
 ${NTPSERVER}      202.108.6.95
 
 *** Keywords ***
-Add Storage Volume
-    [Arguments]    ${storage_ip}    ${osd_name}    ${sv_type}=0    ${journal_dev}=data    ${cache_dev}=    ${spare_devs}=%5B%5D
-    ...    ${dedup}=False    ${compress}=False    ${BatFlag}=False    @{data_devs}    # \ BatFlag, Whether the batch mode, default value is False
-    log    sv_type vlues is : ${sv_type}
-    Run Keyword If    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
-    ...    ELSE IF    ${sv_type}==${0} and ${BatFlag}==${True}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%2C%22%2Fdev%2F@{data_devs}[1]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
-    POST    /cgi-bin/ezs3/json/storage_volume_add
-    Response Status Code Should Equal    200 OK
-
 Get Create Cluster Progress
     ${time_stamp}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    cat /var/log/ezcloudstor/ezarpc.log| grep "node.join_cluster has been updated with info {'progress': 100}" | sort -rn | head -1 | awk -F " " '{print $1,$2}' | sed 's/\\[/\"/' | sed 's/\\]/\"/'
     log    ${time_stamp}
@@ -34,12 +25,6 @@ Get Create Cluster Progress
     ...    ELSE    Set Variable    True
     Should Be Equal    ${check_progress}    True
     [Return]    ${check_progress}
-
-Get Cluster Health Status
-    [Documentation]    To get cluster current health status
-    ${health_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph health detail
-    Should Be Equal    ${health_status}    HEALTH_OK
-    [Return]    ${health_status}
 
 Wizard Enable All MON
     log    login UI with root account on @{PUBLICIP}[1]
@@ -67,23 +52,6 @@ Create Cluster
     log    To check create cluster process
     Return Code Should be    /cgi-bin/ezs3/json/add_cluster_nodes_progress    0
     Wait Until Keyword Succeeds    4 min    5 sec    Get Create Cluster Progress
-
-Get OSD State
-    [Arguments]    ${storage_ip}    ${osd_state}=ONLINE    ${osd_name}=
-    ${result}=    Get Return Json    /cgi-bin/ezs3/json/storage_volume_list?host=${storage_ip}
-    log    OSD enable result: ${result}
-    ${result}=    evaluate    ${result}
-    log    Length of the list
-    ${list_len}=    Get Length    ${result}
-    log    Length of the list is : ${list_len}
-    : FOR    ${i}    IN RANGE    ${list_len}
-    \    ${res_lists_tmp}=    Get From List    ${result}    ${i}
-    \    Run Keyword If    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
-    ${res_lists}=    Set Variable    ${res_lists_tmp}
-    log    Get result of list: ${res_lists}
-    ${res_osd_state}=    Get From Dictionary    ${res_lists}    state
-    Should Be Equal As Strings    ${res_osd_state}    ${osd_state}
-    [Return]    ${osd_state}
 
 Get GW or RRS Status
     [Arguments]    ${storage_ip}    ${expect_state}    ${keywords}=gw    ${cmp_flag}=True    # ${keywords}表示获取的json中的key字段，默认gw，表示是获取的是GW的state， 如果获取RRS的state，${keywords}=rrs;
