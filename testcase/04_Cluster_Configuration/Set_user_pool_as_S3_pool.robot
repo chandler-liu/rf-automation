@@ -1,7 +1,8 @@
 *** Settings ***
 Documentation     This suite includes cases related to general cases about Set user pool as S3 pool
 Suite Setup       Config S3Config    s3_account
-Suite Teardown    Delete Bucket    s3://bucketAutomation
+Suite Teardown    Run Keywords    Delete Bucket    s3://bucketAutomation
+...               AND    Delete User and Clean s3cfg    s3_account
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_clusterconfigurationkeywords.txt
