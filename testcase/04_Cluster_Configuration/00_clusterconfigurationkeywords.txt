@@ -3,14 +3,12 @@ Library           SSHLibrary
 Library           HttpLibrary.HTTP
 
 *** Keywords ***
-Create Pool
-    [Arguments]    ${pool_type}    ${pool_name}=None
-    ${settings}    Run Keyword if    ${pool_type}==1    Set Variable    %7B%22r%22%3A%222%22%7D
-    ...    ELSE    Set Variable    %7B%22k%22%3A%222%22%2C%22m%22%3A%221%22%7D
-    ${create_pool_url}    set variable    /cgi-bin/ezs3/json/pool_create?pool_name=${pool_name}&pool_type=${pool_type}&settings=${settings}
-    log    create pool url is : ${create_pool_url}
-    log    Create pool ${pool_name}
-    Return Code Should be 0    ${create_pool_url}
+Add Cache Pool
+    [Arguments]    ${base_pool_name}    ${cache_pool_name}
+    log    Add ${cache_pool_name} to ${base_pool_name} as cache pool
+    Return Code Should Be 0    /cgi-bin/ezs3/json/pool_add_cache_pool?base_pool=${base_pool_name}&cache_pool=${cache_pool_name}&cache_size=21474836480&dirty_ratio=40&full_ratio=80
+    log    Check Add cache pool result
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/query_progress?ticket=pool.add_cache    /response/info/progress    100
 
 Add OSD To Pool
     [Arguments]    ${pool_name}=None    ${node_ids}=None
@@ -26,63 +24,12 @@ Add OSD To Pool
     ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools | grep ${pool_name}
     Should Be Equal As Strings    ${dump_pool_name}    ${pool_name}
 
-Delete Pool
-    [Arguments]    ${pool_name}
-    ${del_pool_url}    set variable    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}
-    Return Code Should be 0    ${del_pool_url}
-    log    Check if pool is deleted
-    ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools
-    Should Not Contain    ${dump_pool_name}    ${pool_name}
-    log    Delete pool ${pool_name} success
-
-Remove OSD From Pool
-    [Arguments]    ${pool_name}=None    ${node_ids}=None
-    log    Remove OSD from pool ${pool_name}
-    ${node_ids}    Run Keyword If    ${node_ids}==0    Set Variable    ${node_ids}
-    ...    ELSE IF    ${node_ids}==1    Set Variable    ${node_ids}
-    ...    ELSE IF    ${node_ids}==2    Set Variable    ${node_ids}
-    ...    ELSE IF    ${node_ids}==0+1    Set Variable    ${node_ids}
-    ...    ELSE IF    ${node_ids}==0+1+2    Set Variable    ${node_ids}
-    ${remove_osd_from_pool}    set variable    /cgi-bin/ezs3/json/pool_del_node?pool_id=${pool_name}&node_ids=${node_ids}
-    Return Code Should be 0    ${remove_osd_from_pool}
-    log    Check osd remove from pool result
-    ${osd_nums_in_pool}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd tree | sed -n "/pool ${pool_name}/,/pool /p" |grep "osd" | grep up| wc -l
-    log    After remove OSD from pool ${pool_name}. OSD numbers in pool ${pool_name} is 2, before is 3
-    Should Be Equal As Strings    ${osd_nums_in_pool}    2
-
-Modify Pool Replication NO
-    [Arguments]    ${pool_name}    ${pool_type}    ${r}=2    ${cachesize}=0    ${dirtyratio}=0    ${fullratio}=0
-    ...    ${k}=2    ${m}=1
-    [Documentation]    Edit replication number of replicated pool
-    ${settings}    Run Keyword if    ${pool_type}==1    Set Variable    %7B%22r%22%3A%22${r}%22%2C%22cachesize%22%3A${cachesize}%2C%22dirtyratio%22%3A${dirtyratio}%2C%22fullratio%22%3A${fullratio}%7D
-    ...    ELSE    Set Variable    %7B%22k%22%3A%22${k}%22%2C%22m%22%3A%22${m}%22%7D
-    ${pool_modify_url}    set variable    /cgi-bin/ezs3/json/pool_modify?pool_name=${pool_name}&pool_type=${pool_type}&settings=${settings}
-    log    Modify pool url is : ${pool_modify_url}
-    log    Modify pool ${pool_name}
-    Return Code Should be 0    ${pool_modify_url}
-    log    Check if modify success or not
-    ${pool_replicate_no}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name}| awk -F " " '{print $6}'| sed 's/ //g'
-    Should Be Equal As Strings    ${pool_replicate_no}    ${r}
-
-Set Pool Quota
-    [Arguments]    ${pool_name}    ${quota}
-    [Documentation]    Edit replication number of replicated pool
-    ${set_pool_quota_url}    set variable    /cgi-bin/ezs3/json/pool_set_quota?pool_name=${pool_name}&quota=${quota}
-    log    Set pool quota url is : ${set_pool_quota_url}
-    log    Start to set pool quota for ${pool_name}
-    Return Code Should be 0    ${set_pool_quota_url}
-    log    Check if set pool quota success or not
-    ${pool_max_bytes}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name} | awk -F "max_bytes" '{print $2}' | awk -F " " '{print $1}' | sed 's/ //g'
-    Should Be Equal As Strings    ${pool_max_bytes}    ${quota}
-
-Create And Get S3 Account
-    [Arguments]    ${account_name}
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
-    Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${account_name}&display_name=${account_name}&email=${account_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
-    ${access_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep access_key | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
-    ${secret_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep secret_key |head -1 | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
-    @{key_list}    Create List    ${access_key}    ${secret_key}
-    [Return]    @{key_list}
+Add Shared Folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=    ${pool}=Default
+    ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_path}=    ${migrate_copyup}=open
+    ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
+    Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
 
 Config S3Config
     [Arguments]    ${account_name}    ${bucket_name}=s3://bucketAutomation
@@ -131,26 +78,14 @@ Config S3Config
     log    scp .s3cfg to other node
     DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    scp .s3cfg root@@{PUBLICIP}[1]:/root/; scp .s3cfg root@@{PUBLICIP}[2]:/root/
 
-Input Data To Bucket
-    [Arguments]    ${bucket_name}=s3://bucketAutomation
-    log    Input data to bucket of ${bucket_name}
-    open Connection    @{PUBLICIP}[0]
-    Login    ${USERNAME}    ${PASSWORD}
-    sleep    2
-    log    put /var/log/ceph/ceph.log to bucket: ${bucket_name}
-    Write    s3cmd put /var/log/ceph/ceph.log ${bucket_name}
-    ${out_put}=    Read    delay=10s
-    log    =====${out_put}=====
-
-Get Objects By Pool
-    [Arguments]    ${pool_name}
-    ${objects_in_pool}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${pool_name} | head -n 1 | awk -F " " '{print $NF}'
-    [Return]    ${objects_in_pool}
-
-Delete Bucket
-    [Arguments]    ${bucket_name}    ${file_name}=ceph.log
-    log    Delete bucket ${bucket_name}
-    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd del ${bucket_name}/${file_name};s3cmd rb ${bucket_name}
+Create And Get S3 Account
+    [Arguments]    ${account_name}
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
+    Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${account_name}&display_name=${account_name}&email=${account_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
+    ${access_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep access_key | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    ${secret_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep secret_key |head -1 | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    @{key_list}    Create List    ${access_key}    ${secret_key}
+    [Return]    @{key_list}
 
 Create Bucket
     [Arguments]    ${bucket_name}=s3://bucketAutomation
@@ -160,51 +95,40 @@ Create Bucket
     ${bucket_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
     Should Contain    ${bucket_output}    ${bucket_name}
 
-Add Cache Pool
-    [Arguments]    ${base_pool_name}    ${cache_pool_name}
-    log    Add ${cache_pool_name} to ${base_pool_name} as cache pool
-    Return Code Should Be 0    /cgi-bin/ezs3/json/pool_add_cache_pool?base_pool=${base_pool_name}&cache_pool=${cache_pool_name}&cache_size=21474836480&dirty_ratio=40&full_ratio=80
-    log    Check Add cache pool result
-    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/query_progress?ticket=pool.add_cache    /response/info/progress    100
+Create Pool
+    [Arguments]    ${pool_type}    ${pool_name}=None
+    ${settings}    Run Keyword if    ${pool_type}==1    Set Variable    %7B%22r%22%3A%222%22%7D
+    ...    ELSE    Set Variable    %7B%22k%22%3A%222%22%2C%22m%22%3A%221%22%7D
+    ${create_pool_url}    set variable    /cgi-bin/ezs3/json/pool_create?pool_name=${pool_name}&pool_type=${pool_type}&settings=${settings}
+    log    create pool url is : ${create_pool_url}
+    log    Create pool ${pool_name}
+    Return Code Should be 0    ${create_pool_url}
 
-Remove Cache Pool
-    [Arguments]    ${base_pool_name}    ${cache_pool_name}
-    log    Remove cache pool ${cache_pool_name} from ${base_pool_name}
-    Return Code Should Be 0    /cgi-bin/ezs3/json/pool_remove_cache_pool?base_pool=${base_pool_name}&cache_pool=${cache_pool_name}
-    log    Check remove cache pool from base pool result
-    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/query_progress?ticket=pool.remove_cache    /response/info/progress    100
+Delete Bucket
+    [Arguments]    ${bucket_name}    ${file_name}=ceph.log
+    log    Delete bucket ${bucket_name}
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd del ${bucket_name}/${file_name};s3cmd rb ${bucket_name}
 
-Add Shared Folder
-    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
-    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=    ${pool}=Default
-    ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_path}=    ${migrate_copyup}=open
-    ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
-    Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+Delete Pool
+    [Arguments]    ${pool_name}
+    ${del_pool_url}    set variable    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}
+    Return Code Should be 0    ${del_pool_url}
+    log    Check if pool is deleted
+    ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools
+    Should Not Contain    ${dump_pool_name}    ${pool_name}
+    log    Delete pool ${pool_name} success
 
 Delete Shared Folder
     [Arguments]    ${vs_name}    ${folder_name}
     Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${folder_name}&gateway_group=${vs_name}
 
-Enable OSD Auto-reweight
-    [Arguments]    ${pool_name}=Default    ${threshold}=0
-    ${set_reweight_url}=    Set Variable    /cgi-bin/ezs3/json/auto_reweight_set?pool=${pool_name}&threshold=${threshold}
-    Return Code Should Be 0    ${set_reweight_url}
-    log    Query info from kvstore
-    ${threshold_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph config-key get pool.${pool_name}.reweight_threshold
-    Should Contain    ${threshold_output}    {"threshold": ${threshold}}
-    log    Query kvstore of pool.${pool_name}.rewright_threshold success!
-
-Enable Disable PG Split
-    [Arguments]    ${enable_pg_split}    ${pool_name}=Default
-    ${pg_split_url}=    Set Variable    /cgi-bin/ezs3/json/pool_set_pg_split?pool=${pool_name}&enable_pg_split=${enable_pg_split}
-    log    ${pg_split_url}
-    ${query_pool_name}=    Run Keyword If    '${pool_name}'=='Default'    Set Variable    data
-    ...    ELSE    ${pool_name}
-    Run Keyword If    '${enable_pg_split}'=='true'    log    Enable pg split for pool ${pool_name}
-    ...    ELSE    log    Disable pg split for pool ${pool_name}
-    log    Check set pg split result
-    ${pg_split_res}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph config-key get pool.${pool_name}.pg_split_enable
-    Should Contain    {"pg_split_enable": "${enable_pg_split}"}    ${pg_split_res}
+Delete User and Clean s3cfg
+    [Arguments]    ${user_name}
+    Set Request Body    user_ids=%5B%22${user_name}%22%5D
+    POST    /cgi-bin/ezs3/json/del_multi_user
+    Response Status Code Should Equal    200 OK
+    log    Start to clean .s3cfg
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    onnode all rm -rf /root/.s3cfg
 
 Enable Disable Maintenance Mode
     [Arguments]    ${enable_flag}=True
@@ -219,18 +143,26 @@ Enable Disable Maintenance Mode
     Run Keyword If    '${enable_flag}'=='True'    Should Contain    ${set_out_put}    noout flag(s) set
     ...    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
 
-Incremental Recovery
-    [Arguments]    ${enable_flag}=True
-    [Documentation]    enable or disable Incremental Recovery, defalt vaule is True .
-    ...    If True, Enable Incremental Recovery, else disable it
-    log    Start to Enable/Disable Incremental recovery
-    ${incremental_recovery_url}=    Run Keyword If    '${enable_flag}'=='True'    Set Variable    /cgi-bin/ezs3/json/enable_incremental_recovery
-    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/disable_incremental_recovery
-    Return Code Should Be 0    ${incremental_recovery_url}
-    log    Check set maintenance mode result
-    ${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph -s
-    Run Keyword If    '${enable_flag}'=='True'    Should Contain    ${set_out_put}    flags inc-in,inc-out,inc-recovery
-    ...    ELSE    Should Not Contain    ${set_out_put}    flags inc-in,inc-out,inc-recovery
+Enable Disable PG Split
+    [Arguments]    ${enable_pg_split}    ${pool_name}=Default
+    ${pg_split_url}=    Set Variable    /cgi-bin/ezs3/json/pool_set_pg_split?pool=${pool_name}&enable_pg_split=${enable_pg_split}
+    log    ${pg_split_url}
+    ${query_pool_name}=    Run Keyword If    '${pool_name}'=='Default'    Set Variable    data
+    ...    ELSE    ${pool_name}
+    Run Keyword If    '${enable_pg_split}'=='true'    log    Enable pg split for pool ${pool_name}
+    ...    ELSE    log    Disable pg split for pool ${pool_name}
+    log    Check set pg split result
+    ${pg_split_res}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph config-key get pool.${pool_name}.pg_split_enable
+    Should Contain    {"pg_split_enable": "${enable_pg_split}"}    ${pg_split_res}
+
+Enable OSD Auto-reweight
+    [Arguments]    ${pool_name}=Default    ${threshold}=0
+    ${set_reweight_url}=    Set Variable    /cgi-bin/ezs3/json/auto_reweight_set?pool=${pool_name}&threshold=${threshold}
+    Return Code Should Be 0    ${set_reweight_url}
+    log    Query info from kvstore
+    ${threshold_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph config-key get pool.${pool_name}.reweight_threshold
+    Should Contain    ${threshold_output}    {"threshold": ${threshold}}
+    log    Query kvstore of pool.${pool_name}.rewright_threshold success!
 
 Get OSD Reweight
     [Arguments]    ${pool_name}=default    ${osd_in_out_flat}=True    # If osd_in_out_flat=True, reweight increase; else reweight diminishing
@@ -247,10 +179,83 @@ Get OSD Reweight
     # Should Be True    ${after_reweight} > ${before_reweight}
     log    Incremental recovery works well
 
-Delete User and Clean s3cfg
-    [Arguments]    ${user_name}
-    Set Request Body    user_ids=%5B%22${user_name}%22%5D
-    POST    /cgi-bin/ezs3/json/del_multi_user
-    Response Status Code Should Equal    200 OK
-    log    Start to clean .s3cfg
-    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    onnode all rm -rf /root/.s3cfg
+Get Objects By Pool
+    [Arguments]    ${pool_name}
+    ${objects_in_pool}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${pool_name} | head -n 1 | awk -F " " '{print $NF}'
+    [Return]    ${objects_in_pool}
+
+Incremental Recovery
+    [Arguments]    ${enable_flag}=True
+    [Documentation]    enable or disable Incremental Recovery, defalt vaule is True .
+    ...    If True, Enable Incremental Recovery, else disable it
+    log    Start to Enable/Disable Incremental recovery
+    ${incremental_recovery_url}=    Run Keyword If    '${enable_flag}'=='True'    Set Variable    /cgi-bin/ezs3/json/enable_incremental_recovery
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/disable_incremental_recovery
+    Return Code Should Be 0    ${incremental_recovery_url}
+    log    Check set maintenance mode result
+    ${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph -s
+    Run Keyword If    '${enable_flag}'=='True'    Should Contain    ${set_out_put}    flags inc-in,inc-out,inc-recovery
+    ...    ELSE    Should Not Contain    ${set_out_put}    flags inc-in,inc-out,inc-recovery
+
+Input Data To Bucket
+    [Arguments]    ${bucket_name}=s3://bucketAutomation
+    log    Input data to bucket of ${bucket_name}
+    open Connection    @{PUBLICIP}[0]
+    Login    ${USERNAME}    ${PASSWORD}
+    sleep    2
+    log    put /var/log/ceph/ceph.log to bucket: ${bucket_name}
+    Write    s3cmd put /var/log/ceph/ceph.log ${bucket_name}
+    ${out_put}=    Read    delay=10s
+    log    =====${out_put}=====
+
+Modify Pool Replication NO
+    [Arguments]    ${pool_name}    ${pool_type}    ${r}=2    ${cachesize}=0    ${dirtyratio}=0    ${fullratio}=0
+    ...    ${k}=2    ${m}=1
+    [Documentation]    Edit replication number of replicated pool
+    ${settings}    Run Keyword if    ${pool_type}==1    Set Variable    %7B%22r%22%3A%22${r}%22%2C%22cachesize%22%3A${cachesize}%2C%22dirtyratio%22%3A${dirtyratio}%2C%22fullratio%22%3A${fullratio}%7D
+    ...    ELSE    Set Variable    %7B%22k%22%3A%22${k}%22%2C%22m%22%3A%22${m}%22%7D
+    ${pool_modify_url}    set variable    /cgi-bin/ezs3/json/pool_modify?pool_name=${pool_name}&pool_type=${pool_type}&settings=${settings}
+    log    Modify pool url is : ${pool_modify_url}
+    log    Modify pool ${pool_name}
+    Return Code Should be 0    ${pool_modify_url}
+    log    Check if modify success or not
+    ${pool_replicate_no}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name}| awk -F " " '{print $6}'| sed 's/ //g'
+    Should Be Equal As Strings    ${pool_replicate_no}    ${r}
+
+Remove Cache Pool
+    [Arguments]    ${base_pool_name}    ${cache_pool_name}
+    log    Remove cache pool ${cache_pool_name} from ${base_pool_name}
+    Return Code Should Be 0    /cgi-bin/ezs3/json/pool_remove_cache_pool?base_pool=${base_pool_name}&cache_pool=${cache_pool_name}
+    log    Check remove cache pool from base pool result
+    Wait Until Keyword Succeeds    3 min    5 sec    Get Progress    /cgi-bin/ezs3/json/query_progress?ticket=pool.remove_cache    /response/info/progress    100
+
+Remove OSD From Pool
+    [Arguments]    ${pool_name}=None    ${node_ids}=None
+    log    Remove OSD from pool ${pool_name}
+    ${node_ids}    Run Keyword If    ${node_ids}==0    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==1    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==2    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==0+1    Set Variable    ${node_ids}
+    ...    ELSE IF    ${node_ids}==0+1+2    Set Variable    ${node_ids}
+    ${remove_osd_from_pool}    set variable    /cgi-bin/ezs3/json/pool_del_node?pool_id=${pool_name}&node_ids=${node_ids}
+    Return Code Should be 0    ${remove_osd_from_pool}
+    log    Check osd remove from pool result
+    ${osd_nums_in_pool}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd tree | sed -n "/pool ${pool_name}/,/pool /p" |grep "osd" | grep up| wc -l
+    log    After remove OSD from pool ${pool_name}. OSD numbers in pool ${pool_name} is 2, before is 3
+    Should Be Equal As Strings    ${osd_nums_in_pool}    2
+
+Set OSD QoS
+    [Arguments]    ${enabled}=true    ${recovery_maxbw}=2097152
+    log    Start to set OSD QOS
+    Return Code Should Be 0    /cgi-bin/ezs3/json/osd_recovery_qos_set?enabled=${enabled}&recovery_maxbw=${recovery_maxbw}
+
+Set Pool Quota
+    [Arguments]    ${pool_name}    ${quota}
+    [Documentation]    Edit replication number of replicated pool
+    ${set_pool_quota_url}    set variable    /cgi-bin/ezs3/json/pool_set_quota?pool_name=${pool_name}&quota=${quota}
+    log    Set pool quota url is : ${set_pool_quota_url}
+    log    Start to set pool quota for ${pool_name}
+    Return Code Should be 0    ${set_pool_quota_url}
+    log    Check if set pool quota success or not
+    ${pool_max_bytes}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name} | awk -F "max_bytes" '{print $2}' | awk -F " " '{print $1}' | sed 's/ //g'
+    Should Be Equal As Strings    ${pool_max_bytes}    ${quota}
