@@ -6,8 +6,8 @@ ${ESXHOSTIP}      172.16.146.210
 ${ESXUSER}        root
 ${ESXPASS}        trend#11
 @{VMNAMES}        auto-1    auto-2    auto-3
-@{STORAGEIP}      10.10.10.247    10.10.10.248    10.10.10.249
-@{PUBLICIP}       172.16.146.247    172.16.146.248    172.16.146.249
+@{STORAGEIP}      192.168.200.101    192.168.200.102    192.168.200.103
+@{PUBLICIP}       172.16.146.101    172.16.146.102    172.16.146.103
 ${USERNAME}       root
 ${PASSWORD}       1
 ${UIADMIN}        admin
@@ -16,5 +16,5 @@ ${LOCALUSER}      root
 ${LOCALPASS}      1
 ${ADIP}           172.16.146.219
 ${ADPASS}         Trend%2311
-${REMOTEIP}       172.16.146.191    # Use for RRS, the remote server IP
+${REMOTEIP}       172.16.146.104    # Use for RRS, the remote server IP
 ${Version}        'V6.2'    # The tested version number, because of the version is different(some URLs are diffeent), so want to distinguish between them
