@@ -259,3 +259,15 @@ Set Pool Quota
     log    Check if set pool quota success or not
     ${pool_max_bytes}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep ${pool_name} | awk -F "max_bytes" '{print $2}' | awk -F " " '{print $1}' | sed 's/ //g'
     Should Be Equal As Strings    ${pool_max_bytes}    ${quota}
+
+Set SNMP
+    [Arguments]    ${enabled}=true    ${syslocation}=None    ${syscontact}=None    ${community}=None    ${acl}=
+    log    Start to set SNMP
+    ${set_snmp_url}=    Set Variable    /cgi-bin/ezs3/json/snmp_config_set?enabled=${enabled}&syslocation=${syslocation}&syscontact=${syscontact}&community=${community}&acl=${acl}
+    log    ${set_snmp_url}
+    Return Code Should Be 0    ${set_snmp_url}
+    log    Check set snmp result
+    Run Keyword IF    '${enabled}'=='true'    Wait Until Keyword Succeeds    2 min    5 sec    SSH Output Should Contain    ps -ef | grep -i snmp
+    ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid
+    ...    ELSE    Wait Until Keyword Succeeds    2 min    5 sec    SSH Output Should Not Contain    ps -ef | grep -i snmp
+    ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid
