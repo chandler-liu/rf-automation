@@ -3,7 +3,8 @@ Documentation     This suite includes cases related to SNMP configuration
 Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 ...               AND    Open All SSH Connections    ${USERNAME}    ${PASSWORD}    @{PUBLICIP}
 ...               AND    Switch Connection    @{PUBLICIP}[0]
-Suite Teardown    Close All Connections
+Suite Teardown    Run Keywords    Set SNMP    false
+...               AND    Close All Connections
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_clusterconfigurationkeywords.txt
