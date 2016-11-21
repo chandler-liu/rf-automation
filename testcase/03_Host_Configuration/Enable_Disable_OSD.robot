@@ -37,7 +37,9 @@ Enable/Disable OSD
     log    Disable OSD again
     Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name}&force=true    0
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    OFFLINE    ${osd_name}
-    sleep    10
+    log    Get cluster status
+    Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
+    sleep    5
     log    Delete OSD
     ${del_osd_body}=    Set Variable    host=@{STORAGEIP}[0]&names=%5B%22${osd_name}%22%5D
     ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
