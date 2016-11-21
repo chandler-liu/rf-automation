@@ -271,3 +271,34 @@ Set SNMP
     ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid
     ...    ELSE    Wait Until Keyword Succeeds    2 min    5 sec    SSH Output Should Not Contain    ps -ef | grep -i snmp
     ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid
+
+Set Load Balance
+    [Arguments]    ${vip}    ${enable}=true    ${hostname_s3webdav}=autotest    ${domain}=com
+    log    start to set load balance
+    ${set_load_balance_url}=    Set Variable    /cgi-bin/ezs3/json/set_dns?enable=${enable}&vip=${vip}&hostname_s3webdav=${hostname_s3webdav}&domain=${domain}
+    log    set load balance url is :${set_load_balance_url}
+    Return Code Should Be 0    ${set_load_balance_url}
+
+Modify Interfaces Settings
+    [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
+    log    Modify /etc/network/interfaces file,set dns-server replace 114.114.114.114
+    Switch Connection    ${access_dns_client_ip}
+    SSH Output Should Contain    sed -i 's/dns-nameservers 114.114.114.114/dns-nameservers ${bigtera_dns_ip}/' /etc/network/interfaces    expect=
+    log    Start to restart network
+    SSH Output Should Contain    /etc/init.d/networking restart    ssh start/running, process
+
+Rollback Interfaces Settings
+    [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
+    log    Rollback dns-server info in /etc/network/interfaces
+    Switch Connection    ${access_dns_client_ip}
+    SSH Output Should Contain    sed -i 's/dns-nameservers ${bigtera_dns_ip}/dns-nameservers 114.114.114.114/' /etc/network/interfaces    expect=
+    log    Start to restart network
+    SSH Output Should Contain    /etc/init.d/networking restart    ssh start/running, process
+    log    Rollback dns-server info success
+
+Set S3 Domain
+    [Arguments]    ${domain_name}
+    log    Start to set S3 domain
+    ${set_s3domain_url}=    Set Variable    /cgi-bin/ezs3/json/s3_domain_set?domain_name=${domain_name}
+    log    ${set_s3domain_url}
+    Return Code Should Be 0    ${set_s3domain_url}
