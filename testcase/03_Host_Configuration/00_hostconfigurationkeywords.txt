@@ -251,3 +251,35 @@ Enable GW or RRS
     Return Code Should Be    ${enable_url}    0
     log    Check wheather GW or RRS enabled success or not
     Wait Until Keyword Succeeds    3 min    5 sec    Get GW or RRS Status    ${storage_ip}    2    ${gw_or_rrs}
+
+Disable FS Cache
+    log    Disable FS cache
+    Return Code Should be 0    /cgi-bin/ezs3/json/fs_cache_disable?host=@{STORAGEIP}[1]
+    log    Check add flashcache result
+    Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Not Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
+
+Remove iSCSI Volume And Target
+    log    Start to remove iSCSI volume and target
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_disable?gateway_group=Default&iscsi_id_list=autltest_lv&target_id=iqn.2016-09.rf%3Aautotest
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_remove?gateway_group=Default&iscsi_id_list=autltest_lv&target_id=iqn.2016-09.rf%3Aautotest
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_remove_target?gateway_group=Default&target_id=iqn.2016-09.rf%3Aautotest
+
+Disable SAN Cache
+    [Arguments]    ${cache_disk}
+    log    Disale SAN cache
+    Return Code Should be 0    /cgi-bin/ezs3/json/rbd_volume_cache_delete?host=@{STORAGEIP}[1]&cache_names=%5B%22CACHE_${cache_disk}%22%5D
+    log    Check remove SAN cache result
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    eio_cli info    No caches Found
+
+Add FS Cache
+    [Arguments]    ${cache_disk}
+    Return Code Should be 0    /cgi-bin/ezs3/json/fs_cache_enable?host=@{STORAGEIP}[1]&cache_partition=%2Fdev%2F${cache_disk}&is_partition=false&use_whole_disk=true&cache_size=NaN
+    log    Check enable FS cache result
+    Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
+
+Add SAN Cache
+    [Arguments]    ${rbd_image_name}    ${cache_disk}
+    log    Add SAN cache
+    Return Code Should be 0    /cgi-bin/ezs3/json/rbd_volume_cache_create?host=@{STORAGEIP}[1]&rbd_img=${rbd_image_name}&pool_id=Default&cache_path=%2Fdev%2F${cache_disk}
+    log    Check add SAN Cache result
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    eio_cli info    Source Device
