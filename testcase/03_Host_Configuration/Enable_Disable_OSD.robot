@@ -26,7 +26,7 @@ Enable/Disable OSD
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     sleep    5
     log    ---------- 1 disable osd ------------
-    Disable OSD    @{STORAGEIP}[0]    ${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Disable OSD    @{STORAGEIP}[0]    ${osd_name}
     log    Get cluster status
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     sleep    5
@@ -37,7 +37,7 @@ Enable/Disable OSD
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     sleep    5
     log    ---------- 2 disbale osd -----------
-    Disable OSD    @{STORAGEIP}[0]    ${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Disable OSD    @{STORAGEIP}[0]    ${osd_name}
     log    Get cluster status
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     sleep    5
