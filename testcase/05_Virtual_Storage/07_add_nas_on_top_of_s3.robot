@@ -27,6 +27,7 @@ ${cifs_mount_point}    /mnt/cifs
 *** Test Cases ***
 Add NFS on top of S3
     [Documentation]    Testlink ID: Sc-502:Add NFS on top of S3
+    [Tags]    FAST
     Switch Connection    @{PUBLICIP}[0]
     ${access_key} =    Execute Command    radosgw-admin user info --uid=${account_name}|grep access_key|awk -F \\\" '{print $4}'
     ${secret_key} =    Execute Command    radosgw-admin user info --uid=${account_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
@@ -44,6 +45,7 @@ Add NFS on top of S3
 
 Add CIFS on top of S3
     [Documentation]    Testlink ID: Sc-502:Add NFS on top of S3
+    [Tags]    FAST
     Add Shared Folder    name=${folder_cifs_name}    gateway_group=${vs_name}    pool=    s3_folder=true    bucket=${bucket_name}    smb=true    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]
     Execute Command Successfully    touch /tmp/cifs_flag; s3cmd put /tmp/cifs_flag s3://${bucket_name}
@@ -54,6 +56,7 @@ Add CIFS on top of S3
 
 Check create/read/write/delete files in NFS
     [Documentation]    Testlink ID: Sc-504:Check create/read/write/delete files in NFS
+    [Tags]    FAST
     Switch Connection   127.0.0.1
     Execute Command Successfully    echo "test nfs on top of s3" > ${nfs_mount_point}/test.txt
     SSH Output Should Be Equal    cat ${nfs_mount_point}/test.txt    test nfs on top of s3    
@@ -62,6 +65,7 @@ Check create/read/write/delete files in NFS
 
 Check create/list/delete folders in NFS
     [Documentation]    Testlink ID: Sc-505:Check create/list/delete folders in NFS
+    [Tags]    FAST
     Switch Connection   127.0.0.1
     Execute Command Successfully    mkdir -p ${nfs_mount_point}/subfolder;touch ${nfs_mount_point}/subfolder/test.txt
     SSH Output Should Be Equal    ls ${nfs_mount_point}/subfolder/    test.txt
@@ -70,22 +74,25 @@ Check create/list/delete folders in NFS
     
 Check create/read/write/delete files in CIFS
     [Documentation]     Testlink ID: Sc-509:Check create/read/write/delete files in CIFS
+    [Tags]    FAST
     Switch Connection   127.0.0.1
     Execute Command Successfully    echo "test cifs on top of s3" > ${cifs_mount_point}/test.txt
     SSH Output Should Be Equal    cat ${cifs_mount_point}/test.txt    test cifs on top of s3    
     Execute Command Successfully    rm -f ${cifs_mount_point}/test.txt
     Check If SSH Output Is Empty    ls ${cifs_mount_point}/test.txt    ${true}
 
-Check create/list/delete folders in CIFS
-    [Documentation]    Testlink ID: Sc-510:Check create/list/delete folders in CIFS
-    Switch Connection   127.0.0.1
-    Execute Command Successfully    mkdir -p ${cifs_mount_point}/subfolder;touch ${cifs_mount_point}/subfolder/test.txt
-    SSH Output Should Be Equal    ls ${cifs_mount_point}/subfolder/    test.txt
-    Execute Command Successfully    rm -rf ${cifs_mount_point}/subfolder
-    SSH Output Should Not Contain    ls ${cifs_mount_point}    subfolder
+#Check create/list/delete folders in CIFS
+#    [Documentation]    Testlink ID: Sc-510:Check create/list/delete folders in CIFS
+#    [Tags]    FAST    KnownIssue
+#    Switch Connection   127.0.0.1
+#    Execute Command Successfully    mkdir -p ${cifs_mount_point}/subfolder;touch ${cifs_mount_point}/subfolder/test.txt
+#    SSH Output Should Be Equal    ls ${cifs_mount_point}/subfolder/    test.txt
+#    Execute Command Successfully    rm -rf ${cifs_mount_point}/subfolder
+#    SSH Output Should Not Contain    ls ${cifs_mount_point}    subfolder
    
 Delete NFS folder on S3
     [Documentation]    Testlink ID: Sc-514:Delete NFS folder on S3
+    [Tags]    FAST
     Switch Connection   127.0.0.1
     Execute Command Successfully    umount ${nfs_mount_point}
     Delete Shared Folder    ${vs_name}    ${folder_nfs_name}
@@ -95,6 +102,7 @@ Delete NFS folder on S3
 
 Delete CIFS folder on S3
     [Documentation]    Testlink ID: Sc-515:Delete CIFS folder on S3
+    [Tags]    FAST
     Switch Connection   127.0.0.1
     Execute Command Successfully    umount ${cifs_mount_point}
     Delete Shared Folder    ${vs_name}    ${folder_cifs_name}
