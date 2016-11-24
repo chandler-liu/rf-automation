@@ -44,7 +44,7 @@ Add NFS on top of S3
     SSH Output Should Contain    ls ${nfs_mount_point}    nfs_flag
 
 Add CIFS on top of S3
-    [Documentation]    Testlink ID: Sc-502:Add NFS on top of S3
+    [Documentation]    Testlink ID: Sc-503:Add CIFS on top of S3
     [Tags]    FAST
     Add Shared Folder    name=${folder_cifs_name}    gateway_group=${vs_name}    pool=    s3_folder=true    bucket=${bucket_name}    smb=true    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]

@@ -24,7 +24,7 @@ Create NFS share folder
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
     Assign Gateway to Virtual Storage    ${vs_name}    @{STORAGEIP}[0]
     Switch Connection    @{PUBLICIP}[0]
-    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
+    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     ${rc} =    Run and Return RC    mkdir -p ${mount_point};sudo umount ${mount_point};sudo mount -t nfs @{PUBLICIP}[0]:/vol/${folder_name} ${mount_point}
     Should Be Equal As Integers    ${rc}    0
     ${rc} =    Run and Return RC    sudo umount ${mount_point}
@@ -57,7 +57,7 @@ Create share folder for both NFS and CIFS
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true    smb=true    guest_ok=true
     Assign Gateway to Virtual Storage    ${vs_name}    @{STORAGEIP}[0]
     Switch Connection    @{PUBLICIP}[0]
-    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
+    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_name}    ${false}
     ${rc} =    Run and Return RC    mkdir -p ${nfs_mount_point};sudo umount ${nfs_mount_point};sudo mount -t nfs @{PUBLICIP}[0]:/vol/${folder_name} ${nfs_mount_point}
     Should Be Equal As Integers    ${rc}    0
