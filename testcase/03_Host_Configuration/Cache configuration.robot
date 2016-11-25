@@ -28,6 +28,6 @@ Add SAN Volume Cache when volume is enabled
     sleep    10
     log    Get rbd image name
     ${rbd_image_name}=    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}    rbd ls
-    Add SAN Cache    ${rbd_image_name}    ${cache_disk}
+    Wait Until Keyword Succeeds    4 min    5 sec    Add SAN Cache    ${rbd_image_name}    ${cache_disk}
     [Teardown]    Run Keywords    Disable SAN Cache    ${cache_disk}
     ...    AND    Remove iSCSI Volume And Target
