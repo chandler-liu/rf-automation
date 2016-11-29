@@ -52,7 +52,7 @@ Incremental recovery in case OSD down and up
     log    Start enable incremental rcovery
     Incremental Recovery    True
     log    Stop OSD at backend
-    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph stop osd.0    done
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph stop osd.0    Exit Code: 0x00
     log    Create share folder and input data to this folder
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${vs_name}    nfs=true
     log    Check share folder create result
@@ -77,3 +77,4 @@ Incremental recovery in case OSD down and up
     Should Be True    ${second_get_recovery_weight}<${before_recovery_weight}
     [Teardown]    Run Keywords    Incremental Recovery    False
     ...    AND    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...    AND    SSH Output Should Contain    /etc/init.d/ceph start osd.0    Starting Ceph osd.0
