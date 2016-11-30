@@ -51,7 +51,7 @@ Add CIFS on top of S3
     Execute Command Successfully    touch /tmp/cifs_flag; s3cmd put /tmp/cifs_flag s3://${bucket_name}
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_cifs_name}    ${false}
     Switch Connection   127.0.0.1
-    Execute Command Successfully    mkdir -p ${cifs_mount_point}; mount -t cifs -o username=nobody,password= //@{PUBLICIP}[0]/${folder_cifs_name} ${cifs_mount_point}
+    Execute Command Successfully    mkdir -p ${cifs_mount_point}; mount -t cifs -o guest //@{PUBLICIP}[0]/${folder_cifs_name} ${cifs_mount_point}
     SSH Output Should Contain    ls ${cifs_mount_point}    cifs_flag
 
 Check create/read/write/delete files in NFS

@@ -41,7 +41,7 @@ Create CIFS share folder
     Assign Gateway to Virtual Storage    ${vs_name}    @{STORAGEIP}[0]
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_name}    ${false}
-    ${rc} =    Run and Return RC    mkdir -p ${mount_point};sudo umount ${mount_point};sudo mount -t cifs -o username=nobody,password= //@{PUBLICIP}[0]/${folder_name} ${mount_point}
+    ${rc} =    Run and Return RC    mkdir -p ${mount_point};sudo umount ${mount_point};sudo mount -t cifs -o guest //@{PUBLICIP}[0]/${folder_name} ${mount_point}
     Should Be Equal As Integers    ${rc}    0
     ${rc} =    Run and Return RC    sudo umount ${mount_point}
     Should Be Equal As Integers    ${rc}    0
@@ -61,7 +61,7 @@ Create share folder for both NFS and CIFS
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_name}    ${false}
     ${rc} =    Run and Return RC    mkdir -p ${nfs_mount_point};sudo umount ${nfs_mount_point};sudo mount -t nfs @{PUBLICIP}[0]:/vol/${folder_name} ${nfs_mount_point}
     Should Be Equal As Integers    ${rc}    0
-    ${rc} =    Run and Return RC    mkdir -p ${cifs_mount_point};sudo umount ${cifs_mount_point};sudo mount -t cifs -o username=nobody,password= //@{PUBLICIP}[0]/${folder_name} ${cifs_mount_point}
+    ${rc} =    Run and Return RC    mkdir -p ${cifs_mount_point};sudo umount ${cifs_mount_point};sudo mount -t cifs -o guest //@{PUBLICIP}[0]/${folder_name} ${cifs_mount_point}
     Should Be Equal As Integers    ${rc}    0
     Create File    ${nfs_mount_point}/foo.txt    Hello, world!
     Wait Until Created    ${cifs_mount_point}/foo.txt
