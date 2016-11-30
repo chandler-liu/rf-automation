@@ -22,12 +22,13 @@ Single partition
     ${storage_network}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 @{STORAGEIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     log    Public network is: ${public_network}, \ Storage network is: ${storage_network}
     log    Start to enable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_single}&cluster_iface=${storage_network}&public_iface=${public_network}    0
+    #Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_single}&cluster_iface=${storage_network}&public_iface=${public_network}    0
+    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_single}&cluster_iface=${storage_network}&public_iface=${public_network}    0
     log    Check if OSD is enabled
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    ONLINE    ${osd_name_single}
     sleep    20
     log    Disable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_single}&force=true    0
+    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_single}&force=true    0
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    OFFLINE    ${osd_name_single}
     sleep    10
     log    Delete OSD
@@ -51,13 +52,13 @@ Batch partition
     ${storage_network}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 @{STORAGEIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     log    Public network is: ${public_network}, \ Storage network is: ${storage_network}
     log    Start to enable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_batch}-1+${osd_name_batch}-2&cluster_iface=${storage_network}&public_iface=${public_network}    0
+    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_batch}-1+${osd_name_batch}-2&cluster_iface=${storage_network}&public_iface=${public_network}    0
     log    Check if OSD is enabled
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    ONLINE    ${osd_name_batch}-1
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    ONLINE    ${osd_name_batch}-2
     sleep    60
     log    Disable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_batch}-1+${osd_name_batch}-2&force=true    0
+    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name_batch}-1+${osd_name_batch}-2&force=true    0
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    OFFLINE    ${osd_name_batch}-1
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    OFFLINE    ${osd_name_batch}-2
     sleep    10
