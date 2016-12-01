@@ -8,6 +8,10 @@ retry=0
 isopath=/iso
 product=virtualstor_scaler_master
 
+# add get ISO build name and RF start&end time
+START_TIME=`date "+%Y %m %d %H:%M:%S"`
+echo START_TIME=${START_TIME} > /work/automation-test/rf-automation/build.properties
+
 while [ $downisoflag = 1 -a $retry -lt 3 ]; do
 {
     cd $isopath
@@ -55,4 +59,11 @@ sudo killall vblade
 sudo /usr/sbin/vblade 1 0 ens160 $isopath/daily.iso &
 #pybot --logLevel DEBUG -e install testcase
 #pybot --logLevel DEBUG testcase
+
+ISO_NAME=`cat /var/log/installer/media-info`
+echo ISO_NAME=${ISO_NAME} >> /work/automation-test/rf-automation/build.properties
+
 pybot --logLevel DEBUG -d /work/automation-test/rf-automation/report /work/automation-test/rf-automation/testcase
+
+END_TIME=`date "+%Y %m %d %H:%M:%S"`
+echo END_TIME=${END_TIME} >> /work/automation-test/rf-automation/build.properties
