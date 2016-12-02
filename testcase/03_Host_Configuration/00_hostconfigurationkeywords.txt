@@ -273,7 +273,7 @@ Disable SAN Cache
 
 Add FS Cache
     [Arguments]    ${cache_disk}
-    Return Code Should be 0    /cgi-bin/ezs3/json/fs_cache_enable?host=@{STORAGEIP}[1]&cache_partition=%2Fdev%2F${cache_disk}&is_partition=false&use_whole_disk=true&cache_size=NaN
+    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should be 0    /cgi-bin/ezs3/json/fs_cache_enable?host=@{STORAGEIP}[1]&cache_partition=%2Fdev%2F${cache_disk}&is_partition=false&use_whole_disk=true&cache_size=NaN
     log    Check enable FS cache result
     Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
 
