@@ -283,7 +283,8 @@ Modify Interfaces Settings
     [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
     log    Modify /etc/network/interfaces file,set dns-server replace 114.114.114.114
     Switch Connection    ${access_dns_client_ip}
-    SSH Output Should Contain    sed -i 's/dns-nameservers 114.114.114.114/dns-nameservers ${bigtera_dns_ip}/' /etc/network/interfaces    expect=
+    # SSH Output Should Contain    sed -i 's/dns-nameservers 114.114.114.114/dns-nameservers ${bigtera_dns_ip}/' /etc/network/interfaces    expect=
+    SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces;echo "dns-nameservers ${bigtera_dns_ip}" >> /etc/network/interfaces    expect=
     log    Start to restart network
     SSH Output Should Contain    /etc/init.d/networking restart    ssh start/running, process
 
@@ -291,7 +292,8 @@ Rollback Interfaces Settings
     [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
     log    Rollback dns-server info in /etc/network/interfaces
     Switch Connection    ${access_dns_client_ip}
-    SSH Output Should Contain    sed -i 's/dns-nameservers ${bigtera_dns_ip}/dns-nameservers 114.114.114.114/' /etc/network/interfaces    expect=
+    # SSH Output Should Contain    sed -i 's/dns-nameservers ${bigtera_dns_ip}/dns-nameservers 114.114.114.114/' /etc/network/interfaces    expect=
+    SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces    expect=
     log    Start to restart network
     SSH Output Should Contain    /etc/init.d/networking restart    ssh start/running, process
     log    Rollback dns-server info success
