@@ -1,18 +1,51 @@
 #!/bin/bash
 
+# Initiate default parameter
 #buildserver=192.168.163.254
 buildserver=125.227.238.56
 md5server=192.168.168.8
-downisoflag=1
-retry=0
+downloadisoflag=1
+installisoflag=1
 isopath=/iso
+scriptrootpath=/work/automation-test/rf-automation
 product=virtualstor_scaler_master
 
-# add get ISO build name and RF start&end time
-START_TIME=`date "+%Y %m %d %H:%M:%S"`
-echo START_TIME=${START_TIME} > /work/automation-test/rf-automation/build.properties
+# Specified parameter
 
-while [ $downisoflag = 1 -a $retry -lt 3 ]; do
+usage()
+{
+    echo -e "usage:\n$0 [-h] [-d downisoflag] [-i installflag]"
+    echo "  -d      0: not download iso before execute testcases"
+    echo "          1: download iso before execute testcases [default]"
+    echo "  -i      0: skip iso installation testcases"
+    echo "          1: install iso before execute other testcases [default]"
+    echo "  -h      display this help"
+}
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -d | --downisoflag )    shift
+                                downloadisoflag=$1
+                                ;;
+        -i | --installflag )    shift
+                                installisoflag=$1
+                                ;;
+        -h | --help )           usage
+                                exit
+                                ;;
+        * )                     usage
+                                exit 1
+    esac
+    shift
+done
+
+
+# Rocord automation start time for jenkins report
+START_TIME=`date "+%Y %m %d %H:%M:%S"`
+echo START_TIME=${START_TIME} > $scriptrootpath/build.properties
+
+retry=0
+while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
 {
     cd $isopath
     rm -rf iso
@@ -57,18 +90,20 @@ fi
 
 sudo killall vblade
 sudo /usr/sbin/vblade 1 0 ens160 $isopath/daily.iso &
-#pybot --logLevel DEBUG -e install testcase
-#pybot --logLevel DEBUG testcase
+if [ $installisoflag -eq 1 ];then
+    pybot --logLevel DEBUG -d $scriptrootpath/report $scriptrootpath/testcase
+else
+    pybot --logLevel DEBUG -e install -d $scriptrootpath/report $scriptrootpath/testcase
+fi
 
-COMMON_CONFIG_PATH="/work/automation-test/rf-automation/testcase/00_commonconfig.txt"
+# Rocord automation build for jenkins report
+COMMON_CONFIG_PATH="$scriptrootpath/testcase/00_commonconfig.txt"
 CLUSER_NODE_IP=`cat ${COMMON_CONFIG_PATH}  | grep @{PUBLICIP} | awk -F " " '{print $NF}'`
 ROOT_PASSWORD=`cat ${COMMON_CONFIG_PATH}  | grep \$\{PASSWORD\} | awk -F " " '{print $NF}'`
-# Remove ECDSA key from jenkins's known_hosts
 ssh-keygen -f "/root/.ssh/known_hosts" -R ${CLUSER_NODE_IP}
 ISO_NAME=`sshpass -p ${ROOT_PASSWORD} ssh -o StrictHostKeyChecking=no root@${CLUSER_NODE_IP} cat /var/log/installer/media-info`
-echo ISO_NAME=${ISO_NAME} >> /work/automation-test/rf-automation/build.properties
+echo ISO_NAME=${ISO_NAME} >> $scriptrootpath/build.properties
 
-pybot --logLevel DEBUG -d /work/automation-test/rf-automation/report /work/automation-test/rf-automation/testcase
-
+# Rocord automation end time for jenkins report
 END_TIME=`date "+%Y %m %d %H:%M:%S"`
-echo END_TIME=${END_TIME} >> /work/automation-test/rf-automation/build.properties
+echo END_TIME=${END_TIME} >> $scriptrootpath/build.properties
