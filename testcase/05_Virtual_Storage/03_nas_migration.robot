@@ -72,7 +72,7 @@ Read/write/create/delete/list Files During Migration(NFS)
     Execute Command Successfully    echo "Write new file during migration" > ${nfs_mount_point}/new_during_migration.txt
     SSH Output Should Be Equal    cat ${nfs_mount_point}/new_during_migration.txt    Write new file during migration
     # Check Delete
-    Execute Command Successfully    rm -f ${nfs_mount_point}/5.txt
+    Wait Until Keyword Succeeds    3x    1s    Execute Command Successfully    rm -f ${nfs_mount_point}/5.txt # Retry due to bug 1209
     Check If SSH Output Is Empty    ls ${nfs_mount_point}/|grep 5.txt    ${true}
     # Check List
     SSH Output Should Be Equal    ls ${nfs_mount_point}/| wc -l    ${total_file_num}
@@ -112,6 +112,7 @@ Start backend migration in case of "copy on open"(NFS)
     SSH Output Should Be Equal    cat ${nfs_mount_point}/new_after_migration.txt    Write new file after migration
     [Teardown]    Run Keywords    Execute Command     umount ${nfs_mount_point}
     ...           AND             Delete Shared Folder    ${vs_name}    ${nfs_folder_name}
+    ...           AND             Sleep    5s   # If not sleep, fs_id of nfs and cifs below may confuse
 
 Select "copy on open" in NAS migration(CIFS)
     [Documentation]    Testlink ID:
