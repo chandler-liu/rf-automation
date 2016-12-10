@@ -199,6 +199,7 @@ Start backend migration in case of "copy on open"(CIFS)
     SSH Output Should Be Equal    cat ${cifs_mount_point}/new_after_migration.txt    Write new file after migration
     [Teardown]    Run Keywords    Execute Command     umount ${cifs_mount_point}
     ...           AND             Delete Shared Folder    ${vs_name}    ${cifs_folder_name}
+    ...           AND             Sleep 5s
 
 Click Suspend/Resume Before Migration Finish
     [Documentation]    Testlink ID:
