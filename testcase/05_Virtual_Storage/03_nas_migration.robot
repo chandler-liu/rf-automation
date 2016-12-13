@@ -314,12 +314,6 @@ Start backend migration in case of "copy on write"
     ...           AND             Execute Command     umount ${nfs_mount_point}
     ...           AND             Delete Shared Folder    ${vs_name}    ${nfs_folder_name}
     
-
-#Start Migration In Case of "Copy on Open"(NFS)
-#    [Documentation]    Testlink ID:
-#    ...     Sc-477:Start backend migration in case of "copy on write
-#    [Tags]    FAST
-    
 *** Keywords ***
 Prepare External NAS
     Add Shared Folder    name=${external_nas_name}    gateway_group=${vs_name}    pool=${default_pool}
