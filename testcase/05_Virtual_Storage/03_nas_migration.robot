@@ -72,7 +72,8 @@ Read/write/create/delete/list Files During Migration(NFS)
     Execute Command Successfully    echo "Write new file during migration" > ${nfs_mount_point}/new_during_migration.txt
     SSH Output Should Be Equal    cat ${nfs_mount_point}/new_during_migration.txt    Write new file during migration
     # Check Delete
-    Wait Until Keyword Succeeds    3x    1s    Execute Command Successfully    rm -f ${nfs_mount_point}/5.txt # Retry due to bug 1209
+    #Wait Until Keyword Succeeds    3x    1s    Execute Command Successfully    rm -f ${nfs_mount_point}/5.txt # Retry due to bug 1209
+    Execute Command Successfully    rm -f ${nfs_mount_point}/5.txt
     Check If SSH Output Is Empty    ls ${nfs_mount_point}/|grep 5.txt    ${true}
     # Check List
     SSH Output Should Be Equal    ls ${nfs_mount_point}/| wc -l    ${total_file_num}
