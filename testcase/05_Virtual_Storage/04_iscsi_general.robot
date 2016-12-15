@@ -138,7 +138,7 @@ Delete iSCSI volume
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    scstadmin --list_device | grep vdisk_blockio | awk '{print \$2}'    -
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd showmapped    ${true}
     Delete iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${iscsi_lun_name}
-    Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd ls    ${true}
+    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    rbd ls    ${true}
 
 Delete iSCSI target
     [Documentation]    Testlink ID:
