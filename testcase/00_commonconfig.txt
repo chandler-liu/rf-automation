@@ -16,7 +16,8 @@ ${LOCALUSER}      root
 ${LOCALPASS}      1
 ${ADIP}           172.16.146.219
 ${ADPASS}         Trend%2311
-${DUMMYRRSIP}     172.16.146.220   # Only used for RRS SSH Key case validation
-${DUMMYRRSUSER}   root
-${DUMMYRRSPASS}   p@ssw0rd
+${DNSIP}          172.16.146.104
+${DUMMYRRSIP}     172.16.146.220    # Only used for RRS SSH Key case validation
+${DUMMYRRSUSER}    root
+${DUMMYRRSPASS}    p@ssw0rd
 ${Version}        'V6.2'    # The tested version number, because of the version is different(some URLs are diffeent), so want to distinguish between them
