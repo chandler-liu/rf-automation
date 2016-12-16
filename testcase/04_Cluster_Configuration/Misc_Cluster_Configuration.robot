@@ -13,16 +13,16 @@ Load balancing
     [Documentation]    TestLink ID: Sc-401:Load balancing
     [Tags]    FAST
     ${host_s3webdav}    Set Variable    autotest
-    Set Load Balance    ${REMOTEIP}    true    ${host_s3webdav}    com
-    log    For client to ping this domain, need set this ${REMOTEIP} as DNS-Server,so we use the last node of cluster as client
-    Modify Interfaces Settings    @{PUBLICIP}[-1]    ${REMOTEIP}
+    Set Load Balance    ${DNSIP}    true    ${host_s3webdav}    com
+    log    For client to ping this domain, need set this ${DNSIP} as DNS-Server,so we use the last node of cluster as client
+    Modify Interfaces Settings    @{PUBLICIP}[-1]    ${DNSIP}
     log    From client ping this domain name
     ${ping_host_name01}=    Do SSH CMD    @{PUBLICIP}[-1]    ${USERNAME}    ${PASSWORD}    ping -c 1 ${host_s3webdav}.com | grep -i icmp_req | awk -F ":" '{print $1}' | awk -F " " '{print $NF}'
     ${ping_host_name02}=    Do SSH CMD    @{PUBLICIP}[-1]    ${USERNAME}    ${PASSWORD}    ping -c 1 ${host_s3webdav}.com | grep -i icmp_req | awk -F ":" '{print $1}' | awk -F " " '{print $NF}'
     log    ${ping_host_name01} ;${ping_host_name02}
     Should Not Be Equal    ${ping_host_name01}    ${ping_host_name02}
-    Rollback Interfaces Settings    @{PUBLICIP}[-1]    ${REMOTEIP}
-    [Teardown]    Set Load Balance    ${REMOTEIP}    false
+    Rollback Interfaces Settings    @{PUBLICIP}[-1]    ${DNSIP}
+    [Teardown]    Set Load Balance    ${DNSIP}    false
 
 S3 domain name
     [Documentation]    TestLink ID: Sc-407:S3 domain name
