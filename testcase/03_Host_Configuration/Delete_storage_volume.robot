@@ -26,7 +26,7 @@ Delete volume when OSD disabled
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    ONLINE    ${osd_name}
     sleep    10
     log    Disable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name}&force=true    0
+    Wait Until Keyword Succeeds    4 min    5 sec    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name}&force=true    0
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    OFFLINE    ${osd_name}
     sleep    10
     log    Delete OSD
