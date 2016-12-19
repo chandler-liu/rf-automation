@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Initiate default parameter
-#buildserver=192.168.163.254
-buildserver=125.227.238.56
+buildserver=192.168.163.254
+#buildserver=125.227.238.56
 md5server=192.168.168.8
 downloadisoflag=1
 installisoflag=1
@@ -53,21 +53,21 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     # Register first
     #wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
     #sleep 300
-    dailyfolder=`wget -q -O - --no-check-certificate https://$buildserver/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 28-46` # 125.227.238.56's
-    #dailyfolder=`wget -q -O - --no-check-certificate http://$buildserver/iso/$product/builds/ |grep "2016"|tail -n 1|cut -b 74-92`
+    #dailyfolder=`wget -q -O - --no-check-certificate https://$buildserver/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 28-46` # 125.227.238.56's
+    dailyfolder=`wget -q -O - --no-check-certificate http://$buildserver/iso/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 74-92` # 192.168.163.254's
     if [ -z $dailyfolder ]; then
         echo "Fail to find build path!!!"
         retry=$((retry+1)) && continue
     fi
 
-    wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://$buildserver/precise/$product/builds/$dailyfolder/ # 125.227.238.56's
-    #wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://$buildserver/iso/$product/builds/$dailyfolder/  # 192.168.163.254's
+    #wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://$buildserver/precise/$product/builds/$dailyfolder/ # 125.227.238.56's
+    wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://$buildserver/iso/precise/$product/builds/$dailyfolder/  # 192.168.163.254's
     if [ $? != 0 ]; then
         echo "Download ISO fail!!!"
         retry=$((retry+1)) && continue
     fi
-    cp precise/$product/builds/$dailyfolder/*.iso daily.iso # 125.227.238.56's
-    #cp iso/$product/builds/$dailyfolder/*.iso daily.iso # 192.168.163.254's
+    #cp precise/$product/builds/$dailyfolder/*.iso daily.iso # 125.227.238.56's
+    cp iso/precise/$product/builds/$dailyfolder/*.iso daily.iso # 192.168.163.254's
 
     ## Check md5sum ##
     echo Start to check md5
