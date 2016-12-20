@@ -1,11 +1,12 @@
 #!/bin/bash
 
 # Initiate default parameter
-buildserver=192.168.163.254
-#buildserver=125.227.238.56
-md5server=192.168.168.8
+#buildserver=192.168.163.254 # internal server
+buildserver=125.227.238.56  # public server
+serverflag=1 # 1 represents 125.227.238.56, 0 represents 192.168.163.254
 downloadisoflag=1
 installisoflag=1
+md5server=192.168.168.8
 isopath=/iso
 scriptrootpath=/work/automation-test/rf-automation
 product=virtualstor_scaler_master
@@ -19,6 +20,8 @@ usage()
     echo "          1: download iso before execute testcases [default]"
     echo "  -i      0: skip iso installation testcases"
     echo "          1: install iso before execute other testcases [default]"
+    echo "  -s      0: use 192.168.163.254 as build server"
+    echo "          1: use 125.227.238.56 as build server [default]"
     echo "  -h      display this help"
 }
 
@@ -29,6 +32,13 @@ while [ "$1" != "" ]; do
                                 ;;
         -i | --installflag )    shift
                                 installisoflag=$1
+                                ;;
+        -s | --buildserver )    shift
+                                if [ $1 -eq 0 -o "z$1" = "z192.168.163.254" ]
+                                then
+                                    buildserver=192.168.163.254
+                                    serverflag=0
+                                fi
                                 ;;
         -h | --help )           usage
                                 exit
@@ -50,24 +60,37 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     cd $isopath
     rm -rf iso
     rm -rf precise/$product
-    # Register first
-    #wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
-    #sleep 300
-    #dailyfolder=`wget -q -O - --no-check-certificate https://$buildserver/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 28-46` # 125.227.238.56's
-    dailyfolder=`wget -q -O - --no-check-certificate http://$buildserver/iso/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 74-92` # 192.168.163.254's
+    if [ $serverflag -eq 0 ]
+    then
+        dailyfolder=`wget -q -O - --no-check-certificate http://$buildserver/iso/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 74-92` # 192.168.163.254's
+    else
+        # Register first
+        #wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
+        #sleep 300
+        dailyfolder=`wget -q -O - --no-check-certificate https://$buildserver/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 28-46` # 125.227.238.56's
+    fi
     if [ -z $dailyfolder ]; then
         echo "Fail to find build path!!!"
         retry=$((retry+1)) && continue
     fi
 
-    #wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://$buildserver/precise/$product/builds/$dailyfolder/ # 125.227.238.56's
-    wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://$buildserver/iso/precise/$product/builds/$dailyfolder/  # 192.168.163.254's
+    if [ $serverflag -eq 0 ]
+    then
+        wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://$buildserver/iso/precise/$product/builds/$dailyfolder/  # 192.168.163.254's
+    else
+        wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://$buildserver/precise/$product/builds/$dailyfolder/ # 125.227.238.56's
+    fi
     if [ $? != 0 ]; then
         echo "Download ISO fail!!!"
         retry=$((retry+1)) && continue
     fi
-    #cp precise/$product/builds/$dailyfolder/*.iso daily.iso # 125.227.238.56's
-    cp iso/precise/$product/builds/$dailyfolder/*.iso daily.iso # 192.168.163.254's
+
+    if [ $serverflag -eq 0 ]
+    then
+        cp iso/precise/$product/builds/$dailyfolder/*.iso daily.iso # 192.168.163.254's
+    else
+        cp precise/$product/builds/$dailyfolder/*.iso daily.iso # 125.227.238.56's
+    fi
 
     ## Check md5sum ##
     echo Start to check md5
