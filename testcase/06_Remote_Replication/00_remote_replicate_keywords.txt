@@ -1,0 +1,38 @@
+*** Variables ***
+${iscsi_lun_name}    rrs_lun
+${iscsi_target_name}    iqn.2016-12.bigtera.rrs:auto
+${iscsi_target_name_urlencoding}    iqn.2016-12.bigtera.rrs%3Aauto
+${dest_iscsi_lun_name}    rrs_target_lun
+${dest_iscsi_target_name_urlencoding}    iqn.2016-12.bigtera.rrsremote%3Aauto
+${dest_iscsi_target_name}    iqn.2016-12.bigtera.rrsremote:auto
+${dest_vs_name}    rrsVS
+${vs_name}        Default
+${default_pool}    Default
+${iscsi_lun_size}    1073741824    # 1G
+${dest_pool}      Default
+
+*** Keywords ***
+Create Replication Task
+    [Arguments]    ${task_name}    ${task_type}    ${dst_vs}    ${akey}    ${skey}    ${server}
+    ...    ${bucket_owner}=    ${dst_pool}=    ${src_vs}=Default    ${useoplog}=0    ${schedule}=now    ${autoconf}=0
+    ${src}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    ${iscsi_target_name_urlencoding}%2F${iscsi_lun_name}
+    log    ${src}
+    ${dst}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    ${dest_iscsi_target_name_urlencoding}%2F${dest_iscsi_lun_name}
+    log    dst is ${dst}
+    ${task_type}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    replication%3Arbd%3Arbd
+    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${task_type}=replication%3Afs%3Afs
+    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${task_type}=replication%3Afs%3As3
+    ...    ELSE IF    '${task_type}'=='s3tos3'    Set Variable    ${task_type}=replication%3As3%3As3
+    log    Start to create RRS Task
+    ${rrs_task_url}    Set Variable    /cgi-bin/ezs3/json/create_replication_task?action=create&id=&name=${task_name}&type=${task_type}&src_vs=${src_vs}&src=${src}&dst_vs=${dst_vs}&dst=${dst}&akey=${akey}&skey=${skey}&useoplog=${useoplog}&server=${server}&schedule=${schedule}&autoconf=${autoconf}&bucket_owner=${bucket_owner}&dst_pool=${dst_pool}
+    log    ${rrs_task_url}
+    ${task_id}=    Get Return Json    ${rrs_task_url}    /response
+    log    task id is ${task_id}
+    [Return]    ${task_id}
+
+Get Replication Task Status
+    [Arguments]    ${task_id}
+    # ${get_rrs_task_status_url}    Set Variable    /cgi-bin/ezs3/json/get_replication_task_status?task_id=${task_id}
+    log    Get replication task status info
+    Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Contain    ceph config-key get ${task_id} | python -mjson.tool | grep state    Finished
+    log    [Success] \ RRS task finished
