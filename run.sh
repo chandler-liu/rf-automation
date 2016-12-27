@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # Initiate default parameter
-#buildserver=192.168.163.254 # internal server
 buildserver=125.227.238.56  # public server
 serverflag=1 # 1 represents 125.227.238.56, 0 represents 192.168.163.254
 downloadisoflag=1
@@ -22,6 +21,9 @@ usage()
     echo "          1: install iso before execute other testcases [default]"
     echo "  -s      0: use 192.168.163.254 as build server"
     echo "          1: use 125.227.238.56 as build server [default]"
+    echo "  -p      0: VirtualStor Controller"
+    echo "          1: VirtualStor Scaler[default]"
+    echo "          2: VirtualStor Converger"
     echo "  -h      display this help"
 }
 
@@ -38,6 +40,12 @@ while [ "$1" != "" ]; do
                                 then
                                     buildserver=192.168.163.254
                                     serverflag=0
+                                fi
+                                ;;
+        -p | --product )        shift
+                                if [ $1 -eq 0 ];then product=virtualstor_sds_controller_master
+                                elif [ $1 -eq 2 ]; then product=virtualstor_converger_master
+                                else product=virtualstor_scaler_master
                                 fi
                                 ;;
         -h | --help )           usage
