@@ -10,29 +10,156 @@ ${vs_name}        Default
 ${default_pool}    Default
 ${iscsi_lun_size}    1073741824    # 1G
 ${dest_pool}      Default
+# share folder
+${folder_name}    nas_source
+${dest_folder_name}    nas_dest
 
 *** Keywords ***
+Check Schedule Task
+    [Arguments]    ${task_id}    ${match_times}=2
+    [Documentation]    Check schedule RRS Task work or not
+    log    First, check if exists ${task_id} in /etc/cron.d directory
+    Switch Connection    @{PUBLICIP}[0]
+    ${task_cron_file} =    Execute Command    ls /etc/cron.d/${task_id}
+    Should Contain    ${task_cron_file}    ${task_id}
+    log    Second, check if cron jobs works info in /var/log/syslog
+    Wait Until Keyword Succeeds    3m    5s    Get Schedule Task Run Info    ${task_id}    ${match_times}
+
+Create Bucket and Input Data
+    [Arguments]    ${user_name}=    ${bucket_name}=    ${put_file_to_bucket_flag}=True
+    ${user_name}=    Run Keyword IF    '${user_name}'==''    Set Variable    soure_rrs_account
+    ...    ELSE    Set Variable    ${user_name}
+    ${bucket_name}=    Run Keyword IF    '${bucket_name}'==''    Set Variable    s3://source_rrs_bucket_auto
+    ...    ELSE    Set Variable    ${bucket_name}
+    log    Create a account
+    Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
+    log    Get access and secret key
+    Switch Connection    @{PUBLICIP}[0]
+    ${access_key} =    Execute Command    radosgw-admin user info --uid=${user_name}|grep access_key|awk -F \\\" '{print $4}'
+    ${secret_key} =    Execute Command    radosgw-admin user info --uid=${user_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
+    log    ${access_key}, ${secret_key}
+    Execute Command Successfully    rm -f /root/.s3cfg;
+    log    Start to set .s3cfg
+    Write    s3cmd --configure
+    Read Until    Access Key
+    Write    ${access_key}
+    Read Until    Secret Key
+    Write    ${secret_key}
+    Read Until    password:
+    Write Bare    \n
+    Read Until    GPG program
+    Write Bare    \n
+    Read Until    Use HTTPS protocol
+    Write Bare    \n
+    Read Until    HTTP Proxy server name:
+    Write Bare    \n
+    Read Until    Test access
+    Write    n
+    Read Until    Save settings?
+    Write    y
+    Read Until    Configuration saved
+    log    Edit /root/.s3cfg,sed target host
+    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    sed -i.bak "s/s3.amazonaws.com/@{PUBLICIP}[0]/g" /root/.s3cfg
+    log    Check if set s3 config success or not
+    ${s3cmd_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
+    Should Be Empty    ${s3cmd_output}
+    log    Start to create S3 Bucket
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd mb ${bucket_name}
+    log    Check create bucket result
+    ${bucket_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
+    Should Contain    ${bucket_output}    ${bucket_name}
+    log    Input data to bucket of ${bucket_name}
+    log    put /var/log/ceph/ceph.log to bucket: ${bucket_name}
+    Run Keyword IF    '${put_file_to_bucket_flag}'=='True'    Write    s3cmd put /var/log/ceph/ceph.log ${bucket_name}
+    ...    ELSE    log    Not need to put data to bucket ${bucket_name}
+    #Write    s3cmd put /var/log/ceph/ceph.log ${bucket_name}
+    ${out_put}=    Read    delay=10s
+    @{key_list}    Create List    ${bucket_name}    ${access_key}    ${secret_key}    ${user_name}
+    [Return]    @{key_list}
+
 Create Replication Task
     [Arguments]    ${task_name}    ${task_type}    ${dst_vs}    ${akey}    ${skey}    ${server}
-    ...    ${bucket_owner}=    ${dst_pool}=    ${src_vs}=Default    ${useoplog}=0    ${schedule}=now    ${autoconf}=0
+    ...    ${src}=    ${dst}=    ${bucket_owner}=    ${dst_pool}=    ${src_vs}=Default    ${useoplog}=0
+    ...    ${schedule}=now    ${autoconf}=0
     ${src}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    ${iscsi_target_name_urlencoding}%2F${iscsi_lun_name}
+    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${folder_name}
+    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${folder_name}
     log    ${src}
     ${dst}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    ${dest_iscsi_target_name_urlencoding}%2F${dest_iscsi_lun_name}
+    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${dest_folder_name}
+    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${dst}
     log    dst is ${dst}
     ${task_type}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    replication%3Arbd%3Arbd
-    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${task_type}=replication%3Afs%3Afs
-    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${task_type}=replication%3Afs%3As3
-    ...    ELSE IF    '${task_type}'=='s3tos3'    Set Variable    ${task_type}=replication%3As3%3As3
+    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    replication%3Afs%3Afs
+    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    replication%3Afs%3As3
+    ...    ELSE IF    '${task_type}'=='s3tos3'    Set Variable    replication%3As3%3As3
     log    Start to create RRS Task
     ${rrs_task_url}    Set Variable    /cgi-bin/ezs3/json/create_replication_task?action=create&id=&name=${task_name}&type=${task_type}&src_vs=${src_vs}&src=${src}&dst_vs=${dst_vs}&dst=${dst}&akey=${akey}&skey=${skey}&useoplog=${useoplog}&server=${server}&schedule=${schedule}&autoconf=${autoconf}&bucket_owner=${bucket_owner}&dst_pool=${dst_pool}
     log    ${rrs_task_url}
     ${task_id}=    Get Return Json    ${rrs_task_url}    /response
-    log    task id is ${task_id}
+    log    task replace before: ${task_id}
+    ${task_id}=    Evaluate    '${task_id}'.replace('"','')
+    log    task replace after: ${task_id}
     [Return]    ${task_id}
+
+Create RestorationTask
+    [Arguments]    ${task_name}    ${task_type}    ${dst_vs}    ${akey}    ${skey}    ${server}
+    ...    ${src}=    ${dst}=    ${bucket_owner}=    ${dst_pool}=    ${src_vs}=Default    ${useoplog}=0
+    ...    ${schedule}=now    ${autoconf}=0
+    log    src is ${src}
+    ${dst}    Run Keyword If    '${task_type}'=='s3tofs'    Set Variable    ${folder_name}
+    ...    ELSE IF    '${task_type}'=='s3tos3'    Set Variable    ${dst}
+    log    dst is ${dst}
+    ${task_type}    Run Keyword If    '${task_type}'=='s3tofs'    Set Variable    restoration%3As3%3Afs
+    ...    ELSE IF    '${task_type}'=='s3tos3'    Set Variable    restoration%3As3%3As3
+    log    Start to create RRS Task
+    ${rrs_task_url}    Set Variable    /cgi-bin/ezs3/json/create_replication_task?action=create&id=&name=${task_name}&type=${task_type}&src_vs=${src_vs}&src=${src}&dst_vs=${dst_vs}&dst=${dst}&akey=${akey}&skey=${skey}&useoplog=${useoplog}&server=${server}&schedule=${schedule}&autoconf=${autoconf}&bucket_owner=${bucket_owner}&dst_pool=${dst_pool}
+    log    ${rrs_task_url}
+    ${task_id}=    Get Return Json    ${rrs_task_url}    /response
+    log    task replace before: ${task_id}
+    ${task_id}=    Evaluate    '${task_id}'.replace('"','')
+    log    task replace after: ${task_id}
+    [Return]    ${task_id}
+
+Delete Replication Task
+    [Arguments]    ${task_id}
+    log    Delete RRS Task
+    ${del_rrs_task_url}    Set Variable    /cgi-bin/ezs3/json/delete_multi_replication_task?id_list=${task_id}
+    Return Code Should Be 0    ${del_rrs_task_url}
+
+Delete User and Clean s3cfg
+    [Arguments]    ${user_name}    ${bucket_name}    ${file_name}
+    log    First, delete bucket
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd del ${bucket_name}/${file_name};s3cmd rb ${bucket_name}
+    log    Second, Delete created account
+    Set Request Body    user_ids=%5B%22${user_name}%22%5D
+    POST    /cgi-bin/ezs3/json/del_multi_user
+    Response Status Code Should Equal    200 OK
+    log    Last, remove /root/.s3cfg
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rm -rf /root/.s3cfg
+    log    Delete Over
 
 Get Replication Task Status
     [Arguments]    ${task_id}
     # ${get_rrs_task_status_url}    Set Variable    /cgi-bin/ezs3/json/get_replication_task_status?task_id=${task_id}
     log    Get replication task status info
     Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Contain    ceph config-key get ${task_id} | python -mjson.tool | grep state    Finished
-    log    [Success] \ RRS task finished
+    log    [Success] RRS task ${task_id} finished
+
+Get Schedule Task Run Info
+    [Arguments]    ${task_id}    ${match_times}=2
+    [Documentation]    ${${match_times}}为匹配到syslog中任务执行次数。
+    ...    暂时初始任务设定周期为每分钟执行一次，如果检测到syslog里出现2次，就任务周期任务执行顺利
+    log    Start to get ${task_id} running info from /var/log/syslog
+    ${task_run_times}=    Execute Command    egrep -i ${task_id} /var/log/syslog | wc -l
+    Should Be Equal As Strings    ${task_run_times}    ${match_times}
+    [Return]    ${task_run_times}
+
+MD5 Check
+    [Arguments]    ${source_file}    ${dst_file}
+    log    Usd md5sum to check file in source and dest
+    Switch Connection    @{PUBLICIP}[0]
+    ${source_md5_res}=    Execute Command    md5sum ${source_file} | awk '{print $1}'
+    Switch Connection    @{PUBLICIP}[-1]
+    ${dst_md5_res}=    Execute Command    md5sum ${dst_file} | awk '{print $1}'
+    Should Be Equal As Strings    ${source_md5_res}    ${dst_md5_res}
