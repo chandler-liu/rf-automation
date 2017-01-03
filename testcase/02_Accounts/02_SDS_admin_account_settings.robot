@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about admin account settings
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_accountkeywords.txt
@@ -7,7 +9,6 @@ Resource          00_accountkeywords.txt
 Add SDS admin with single virtual storage
     [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
     [Tags]    RAT
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
@@ -18,7 +19,6 @@ Add SDS admin with single virtual storage
 Add virtual storage for SDS admin
     [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
@@ -31,7 +31,6 @@ Add virtual storage for SDS admin
 Remove virtual storage for SDS admin
     [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
@@ -45,7 +44,6 @@ Remove virtual storage for SDS admin
 Remove single SDS admin account
     [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
