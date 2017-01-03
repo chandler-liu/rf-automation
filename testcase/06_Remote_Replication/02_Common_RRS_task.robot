@@ -223,14 +223,15 @@ Edit a selected replication task
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}
+    ${task_name}=    Set Variable    nas-nas-modify-schedule-automation
     ${schedule}=    Set Variable    *%2F1+*+*+*+*
-    ${task_id}=    Create Replication Task    nas-nas-schedule-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
+    ${task_id}=    Create Replication Task    ${task_name}    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]    schedule=${schedule}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
     log    Edit this replication task, set schedule from 1Miniute to 2Miniutes
     ${new_schedule}=    Set Variable    *%2F2+*+*+*+*
-    Create Replication Task    nas-nas-schedule-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}    @{PUBLICIP}[-1]
+    Create Replication Task    ${task_name}    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}    @{PUBLICIP}[-1]
     ...    schedule=${new_schedule}
     Check Schedule Task    ${task_id}    3
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}

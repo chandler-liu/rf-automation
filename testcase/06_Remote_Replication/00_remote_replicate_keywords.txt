@@ -163,3 +163,11 @@ MD5 Check
     Switch Connection    @{PUBLICIP}[-1]
     ${dst_md5_res}=    Execute Command    md5sum ${dst_file} | awk '{print $1}'
     Should Be Equal As Strings    ${source_md5_res}    ${dst_md5_res}
+
+Get Replication Task Status For UI
+    [Arguments]    ${task_id}
+    log    Get replication task status info, this processes will display in UI
+    ${get_rrs_task_status_url}    Set Variable    /cgi-bin/ezs3/json/get_replication_task_status?task_id=${task_id}
+    ${progress}=    Get Return Json    ${get_rrs_task_status_url}    /response/${task_id}
+    Should Be Equal As Strings    ${progress}    100
+    [Return]    ${progress}
