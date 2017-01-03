@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about options to join Default or Metedata pool
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
@@ -7,7 +9,6 @@ Resource          00_hostconfigurationkeywords.txt
 The pool information in a drop-down box
     [Documentation]    Testlink ID: Sc-98:The pool information in a drop-down box
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create a common pool
     ${pool_name}=    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     ${pool_type}=    Set Variable    1
@@ -22,7 +23,6 @@ The pool information in a drop-down box
 OSD join newly created pool
     [Documentation]    Testlink ID: Sc-103:OSD join newly created pool
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create a common pool
     ${pool_name}=    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     ${pool_type}=    Set Variable    1
@@ -41,7 +41,6 @@ OSD join newly created pool
 OSD join metadata pool
     [Documentation]    Testlink ID: Sc-101:OSD join metadata pool
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create OSD, Single partition
     ${osd_name}    Evaluate    'a'+''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     @{data_devs}=    Create List    sdc

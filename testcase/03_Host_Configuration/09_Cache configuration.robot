@@ -25,7 +25,7 @@ Add SAN Volume Cache when volume is enabled
     Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_target?gateway_group=Default&target_id=iqn.2016-09.rf%3Aautotest&pool_id=Default
     log    Create iSCSI volume
     Return Code Should Be 0    /cgi-bin/ezs3/json/iscsi_add?allowed_initiators=&gateway_group=Default&iscsi_id=autltest_lv&qos_enabled=false&size=1073741824&snapshot_enabled=false&target_id=iqn.2016-09.rf:autotest
-    sleep    10
+    Wait Until Keyword Succeeds    60s    5s    Check If SSH Output Is Empty    rbd showmapped    ${false}
     log    Get rbd image name
     ${rbd_image_name}=    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}    rbd ls
     Wait Until Keyword Succeeds    4 min    5 sec    Add SAN Cache    ${rbd_image_name}    ${cache_disk}

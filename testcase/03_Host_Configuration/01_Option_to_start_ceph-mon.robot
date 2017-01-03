@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about options to start ceph-mon
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
@@ -7,7 +9,6 @@ Resource          00_hostconfigurationkeywords.txt
 Stop Node Monitor via UI,which is not the last one
     [Documentation]    Testlink ID: Sc-119:Stop Node Monitor via UI,which is not the last one
     [Tags]    Fast
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Get ceph-mon status
     ${mon_status}=    Get ceph-mon Status
     log    ceph-mon current status is: ${mon_status}
@@ -16,7 +17,6 @@ Stop Node Monitor via UI,which is not the last one
 Start Node Monitor via UI
     [Documentation]    Testlink ID: Sc-118:Start Node Monitor via UI
     [Tags]    Fast
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Get ceph-mon status
     ${mon_status}=    Get ceph-mon Status
     log    ceph-mon current status is: ${mon_status}

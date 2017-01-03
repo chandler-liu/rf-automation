@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about repair storage volume
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
@@ -7,7 +9,6 @@ Resource          00_hostconfigurationkeywords.txt
 scan/fix storage volumes
     [Documentation]    TestLink ID: Sc-111 scan/fix storage volumes
     [Tags]    TOFT
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Select OSD and click "Repair storage volume", select "Scan and fix the storage volumes", check cluster status
     ${osd_name}=    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}    cat /etc/ezs3/storage.conf|python -mjson.tool | grep -i name | head -1 | awk -F ": " '{print $2}' | sed "s/,//" | sed 's/"//g'
     ${repair_osd_body}=    Set Variable    host=@{STORAGEIP}[1]&names=%5B%22${osd_name}%22%5D
@@ -17,7 +18,6 @@ scan/fix storage volumes
 reformat storage volumes
     [Documentation]    TestLink ID: Sc-112 reformat storage volumes
     [Tags]    TOFT
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Select OSD and click "Repair storage volume", select "Scan and fix the storage volumes", check cluster status
     ${osd_name}=    Do SSH CMD    @{PUBLICIP}[1]    ${USERNAME}    ${PASSWORD}    cat /etc/ezs3/storage.conf|python -mjson.tool | grep -i name | head -1 | awk -F ": " '{print $2}' | sed "s/,//" | sed 's/"//g' | sed 's/ //g'
     ${repair_osd_body}=    Set Variable    host=@{STORAGEIP}[1]&names=%5B%22${osd_name}%22%5D

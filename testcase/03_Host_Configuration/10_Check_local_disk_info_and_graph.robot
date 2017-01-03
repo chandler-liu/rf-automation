@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about check local disk info and graph
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
@@ -7,7 +9,6 @@ Resource          00_hostconfigurationkeywords.txt
 Check local disk
     [Documentation]    Testlink ID: Sc-131:Check local disk
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Go to Hosts > Storage page, check status of local disk
     Return Code Should be 0    /cgi-bin/ezs3/json/host_local_disk_list?host=@{STORAGEIP}[0]
     ${response_tmp}=    Get Return Json    /cgi-bin/ezs3/json/host_local_disk_list?host=@{STORAGEIP}[0]    /response
@@ -21,7 +22,6 @@ Check local disk
 Check "Physical Disks Status" when all disks work well
     [Documentation]    Testlink ID: Sc-132:Check "Physical Disks Status" when all disks work well
     [Tags]    FAST
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Go to Hosts > Storage page, check status of local disk
     Return Code Should be 0    /cgi-bin/ezs3/json/host_disk_status_image?host=@{STORAGEIP}[0]
     ${response_tmp}=    Get Return Json    /cgi-bin/ezs3/json/host_disk_status_image?host=@{STORAGEIP}[0]    /response

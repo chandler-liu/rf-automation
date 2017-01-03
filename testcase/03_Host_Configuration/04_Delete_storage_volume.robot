@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about delete storage volume
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
@@ -10,7 +12,6 @@ ${osd_name}       osd_will_be_deleted
 Delete volume when OSD disabled
     [Documentation]    Testlink ID: Sc-93:Delete volume when OSD disabled
     [Tags]    RAT
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create OSD, Single partition
     @{data_devs}=    Create List    sdc
     Add Storage Volume    @{STORAGEIP}[0]    ${osd_name}    0    data    \    %5B%5D

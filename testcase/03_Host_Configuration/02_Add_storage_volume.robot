@@ -1,4 +1,6 @@
 *** Settings ***
+Documentation     This suite includes cases related to general cases about add storage volume
+Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
@@ -11,7 +13,6 @@ ${osd_name_batch}    osd_batch_partition
 Single partition
     [Documentation]    Testlink ID: Sc-80:Single partition
     [Tags]    RAT
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create OSD, Single partition
     @{data_devs}=    Create List    sdc
     Add Storage Volume    @{STORAGEIP}[0]    ${osd_name_single}    0    data    \    %5B%5D
@@ -41,7 +42,6 @@ Single partition
 Batch partition
     [Documentation]    Testlink ID: Sc-81:Batch partition
     [Tags]    RAT
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
     log    Create OSD, Single partition
     @{data_devs}=    Create List    sdd    sde
     Add Storage Volume    @{STORAGEIP}[0]    ${osd_name_batch}    0    data    \    %5B%5D
