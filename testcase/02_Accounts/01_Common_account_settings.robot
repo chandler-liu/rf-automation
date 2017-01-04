@@ -6,14 +6,14 @@ Resource          ../00_commonkeyword.txt
 Resource          00_accountkeywords.txt
 
 *** Test Cases ***
-Add valid user
+Create new user
     [Documentation]    Testlink ID: Sc-48:Create new user
     [Tags]    RAT
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
     Delete User    ${user_name}
 
-Disable and Enable user
+Enable users
     [Documentation]    Testlink ID: Sc-58:Enable users
     [Tags]    FAST
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
@@ -32,7 +32,7 @@ Delete users
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
     Delete User    ${user_name}
 
-Enable AD/LDAP
+AD/LDAP settings
     [Documentation]    Testlink ID: Sc-60:AD/LDAP settings
     [Tags]    FAST
     log    Start to set AD/LDAP
