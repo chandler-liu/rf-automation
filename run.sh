@@ -14,16 +14,14 @@ product=virtualstor_scaler_master
 
 usage()
 {
-    echo -e "usage:\n$0 [-h] [-d downisoflag] [-i installflag]"
+    echo -e "usage:\n$0 [-h] [-d downisoflag] [-i installflag] [-s buildserverflag] [-p {product_name}]"
     echo "  -d      0: not download iso before execute testcases"
     echo "          1: download iso before execute testcases [default]"
     echo "  -i      0: skip iso installation testcases"
     echo "          1: install iso before execute other testcases [default]"
     echo "  -s      0: use 192.168.163.254 as build server"
     echo "          1: use 125.227.238.56 as build server [default]"
-    echo "  -p      0: VirtualStor Controller"
-    echo "          1: VirtualStor Scaler[default]"
-    echo "          2: VirtualStor Converger"
+    echo "  -p      {product_name}"
     echo "  -h      display this help"
 }
 
@@ -43,10 +41,7 @@ while [ "$1" != "" ]; do
                                 fi
                                 ;;
         -p | --product )        shift
-                                if [ $1 -eq 0 ];then product=virtualstor_sds_controller_master
-                                elif [ $1 -eq 2 ]; then product=virtualstor_converger_master
-                                else product=virtualstor_scaler_master
-                                fi
+                                product=$1
                                 ;;
         -h | --help )           usage
                                 exit
@@ -104,18 +99,23 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     echo Start to check md5
     isomd5sum=`md5sum daily.iso | awk '{print $1}'`
     expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/lastSuccessful/archive/*.iso" | awk '{print $1}'`
+    if [ -z "$expectedmd5sum" ]
+    then
+        echo ":< Cannot retrieve md5sum of ISO from $md5server!"
+        exit 1
+    fi
     echo Download: $isomd5sum, Server: $expectedmd5sum
     if [ "$isomd5sum" != "$expectedmd5sum" ]; then
-        echo "File md5sum check is failed!!!"
+        echo ":< File md5sum check is failed!"
         retry=$((retry+1)) && continue
     fi
-    echo "ISO is downloaded successfully!"
+    echo ":D ISO is downloaded successfully!"
     break
 }
 done
 
 if [ $retry -eq 3 ]; then
-    echo "Have retried 3 times, exit!"
+    echo ":< Have retried 3 times, exit!"
     exit 1
 fi
 
