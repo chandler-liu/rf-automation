@@ -98,7 +98,7 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     ## Check md5sum ##
     echo Start to check md5
     isomd5sum=`md5sum daily.iso | awk '{print $1}'`
-    expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/lastSuccessful/archive/*.iso" | awk '{print $1}'`
+    expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
     if [ -z "$expectedmd5sum" ]
     then
         echo ":< Cannot retrieve md5sum of ISO from $md5server!"
