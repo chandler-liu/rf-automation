@@ -17,7 +17,7 @@ Add SDS admin with single virtual storage
     Delete User    ${user_name}
 
 Add virtual storage for SDS admin
-    [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
+    [Documentation]    Testlink ID: Sc-69:Add virtual storage for SDS admin
     [Tags]    FAST
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
@@ -29,7 +29,7 @@ Add virtual storage for SDS admin
     Delete User    ${user_name}
 
 Remove virtual storage for SDS admin
-    [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
+    [Documentation]    Testlink ID: Sc-70:Remove virtual storage for SDS admin
     [Tags]    FAST
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
@@ -42,7 +42,7 @@ Remove virtual storage for SDS admin
     Delete User    ${user_name}
 
 Remove single SDS admin account
-    [Documentation]    Testlink ID: Sc-66:Add SDS admin with single virtual storage
+    [Documentation]    Testlink ID: Sc-71:Remove single SDS admin account
     [Tags]    FAST
     log    Create a user
     ${user_name}    Evaluate    ''.join([random.choice(string.ascii_lowercase) for i in xrange(6)])    string, random
