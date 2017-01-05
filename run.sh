@@ -65,12 +65,12 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     rm -rf precise/$product
     if [ $serverflag -eq 0 ]
     then
-        dailyfolder=`wget -q -O - --no-check-certificate http://$buildserver/iso/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 74-92` # 192.168.163.254's
+        dailyfolder=`wget -q -O - --no-check-certificate http://$buildserver/iso/precise/$product/builds/ |grep "201"|tail -n 1|cut -b 74-92` # 192.168.163.254's
     else
         # Register first
         #wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
         #sleep 300
-        dailyfolder=`wget -q -O - --no-check-certificate https://$buildserver/precise/$product/builds/ |grep "2016"|tail -n 1|cut -b 28-46` # 125.227.238.56's
+        dailyfolder=`wget -q -O - --no-check-certificate https://$buildserver/precise/$product/builds/ |grep "201"|tail -n 1|cut -b 28-46` # 125.227.238.56's
     fi
     if [ -z $dailyfolder ]; then
         echo "Fail to find build path!!!"
