@@ -134,7 +134,7 @@ fi
 COMMON_CONFIG_PATH="$scriptrootpath/testcase/00_commonconfig.txt"
 CLUSER_NODE_IP=`cat ${COMMON_CONFIG_PATH}  | grep @{PUBLICIP} | awk -F " " '{print $NF}'`
 ROOT_PASSWORD=`cat ${COMMON_CONFIG_PATH}  | grep \$\{PASSWORD\} | awk -F " " '{print $NF}'`
-ssh-keygen -f "/root/.ssh/known_hosts" -R ${CLUSER_NODE_IP}
+ssh-keygen -f "~/.ssh/known_hosts" -R ${CLUSER_NODE_IP}
 ISO_NAME=`sshpass -p ${ROOT_PASSWORD} ssh -o StrictHostKeyChecking=no root@${CLUSER_NODE_IP} cat /var/log/installer/media-info`
 echo ISO_NAME=${ISO_NAME} >> $scriptrootpath/build.properties
 
