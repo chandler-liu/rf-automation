@@ -31,7 +31,7 @@ UI should refresh the progress
     ${task_id}=    Create Replication Task    nas-nas-progress-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]
     Wait Until Keyword Succeeds    4m    5s    Get Replication Task Status For UI    ${task_id}
-    Wait Until Keyword Succeeds    60s    5s    MD5 Check    ${source_file}    ${dst_file}
+    Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
