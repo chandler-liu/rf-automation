@@ -38,7 +38,7 @@ One time replication task for iSCSI/FC volumes
     ${task_id}=    Create Replication Task    iscsi-iscsi-automation    rbdtorbd    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]
     Get Replication Task Status    ${task_id}
-    MD5 Check    ${source_file}    ${dst_file}
+    Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
     [Teardown]    Run Keywords    Wait Until Keyword Succeeds    1m    5s    Disable iSCSI LUN    ${dest_vs_name}
     ...    ${dest_iscsi_target_name_urlencoding}    ${dest_iscsi_lun_name}
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Delete iSCSI LUN    ${dest_vs_name}
@@ -74,7 +74,7 @@ One time replication task for shared folders
     ${task_id}=    Create Replication Task    nas-nas-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]
     Get Replication Task Status    ${task_id}
-    MD5 Check    ${source_file}    ${dst_file}
+    Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}

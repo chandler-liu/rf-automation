@@ -20,6 +20,7 @@ Check Schedule Task
     [Documentation]    Check schedule RRS Task work or not
     log    First, check if exists ${task_id} in /etc/cron.d directory
     Switch Connection    @{PUBLICIP}[0]
+    Wait Until Keyword Succeeds    60s    5s    Execute Command Successfully    ls /etc/cron.d/${task_id}
     ${task_cron_file} =    Execute Command    ls /etc/cron.d/${task_id}
     Should Contain    ${task_cron_file}    ${task_id}
     log    Second, check if cron jobs works info in /var/log/syslog
