@@ -55,7 +55,7 @@ Restore to local shared folder
     ${task_id}=    Create RestorationTask    remotes3-localfs-automation    s3tofs    ${vs_name}    ${akey}    ${skey}
     ...    @{PUBLICIP}[-1]    src=${bucket_name}
     Get Replication Task Status    ${task_id}
-    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log
     ...    AND    Delete Replication Task    ${task_id}
 

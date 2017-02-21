@@ -70,7 +70,7 @@ No side effect to legacy replications
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Delete iSCSI Target    ${vs_name}
     ...    ${iscsi_target_name_urlencoding}
     ...    AND    Delete Replication Task    ${task_id}
-    ...    AND    DELETE Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log

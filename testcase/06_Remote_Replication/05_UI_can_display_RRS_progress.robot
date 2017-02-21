@@ -32,7 +32,7 @@ UI should refresh the progress
     ...    @{PUBLICIP}[-1]
     Wait Until Keyword Succeeds    4m    5s    Get Replication Task Status For UI    ${task_id}
     Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
-    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
