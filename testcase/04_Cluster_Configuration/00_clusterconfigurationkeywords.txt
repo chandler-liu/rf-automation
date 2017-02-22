@@ -34,9 +34,13 @@ Add Shared Folder
 Config S3Config
     [Arguments]    ${account_name}    ${bucket_name}=s3://bucketAutomation
     Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
+    Open All SSH Connections    ${USERNAME}    ${PASSWORD}    @{PUBLICIP}
+    Switch Connection    @{PUBLICIP}[0]
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${account_name}&display_name=${account_name}&email=${account_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
-    ${access_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep access_key | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
-    ${secret_key}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    radosgw-admin --uid=${account_name} user info | grep secret_key |head -1 | sed 's/ //g' | sed "s/,//g" | sed 's/"//g' | awk -F ":" '{print $2}'
+    ${access_key}=    Execute Command    radosgw-admin --uid=${account_name} user info | grep access_key | awk -F '"' '{print $4}'
+    log    access_key is ${access_key}
+    ${secret_key}=    Execute Command    radosgw-admin user info --uid=${account_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
+    log    secret_key is ${secret_key}
     log    Create .s3cfg on node @{PUBLICIP}[0]
     open Connection    @{PUBLICIP}[0]
     Login    ${USERNAME}    ${PASSWORD}
