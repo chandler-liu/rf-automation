@@ -27,7 +27,7 @@ ${dest_target_name}    iqn.2016-01.bigtera.com:dest
 ${dest_target_name_urlencoding}    iqn.2016-01.bigtera.com%3Adest
 ${source_lun_name}    lun-src
 ${dest_lun_name}    lun-dst
-${lun_size}    1073741824    # 1G
+${lun_size}    2147483648   # 2G
 ${migrate_host_public}    @{PUBLICIP}[2]
 ${migrate_host_storage}    @{STORAGEIP}[2]
 ${source_ip}    @{PUBLICIP}[0]
@@ -60,7 +60,7 @@ Check data migration status
     ...    Sc-637:Check data migration status
     [Tags]    FAST
     Start iSCSI Migration    ${vs_name}    ${dest_target_name_urlencoding}    ${dest_lun_name}
-    Wait Until Keyword Succeeds    1m    5s    Migration Progress Is Over    ${vs_name}    ${dest_target_name_urlencoding}    ${50}
+    Wait Until Keyword Succeeds    2m    3s    Migration Progress Is Over    ${vs_name}    ${dest_target_name_urlencoding}    ${50}
 
 Data can be migrated successfully and completely
     [Documentation]    Testlink ID:
