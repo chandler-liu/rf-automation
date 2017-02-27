@@ -233,6 +233,7 @@ Edit a selected replication task
     ${new_schedule}=    Set Variable    *%2F2+*+*+*+*
     Create Replication Task    ${task_name}    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}    @{PUBLICIP}[-1]
     ...    schedule=${new_schedule}
+    Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}    3
     [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}

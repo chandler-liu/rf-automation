@@ -42,8 +42,9 @@ Verify the public key by remote access
     [Tags]    FAST
     Switch Connection    ${DUMMYRRSIP}
     Execute Command Successfully    ssh-keygen -f "/root/.ssh/known_hosts" -R @{PUBLICIP}[0]
-    Wait Until Keyword Succeeds    3x    2s    SSH Output Should Be Equal    ssh @{PUBLICIP}[0] "echo 'Test RRS Key'"    Test RRS Key
-
+    # Wait Until Keyword Succeeds    3x    2s    SSH Output Should Be Equal    ssh @{PUBLICIP}[0] "echo 'Test RRS Key'"    Test RRS Key
+    Wait Until Keyword Succeeds    3x    2s    SSH Output Should Be Equal    sshpass -p '${PASSWORD}' ssh ${USERNAME}@@{PUBLICIP}[0] "echo 'Test RRS Key'"    Test RRS Key
+    
 Delete select public key(s)
     [Documentation]    Testlink ID:
     ...     Sc-662:Delete select public key(s)
