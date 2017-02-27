@@ -44,7 +44,9 @@ Create CIFS share folder
     Switch Connection    127.0.0.1
     Execute Command Successfully    mkdir -p ${mount_point};umount ${mount_point};mount -t cifs -o guest //@{PUBLICIP}[0]/${folder_name} ${mount_point}
     Execute Command Successfully    umount ${mount_point}
-    [Teardown]    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...           AND             Switch Connection    @{PUBLICIP}[0]
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_name}    ${true}
 
 Create share folder for both NFS and CIFS
     [Documentation]    Testlink ID:
@@ -66,7 +68,9 @@ Create share folder for both NFS and CIFS
     Should Be Equal    ${content}    Hello, world!
     Execute Command Successfully    umount ${nfs_mount_point}
     Execute Command Successfully    umount ${cifs_mount_point}
-    [Teardown]    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...           AND             Switch Connection    @{PUBLICIP}[0]
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 
 Enable share folder
     [Documentation]    Testlink ID:
@@ -82,7 +86,9 @@ Enable share folder
     Switch Connection    127.0.0.1
     Execute Command Successfully    mkdir -p ${mount_point};umount ${mount_point};mount -t nfs @{PUBLICIP}[0]:/vol/${folder_name} ${mount_point}
     Execute Command Successfully    umount ${mount_point}
-    [Teardown]    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...           AND             Switch Connection    @{PUBLICIP}[0]
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 
 Disable share folder
     [Documentation]    Testlink ID:
@@ -99,7 +105,9 @@ Disable share folder
     ${cmd}=    Set Variable    mkdir -p ${mount_point};umount ${mount_point};mount -t nfs @{PUBLICIP}[0]:/vol/${folder_name} ${mount_point}
     ${rc} =    Execute Command    ${cmd}    return_stdout=False    return_rc=True
     Should Not Be Equal As Integers    ${rc}    0
-    [Teardown]    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...           AND             Switch Connection    @{PUBLICIP}[0]
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 
 Delete share folder
     [Documentation]    Testlink ID:
@@ -127,7 +135,8 @@ Configure NFS server accessing model
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/exports | grep ",sync,"    ${false}
     Modify Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    mode=async
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/exports | grep ",async,"    ${false}
-    [Teardown]    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 
 Configure storage pool for share folder
     [Documentation]    Testlink ID:
@@ -145,7 +154,8 @@ Configure storage pool for share folder
     Wait Until Keyword Succeeds    3x    3s    Read Until    copied
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep ${new_pool}|awk {'print \$3'}    1024
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Delete Pool    ${new_pool}
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
+    ...           AND             Delete Pool    ${new_pool}
 
 Set file QoS under sharefolder
     [Documentation]    Testlink ID:
@@ -180,6 +190,8 @@ Set file QoS under sharefolder
     Should Be True    ${randwrite_iops} <= ${write_maxiops}
     Execute Command Successfully    umount ${mount_point}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...           AND             Switch Connection    @{PUBLICIP}[0]
+    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
     ...           AND             Disable File QoS    ${vs_name}
 
 *** Keywords ***
