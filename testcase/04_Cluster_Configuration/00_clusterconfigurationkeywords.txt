@@ -39,7 +39,8 @@ Config S3Config
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${account_name}&display_name=${account_name}&email=${account_name}%40qq.com&password=1&confirm_password=1&type=&dn=    0
     ${access_key}=    Execute Command    radosgw-admin --uid=${account_name} user info | grep access_key | awk -F '"' '{print $4}'
     log    access_key is ${access_key}
-    ${secret_key}=    Execute Command    radosgw-admin user info --uid=${account_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
+    # ${secret_key}=    Execute Command    radosgw-admin user info --uid=${account_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
+    ${secret_key}=    Execute Command    radosgw-admin user info --uid=${account_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1 | sed 's/\\\\//g'
     log    secret_key is ${secret_key}
     log    Create .s3cfg on node @{PUBLICIP}[0]
     open Connection    @{PUBLICIP}[0]
@@ -118,8 +119,9 @@ Delete Pool
     ${del_pool_url}    set variable    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}
     Return Code Should be 0    ${del_pool_url}
     log    Check if pool is deleted
-    ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools
-    Should Not Contain    ${dump_pool_name}    ${pool_name}
+    # ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools
+    # Should Not Contain    ${dump_pool_name}    ${pool_name}
+    Wait Until Keyword Succeeds    1m    5s    SSH Output Should Not Contain    rados lspools    ${pool_name}
     log    Delete pool ${pool_name} success
 
 Delete Shared Folder
