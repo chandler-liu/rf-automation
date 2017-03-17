@@ -37,7 +37,8 @@ Create Bucket and Input Data
     log    Get access and secret key
     Switch Connection    @{PUBLICIP}[0]
     ${access_key} =    Execute Command    radosgw-admin user info --uid=${user_name}|grep access_key|awk -F \\\" '{print $4}'
-    ${secret_key} =    Execute Command    radosgw-admin user info --uid=${user_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
+    # ${secret_key} =    Execute Command    radosgw-admin user info --uid=${user_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1
+    ${secret_key} =    Execute Command    radosgw-admin user info --uid=${user_name}|grep secret_key|awk -F \\\" '{print $4}' | head -n 1 | sed 's/\\\\//g'
     log    ${access_key}, ${secret_key}
     Execute Command Successfully    rm -f /root/.s3cfg;
     log    Start to set .s3cfg
@@ -65,7 +66,8 @@ Create Bucket and Input Data
     ${s3cmd_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
     Should Be Empty    ${s3cmd_output}
     log    Start to create S3 Bucket
-    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd mb ${bucket_name}
+    # DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd mb ${bucket_name}
+    Wait Until Keyword Succeeds    1 min    5 sec    Execute Command Successfully    s3cmd mb ${bucket_name}
     log    Check create bucket result
     ${bucket_output}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    s3cmd ls
     Should Contain    ${bucket_output}    ${bucket_name}

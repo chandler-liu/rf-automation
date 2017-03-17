@@ -256,7 +256,7 @@ Disable FS Cache
     log    Disable FS cache
     Wait Until Keyword Succeeds    4 min    5 sec    Return Code Should be 0    /cgi-bin/ezs3/json/fs_cache_disable?host=@{STORAGEIP}[1]
     log    Check add flashcache result
-    Wait Until Keyword Succeeds    30 s    5 sec    SSH Output Should Not Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
+    Wait Until Keyword Succeeds    2 min    5 sec    SSH Output Should Not Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
 
 Remove iSCSI Volume And Target
     log    Start to remove iSCSI volume and target
