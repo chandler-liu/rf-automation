@@ -60,7 +60,7 @@ Check data migration status
     ...    Sc-637:Check data migration status
     [Tags]    FAST
     Start iSCSI Migration    ${vs_name}    ${dest_target_name_urlencoding}    ${dest_lun_name}
-    Wait Until Keyword Succeeds    2m    3s    Migration Progress Is Over    ${vs_name}    ${dest_target_name_urlencoding}    ${50}
+    Wait Until Keyword Succeeds    2m    3s    Migration Progress Is Over    ${vs_name}    ${dest_target_name_urlencoding}    ${0}
 
 Data can be migrated successfully and completely
     [Documentation]    Testlink ID:
