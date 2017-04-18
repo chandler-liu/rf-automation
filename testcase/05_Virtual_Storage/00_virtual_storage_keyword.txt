@@ -25,13 +25,13 @@ Add Virtual Storage
     Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_assign?group=${vs_name}&hosts=${vs_gateway}
 
 Add iSCSI Target
-    [Arguments]    ${gateway_group}=Default    ${target_id}=    ${pool_id}=Default
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_target?gateway_group=${gateway_group}&target_id=${target_id}&pool_id=${pool_id}
+    [Arguments]    ${gateway_group}=Default    ${target_id}=
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_target?gateway_group=${gateway_group}&target_id=${target_id}
 
 Add iSCSI Volume
-    [Arguments]    ${gateway_group}=Default    ${pool_id}=Default    ${target_id}=    ${iscsi_id}=    ${size}=    ${allowed_initiators}=
-    ...    ${qos_enabled}=false    ${snapshot_enabled}=false
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add?allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+    [Arguments]    ${gateway_group}=Default    ${pool_id}=Default    ${target_id}=    ${iscsi_id}=    ${size}=    ${allowed_initiator_groups}=    ${allowed_initiators}=
+    ...    ${qos_enabled}=false    ${snapshot_enabled}=false    ${allow_all}=true    ${logical_bs}=512    ${physical_bs}=4096
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add?allow_all=${allow_all}&allowed_initiators=${allowed_initiators}&allowed_initiator_groups=${allowed_initiator_groups}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&logical_bs=${logical_bs}&physical_bs=${physical_bs}&pool=${pool_id}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
 
 Assign Gateway to Virtual Storage
     [Arguments]    ${vs_name}    ${gateway_ip}
@@ -84,9 +84,11 @@ Modify Shared Folder
     Post Return Code Should be 0    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}    /cgi-bin/ezs3/json/edit_shared_folder
 
 Modify iSCSI LUN
-    [Arguments]    ${allowed_initiators}=    ${gateway_group}=Default    ${iscsi_id}=    ${qos_enabled}=false    ${size}=    ${snapshot_enabled}=false
-    ...    ${target_id}=
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_change?allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+    [Arguments]    ${allow_all}=true    ${allowed_initiator_groups}=    ${allowed_initiators}=    ${gateway_group}=Default    ${iscsi_id}=    
+    ...    ${pool}=Default    ${qos_enabled}=false    ${size}=    ${snapshot_enabled}=false    ${target_id}=    ${read_maxbw}=
+    ...    ${read_maxiops}=    ${write_maxbw}=    ${write_maxiops}=
+    Run Keyword If    '${qos_enabled}'=='false'    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_change?allow_all=${allow_all}&allowed_initiator_groups=${allowed_initiator_groups}&allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&pool=${pool}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+    ...    ELSE    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_change?allow_all=${allow_all}&allowed_initiator_groups=${allowed_initiator_groups}&allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&pool=${pool}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}&read_maxbw=${read_maxbw}&read_maxiops=${read_maxiops}&write_maxbw=${write_maxbw}&write_maxiops=${write_maxiops}
 
 Remove Virtual Storage
     [Arguments]    ${vs_name}

@@ -15,14 +15,14 @@ No side effect to legacy replications
     [Documentation]    TestLink ID: Sc-678:No side effect to legacy replications
     [Tags]    FAST
     [Setup]    Run Keywords    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name_urlencoding}    pool_id=${default_pool}
+    ...    AND    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name_urlencoding}
     ...    AND    Add iSCSI Volume    gateway_group=${vs_name}    pool_id=${default_pool}    target_id=${iscsi_target_name_urlencoding}    iscsi_id=${iscsi_lun_name}
     ...    size=${iscsi_lun_size}
     ...    AND    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Match    scstadmin --list_device | grep vdisk_blockio | awk '{print \$2}'
     ...    tgt*
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
-    ...    AND    Add iSCSI Target    gateway_group=${dest_vs_name}    target_id=${dest_iscsi_target_name_urlencoding}    pool_id=${dest_pool}
+    ...    AND    Add iSCSI Target    gateway_group=${dest_vs_name}    target_id=${dest_iscsi_target_name_urlencoding}
     ...    AND    Add iSCSI Volume    gateway_group=${dest_vs_name}    pool_id=${dest_pool}    target_id=${dest_iscsi_target_name_urlencoding}    iscsi_id=${dest_iscsi_lun_name}
     ...    size=${iscsi_lun_size}
     ...    AND    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Match    scstadmin --list_device | grep vdisk_blockio | awk '{print \$2}'

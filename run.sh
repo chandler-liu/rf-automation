@@ -54,9 +54,10 @@ START_TIME=`date "+%Y %m %d %H:%M:%S"`
 echo START_TIME=${START_TIME} > $scriptrootpath/build.properties
 
 retry=0
+cd $isopath
 while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
 {
-    cd $isopath
+    rm -rf *.iso
     rm -rf iso
     rm -rf precise/$product
     case $serverflag in
@@ -91,16 +92,16 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     fi
 
     case $serverflag in
-        0 ) scp root@172.16.146.220:/vol/share/Builds/buildwindow/precise/$product/builds/$dailyfolder/*.iso daily.iso
+        0 ) scp root@172.16.146.220:/vol/share/Builds/buildwindow/precise/$product/builds/$dailyfolder/*.iso .
             ;;
-        1 ) cp precise/$product/builds/$dailyfolder/*.iso daily.iso
+        1 ) cp precise/$product/builds/$dailyfolder/*.iso .
             ;;
-        2 ) cp iso/precise/$product/builds/$dailyfolder/*.iso daily.iso 
+        2 ) cp iso/precise/$product/builds/$dailyfolder/*.iso .
     esac
 
     ## Check md5sum ##
     echo Start to check md5
-    isomd5sum=`md5sum daily.iso | awk '{print $1}'`
+    isomd5sum=`md5sum *.iso | awk '{print $1}'`
     expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
     if [ -z "$expectedmd5sum" ]
     then
@@ -123,7 +124,8 @@ if [ $retry -eq 3 ]; then
 fi
 
 sudo killall vblade
-sudo /usr/sbin/vblade 1 0 ens160 $isopath/daily.iso &
+echo "Start to mount `ls *.iso`"
+sudo /usr/sbin/vblade 1 0 ens160 $isopath/*.iso &
 if [ $installisoflag -eq 1 ];then
     pybot --logLevel DEBUG -d $scriptrootpath/report $scriptrootpath/testcase
 else

@@ -5,7 +5,7 @@ Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}
 ...               AND    Open Connection    127.0.0.1    alias=127.0.0.1
 ...               AND    Login    ${LOCALUSER}    ${LOCALPASS}
 ...               AND    Switch Connection    @{PUBLICIP}[0]
-...               AND    Add iSCSI Target    gateway_group=${vs_name}    target_id=${source_target_name_urlencoding}    pool_id=${pool_name}
+...               AND    Add iSCSI Target    gateway_group=${vs_name}    target_id=${source_target_name_urlencoding}
 ...               AND    Add iSCSI Volume    gateway_group=${vs_name}    pool_id=${pool_name}    target_id=${source_target_name_urlencoding}    iscsi_id=${source_lun_name}    size=${lun_size}
 ...               AND    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Match    scstadmin --list_device | grep vdisk_blockio | awk '{print \$2}'    tgt*
 Suite Teardown    Run Keywords    Disable iSCSI LUN    ${vs_name}    ${source_target_name_urlencoding}    ${source_lun_name}
@@ -49,9 +49,9 @@ Import volume from original iSCSI
     Execute Command Successfully    mkdir -p /mnt/iscsi; mount -t ext4 /dev/${sdx} /mnt/iscsi; echo "Test import volume." > /mnt/iscsi/mark.txt
     Execute Command Successfully    umount /mnt/iscsi; iscsiadm -m node -u;
     # Import new volume
-    Add iSCSI Target    gateway_group=${vs_name}    target_id=${dest_target_name_urlencoding}    pool_id=${pool_name}
+    Add iSCSI Target    gateway_group=${vs_name}    target_id=${dest_target_name_urlencoding}
     Import iSCSI Volume    ${vs_name}    ${migrate_host_storage}    ${source_ip}    ${source_target_name_urlencoding}    
-    ...                    ${dest_target_name_urlencoding}    ${dest_lun_name}    ${lun_size}
+    ...                    ${dest_target_name_urlencoding}    ${dest_lun_name}    ${lun_size}    ${pool_name}
     Switch Connection    ${migrate_host_public}
     Wait Until Keyword Succeeds    20s    5s    SSH Output Should Match    scstadmin --list_device | grep vdisk_blockio | awk '{print \$2}'    md*
 
@@ -83,11 +83,11 @@ Data can be migrated successfully and completely
 *** Keywords ***
 Import iSCSI Volume
     [Arguments]  ${vs_name}    ${migrate_host_storage}    ${source_ip}    ${source_target}    ${dest_target_name}
-    ...          ${dest_lun_name}    ${lun_size}    ${max_speed}=200000    ${min_speed}=1000
+    ...          ${dest_lun_name}    ${lun_size}    ${pool}    ${max_speed}=200000    ${min_speed}=1000
     Return Code Should be 0    /cgi-bin/ezs3/json/host_iscsi_list_target?host=${migrate_host_storage}&ip=${source_ip}&port=3260
     Return Code Should be 0    /cgi-bin/ezs3/json/host_iscsi_login?gateway_group=${vs_name}&host=${migrate_host_storage}&ip=${source_ip}&port=3260&target=${source_target}
     ${dev_path} =    Wait Until Keyword Succeeds    10s    2s    Get Path Of Session    ${migrate_host_storage}
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_md?gateway_group=${vs_name}&target_id=${dest_target_name}&src_gw=${migrate_host_storage}&src_dev=${dev_path}&dst_dev=${dest_lun_name}&dst_size=${lun_size}&max_resync_speed=${max_speed}&min_resync_speed=${min_speed}
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_md?gateway_group=${vs_name}&target_id=${dest_target_name}&src_gw=${migrate_host_storage}&src_dev=${dev_path}&dst_dev=${dest_lun_name}&dst_size=${lun_size}&pool=${pool}&max_resync_speed=${max_speed}&min_resync_speed=${min_speed}
 
 Get Path Of Session
     [Arguments]    ${migrate_host_storage}

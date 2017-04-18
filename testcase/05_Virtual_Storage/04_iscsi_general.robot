@@ -31,7 +31,7 @@ Add iSCSI target
     [Documentation]    Testlink ID:
     ...    Sc-530:Add iSCSI target
     [Tags]    RAT    
-    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name_urlencoding}    pool_id=${default_pool}
+    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name_urlencoding}
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    scstadmin --list_target|grep ${iscsi_target_name}|awk '{print \$2}'    ${iscsi_target_name}
 
@@ -72,10 +72,10 @@ Only listed client can access
     [Tags]    FAST    
     Switch Connection    127.0.0.1
     ${dummy_initiator} =    Set Variable    iqn.2014-02.thisisadummy:initiator
-    Modify iSCSI LUN    gateway_group=${vs_name}    allowed_initiators=${dummy_initiator}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_lun_size}
+    Modify iSCSI LUN    allow_all=false    gateway_group=${vs_name}    allowed_initiators=${dummy_initiator}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_lun_size}
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${true}
     ${initiator_name} =    Execute Command    cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | cut -d '=' -f 2
-    Modify iSCSI LUN    gateway_group=${vs_name}    allowed_initiators=${initiator_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_lun_size}
+    Modify iSCSI LUN    allow_all=false    gateway_group=${vs_name}    allowed_initiators=${initiator_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_lun_size}
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
     Execute Command Successfully    iscsiadm -m node -T ${iscsi_target_name} -l
 
@@ -152,12 +152,12 @@ Delete iSCSI target
 Enable iSCSI QoS
     [Arguments]    ${gateway_group}    ${iscsi_id}    ${read_maxbw}    ${read_maxiops}    ${write_maxbw}    ${write_maxiops}
     ...            ${size}    ${target_id}
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_change?allowed_initiators=&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&qos_enabled=true&read_maxbw=${read_maxbw}&read_maxiops=${read_maxiops}&size=${size}&snapshot_enabled=false&target_id=${target_id}&write_maxbw=${write_maxbw}&write_maxiops=${write_maxiops}
+    Modify iSCSI LUN    gateway_group=${gateway_group}    iscsi_id=${iscsi_id}    target_id=${target_id}    size=${size}    qos_enabled=true    read_maxbw=${read_maxbw}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw}    write_maxiops=${write_maxiops} 
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    4x    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/qos    1
 
 Disable iSCSI QoS
     [Arguments]    ${gateway_group}    ${iscsi_id}    ${size}    ${target_id}
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_change?allowed_initiators=&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&qos_enabled=false&size=${size}&snapshot_enabled=false&target_id=${target_id}
+    Modify iSCSI LUN    gateway_group=${gateway_group}    iscsi_id=${iscsi_id}    target_id=${target_id}    size=${size}    qos_enabled=false
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    4x    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/qos    0

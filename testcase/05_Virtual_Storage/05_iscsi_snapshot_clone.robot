@@ -5,7 +5,7 @@ Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}
 ...               AND    Open Connection    127.0.0.1    alias=127.0.0.1
 ...               AND    Login    ${LOCALUSER}    ${LOCALPASS}
 ...               AND    Switch Connection    @{PUBLICIP}[0]
-...               AND    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name_urlencoding}    pool_id=${default_pool}
+...               AND    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name_urlencoding}
 ...               AND    Add iSCSI Volume    gateway_group=${vs_name}    pool_id=${default_pool}    target_id=${iscsi_target_name_urlencoding}    iscsi_id=${iscsi_lun_name}    size=${iscsi_lun_size}
 ...               AND    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Match    scstadmin --list_device | grep vdisk_blockio | awk '{print \$2}'    tgt*
 Library           OperatingSystem
@@ -156,9 +156,9 @@ Delete iSCSI Snapshot
     Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_remove_snap?gateway_group=${gateway_group}&iscsi_id=${lun_name}&target_id=${target_id}&snap_name=${snap_id}
 
 Clone iSCSI Volume
-    [Arguments]    ${gateway_group}=Default    ${pool_id}=Default    ${target_id}=    ${iscsi_id}=    ${size}=    ${allowed_initiators}=
-    ...    ${qos_enabled}=false    ${snapshot_enabled}=false    ${parent_snap}=    ${parent_target}=    ${parent_lun}=
-    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add?allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&parent_snapshot=${parent_snap}&parent_target=${parent_target}&parent_volume=${parent_lun}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+    [Arguments]    ${allow_all}=true    ${gateway_group}=Default    ${pool_id}=Default    ${target_id}=    ${iscsi_id}=    ${size}=    ${allowed_initiators}=
+    ...    ${qos_enabled}=false    ${snapshot_enabled}=false    ${parent_snap}=    ${parent_target}=    ${parent_lun}=    ${logical_bs}=512    ${physical_bs}=4096
+    Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add?allow_all=${allow_all}&allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&parent_snapshot=${parent_snap}&parent_target=${parent_target}&parent_volume=${parent_lun}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}&logical_bs=${logical_bs}&physical_bs=${physical_bs}&pool=${pool_id}
 
 Flatten iSCSI Volume
     [Arguments]    ${target_id}    ${lun_name}

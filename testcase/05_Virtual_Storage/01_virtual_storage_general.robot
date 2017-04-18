@@ -36,7 +36,7 @@ Create a new virtual storage and a new iSCSI volume on it.
     ${iscsi_target_name} =    Set Variable    iqn.2016-01.bigtera.com%3Avsauto
     ${iscsi_lun_name} =    Set Variable    lun1
     ${iscsi_lun_size} =    Set Variable    5368709120    # 5G
-    Add iSCSI Target    gateway_group=${vs_name}    pool_id=${default_pool}    target_id=${iscsi_target_name}
+    Add iSCSI Target    gateway_group=${vs_name}    target_id=${iscsi_target_name}
     Add iSCSI Volume    gateway_group=${vs_name}    pool_id=${default_pool}    target_id=${iscsi_target_name}    iscsi_id=${iscsi_lun_name}    size=${iscsi_lun_size}
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd showmapped    ${false}
     [Teardown]    Run Keywords    Disable iSCSI LUN    ${vs_name}    ${iscsi_target_name}    ${iscsi_lun_name}
