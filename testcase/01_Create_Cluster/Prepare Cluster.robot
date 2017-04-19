@@ -8,8 +8,7 @@ Resource          00_createclusterkeywords.txt
     [Tags]    Check
     : FOR    ${ip}    IN    @{PUBLICIP}
     \    log    Modify apache.conf file on ${ip}
-    \    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    sed \ -i.bak 's/Timeout 300/Timeout 1200/' \ /etc/apache2/apache2.conf
-    \    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    sed \ -i 's/KeepAliveTimeout 5/KeepAliveTimeout 1200/' \ /etc/apache2/apache2.conf; /etc/init.d/apache2 restart
+    \    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    sed \ -i 's/KeepAlive On/KeepAlive Off/' \ /etc/apache2/apache2.conf; /etc/init.d/apache2 restart
     log    Check Disk
     ${check_result}    Set Variable    False
     ${disk_check}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    fdisk -l | grep -i "/dev/sd[b-z]" | grep -v GPT | awk -F ":" '{print $2}' | awk -F " " '{print $1}' | awk 'BEGIN {min = 1999999} {if ($1<min) min=$1 fi} END {print "", min}'
