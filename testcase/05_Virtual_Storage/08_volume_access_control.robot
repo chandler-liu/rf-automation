@@ -24,9 +24,11 @@ ${iscsi_group02}                    iSCSI_Initiator_Group_02
 ${iscsi_group03}                    iSCSI_Initiator_Group_03
 ${fc_group01}                       FC_Initiator_Group_01
 ${fc_group02}                       FC_Initiator_Group_02
-#${iscsi_initiator_name}             [{"name":"iqn.2022-12.com.bigtera:01:1234567890ab","alias":"robot test"}]
-#@{iscsi_initiator_name}             {"name":"iqn.2022-12.com.bigtera:01:1234567890ab","alias":"robot test"}
-&{iscsi_initiator_name_dict}        name=iqn.2022-12.com.bigtera:01:1234567890ab    alias=robot test
+${iscsi_initiator_name01}           iqn.2022-12.com.bigteratest1:01:1111111111ab
+${iscsi_initiator_name02}           iqn.2022-12.com.bigteratest2:02:2222222222cd
+${iscsi_initiator_name03}           iqn.2022-12.com.bigteratest3:03:3333333333ef
+#&{iscsi_initiator_name_dict}        name=iqn.2022-12.com.bigtera:01:1234567890ab    alias=robot test
+&{iscsi_initiator_name_dict}        name=${iscsi_initiator_name01}    alias=robot test
 @{iscsi_initiator_name_list}        &{iscsi_initiator_name_dict}
 ${iscsi_volume_name}                lun1
 ${iscsi_volume_size}                5368709120    # 5G
@@ -181,7 +183,7 @@ Can Delete Null Initiator Group Without Assigned
 Can Delete Non-Null Initiator Group Without Assigned
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
-    Edit Initiator Group    group_name=${iscsi_group01}    protocol=iscsi    initiator_list=${iscsi_initiator_name_list}
+    Add Test Initiator to Initiator Group
 #   Check Initiator in Initiator Group
     Delete Selected Initiator Group
 #   Check Initiator Group Delete Successly
@@ -191,7 +193,7 @@ Can Delete Group Asigned to Enable iSCSI Volume
     Create iSCSI Volume without ACL
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
-    Edit Initiator Group    group_name=${iscsi_group01}    protocol=iscsi    initiator_list=${iscsi_initiator_name_list}
+    Add Test Initiator to Initiator Group
 #   Check Initiator in Initiator Group
     Enable Initiator Groups on Volume
 #   Check Initiator Group assign Successly
@@ -204,7 +206,7 @@ Can Delete Group Asigned to Disabled iSCSI Volume
     Create iSCSI Volume without ACL
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
-    Edit Initiator Group    group_name=${iscsi_group01}    protocol=iscsi    initiator_list=${iscsi_initiator_name_list}
+    Add Test Initiator to Initiator Group
 #   Check Initiator in Initiator Group
     Enable Initiator Groups on Volume
 #   Check Initiator Group assign Successly
@@ -221,8 +223,8 @@ Can Apply Initiator Group to Enable iSCSI Volume
     Add Client Initiator to Initiator Group
     Enable Initiator Groups on Volume
 #   Check Initiator Group assign Successly
-    Delete All Initiator Group
-    Remove iSCSI Volume
+#    Delete All Initiator Group
+#    Remove iSCSI Volume
 
 
 
@@ -257,6 +259,9 @@ Enable Initiator Groups on Volume
 
 Delete Selected Initiator Group
     Delete Initiator Group    group_name=${iscsi_group01}
+
+Add Test Initiator to Initiator Group
+    Edit Initiator Group    group_name=${iscsi_group01}    protocol=iscsi    initiator_list=${iscsi_initiator_name_list}
 
 Add Client Initiator to Initiator Group
     ${client_initiator_name}=    Get Client Initiator Name
