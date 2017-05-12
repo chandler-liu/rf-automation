@@ -52,18 +52,6 @@ class JsonParser:
     def url_encode(self, datalist):
         urlencode = urllib.quote(json.dumps(datalist))
         return urlencode
-    def url_encode_list(self, datalist):
-#        urlencode = urllib.quote('["' + ('","').join(datalist) + '"]')
-        urlencode = urllib.quote('[' + ('","').join(datalist) + ']')
-#        urlencode = urllib.quote(json.dumps(datalist))
-#        urlencode = urllib.quote(datalist)
-        return urlencode
-
-    def url_encode_dict(self, datalist):
-        urlencode = urllib.quote('["' + ('","').join(datalist) + '"]')
-#        urlencode = urllib.quote(json.dumps(datalist))
-#        urlencode = urllib.quote(datalist)
-        return urlencode
 
 
 def main(argv=None):

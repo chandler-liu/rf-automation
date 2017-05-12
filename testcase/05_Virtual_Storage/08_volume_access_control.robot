@@ -159,7 +159,7 @@ Create FC Initiator Group without Initiators
 Create iSCSI Initiator Group with Initiators
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi    initiator_list=${iscsi_initiator_name_list}
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
-#   Check Initiator in Initiator Group
+    Check Test Initiator in Initiator Group
     Delete All Initiator Group
 
 Can Delete Null Group Asigned to Enable iSCSI Volume
@@ -167,7 +167,7 @@ Can Delete Null Group Asigned to Enable iSCSI Volume
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
     Enable Initiator Groups on Volume
-#   Check Initiator Group assign Successly
+    Check Initiator Group assign Successly
     Delete Selected Initiator Group
 #   Check Initiator Group Delete Successly
     Delete All Initiator Group
@@ -184,7 +184,7 @@ Can Delete Non-Null Initiator Group Without Assigned
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
     Add Test Initiator to Initiator Group
-#   Check Initiator in Initiator Group
+    Check Test Initiator in Initiator Group
     Delete Selected Initiator Group
 #   Check Initiator Group Delete Successly
     Delete All Initiator Group
@@ -194,9 +194,9 @@ Can Delete Group Asigned to Enable iSCSI Volume
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
     Add Test Initiator to Initiator Group
-#   Check Initiator in Initiator Group
+    Check Test Initiator in Initiator Group
     Enable Initiator Groups on Volume
-#   Check Initiator Group assign Successly
+    Check Initiator Group assign Successly
     Delete Selected Initiator Group
 #   Check Initiator Group Delete Successly
     Delete All Initiator Group
@@ -207,9 +207,9 @@ Can Delete Group Asigned to Disabled iSCSI Volume
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
     Add Test Initiator to Initiator Group
-#   Check Initiator in Initiator Group
+    Check Test Initiator in Initiator Group
     Enable Initiator Groups on Volume
-#   Check Initiator Group assign Successly
+    Check Initiator Group assign Successly
     Disable iSCSI volume    volume_name=${iscsi_volume_name}
     Delete Selected Initiator Group
 #   Check Initiator Group Delete Successly
@@ -221,10 +221,12 @@ Can Apply Initiator Group to Enable iSCSI Volume
     Create Initiator Group    group_name=${iscsi_group01}    protocol=iscsi
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
     Add Client Initiator to Initiator Group
+    Check Client Initiator in Initiator Group
     Enable Initiator Groups on Volume
-#   Check Initiator Group assign Successly
-#    Delete All Initiator Group
-#    Remove iSCSI Volume
+    Check Initiator Group assign Successly
+    Check iSCIS Volume can Access
+    Delete All Initiator Group
+    Remove iSCSI Volume
 
 
 
@@ -269,6 +271,16 @@ Add Client Initiator to Initiator Group
     @{initiator_list}=    Copy List    ${iscsi_initiator_name_list}
     Append To List     ${initiator_list}    ${client_initiator_name_dict}
     Edit Initiator Group    group_name=${iscsi_group01}   protocol=iscsi    initiator_list=${initiator_list}
+
+Check Test Initiator in Initiator Group
+    Check Initiator in Initiator Group    group_name=${iscsi_group01}    initiator_name_dict=${iscsi_initiator_name_dict}
+
+Check Client Initiator in Initiator Group
+    ${client_initiator_name}=    Get Client Initiator Name
+    &{client_initiator_name_dict}=    Create Dictionary    name=${client_initiator_name}    alias=test client
+    Check Initiator in Initiator Group    group_name=${iscsi_group01}    initiator_name_dict=${client_initiator_name_dict}
+
+
 
 
 
@@ -345,7 +357,7 @@ Create Initiator Group
 
 Edit Initiator Group
     [Arguments]    ${group_name}=    ${protocol}=    ${initiator_list}=[]
-    ${initiator_group}=    Search Initiator Group Key    group_name=${group_name}
+    ${initiator_group}=    Search Initiator Group    group_name=${group_name}
     ${initiator_group_key}=    Get Dictionary Keys    ${initiator_group}
     ${group_id}=    Set Variable    ${initiator_group_key[0]}
     ${initiator_list_urlencode}=    URL Encode    ${initiator_list}
@@ -358,9 +370,31 @@ Check Initiator Group Create Successly
     ${group_name_list}=    Query Keyword Value    group_name    ${initiator_entry}
     Should Contain Match    ${group_name_list}    ${group_name}
 
+Check Initiator in Initiator Group
+    [Arguments]    ${group_name}=${iscsi_group01}    ${initiator_name_dict}=${iscsi_initiator_name_dict}
+    ${initiator_entry}=    Get Initiator Group List
+    ${initiator_group}=    Search Key Value    group_name    ${group_name}    ${initiator_entry}
+    ${initiator_list_in_group}=    Query Keyword Value    initiator_list    ${initiator_group}
+    List Should Contain Value    ${initiator_list_in_group[0]}    ${initiator_name_dict}
+
+Check Initiator Group assign Successly
+    [Arguments]    ${group_name}=${iscsi_group01}    ${volume_name}=${iscsi_volume_name}
+    ${initiator_group}=    Search Initiator Group    group_name=${group_name}
+    ${initiator_group_key}=    Get Dictionary Keys    ${initiator_group}
+    ${group_id}=    Set Variable    ${initiator_group_key[0]}
+
+    ${rbd_entry}=    Get Return Json    /cgi-bin/ezs3/json/iscsi_list?target_id=${iscsi_target_name_urlencoding}    /response/entry
+    ${rbd_entry_parse}=    Parse Json    ${rbd_entry}
+    ${length}=    Get Length    ${rbd_entry_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${assigned_group}=    Run Keyword If    '${rbd_entry_parse[${INDEX}]['scsi_id']}' == '${volume_name}'
+    \    ...    Set Variable    ${rbd_entry_parse[${INDEX}]['allowed_initiator_groups']}
+    \    Exit For Loop If    '${rbd_entry_parse[${INDEX}]['scsi_id']}' == '${volume_name}'
+    Should Contain    ${assigned_group}    ${group_id}
+
 Delete Initiator Group
     [Arguments]    ${group_name}=all
-    ${initiator_entry_selected}=    Search Initiator Group Key    group_name=${group_name}
+    ${initiator_entry_selected}=    Search Initiator Group    group_name=${group_name}
     ${group_ids_key}=    Query Key    ${initiator_entry_selected}
     ${group_ids_key_urlencode}=    URL Encode    ${group_ids_key}
     Return Code Should be    /cgi-bin/ezs3/json/initiator_group_delete?gateway_group=${gateway_group}&group_ids=${group_ids_key_urlencode}    0
@@ -370,7 +404,7 @@ Get Initiator Group List
     ${initiator_entry_parse}=    Parse Json    ${initiator_entry}
     [Return]    ${initiator_entry_parse}
 
-Search Initiator Group Key
+Search Initiator Group
     [Arguments]    ${group_name}=all
     ${initiator_entry}=    Get Initiator Group List
     ${initiator_entry_selected}=    Run Keyword If    '${group_name}' == 'all'
@@ -385,7 +419,7 @@ Enable Special ACL on Volume
 
 Enable ACL Group on Volume
     [Arguments]    ${allow_all}=false    ${allowed_initiator_groups}=    ${allowed_initiators}=    ${volume_name}=${iscsi_volume_name}
-    ${initiator_group}=    Search Initiator Group Key    group_name=${allowed_initiator_groups}
+    ${initiator_group}=    Search Initiator Group    group_name=${allowed_initiator_groups}
     ${initiator_group_key}=    Get Dictionary Keys    ${initiator_group}
     ${allowed_initiator_groups_uuid}=    Set Variable    ${initiator_group_key[0]}
     Modify iSCSI LUN    allow_all=${allow_all}    gateway_group=${vs_name}    allowed_initiator_groups=${allowed_initiator_groups_uuid}    allowed_initiators=${allowed_initiators}    iscsi_id=${volume_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_volume_size}
