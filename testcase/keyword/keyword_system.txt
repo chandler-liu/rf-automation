@@ -40,6 +40,11 @@ Execute Command Successfully
     ${rc}=    Execute Command    ${cmd}    return_stdout=False    return_rc=True
     Should Be Equal As Integers    ${rc}    0
 
+Check OSD State
+    [Arguments]    ${storage_ip}    ${osd_name}    ${osd_state}=ONLINE
+    ${state}=    Get OSD State    ${storage_ip}    ${osd_name}
+    Should Be Equal As Strings    ${state}    ${osd_state}
+
 
 ##############################################################################################
 # Cluster operation
@@ -68,21 +73,15 @@ Get Cluster Health Status
     [Return]    ${health_status}
 
 Get OSD State
-    [Arguments]    ${storage_ip}    ${osd_state}=ONLINE    ${osd_name}=
-    ${result}=    Get Return Json    /cgi-bin/ezs3/json/storage_volume_list?host=${storage_ip}
-    log    OSD enable result: ${result}
-    ${result}=    evaluate    ${result}
-    log    Length of the list
-    ${list_len}=    Get Length    ${result}
-    log    Length of the list is : ${list_len}
-    : FOR    ${i}    IN RANGE    ${list_len}
-    \    ${res_lists_tmp}=    Get From List    ${result}    ${i}
-    \    Run Keyword If    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
-    ${res_lists}=    Set Variable    ${res_lists_tmp}
-    log    Get result of list: ${res_lists}
-    ${res_osd_state}=    Get From Dictionary    ${res_lists}    state
-    Should Be Equal As Strings    ${res_osd_state}    ${osd_state}
+    [Arguments]    ${storage_ip}    ${osd_name}=
+    ${volume_info}=    CGI Storage Volume List    host=${storage_ip}
+    ${length}=    Get Length    ${volume_info}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${osd_state}=    Run Keyword If    '${volume_info[${INDEX}]['name']}' == '${osd_name}'
+    \    ...    Set Variable    ${volume_info[${INDEX}]['state']}
+    \    Exit For Loop If    '${volume_info[${INDEX}]['name']}' == '${osd_name}'
     [Return]    ${osd_state}
+
 
 ##############################################################################################
 # Storage operation
@@ -91,12 +90,19 @@ Create OSD Role
     [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${data_dev}    ${sv_type}=0
     CGI Storage Volume Add    host=${storage_ip}    name=${osd_name}    data_devs=${data_dev}    sv_type=${sv_type}    enable_osd=false
     Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=${osd_name}
-    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    ONLINE    ${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
 Disable OSD
     [Arguments]    ${storage_ip}    ${osd_name}
     CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name}    force=true
-    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    OFFLINE    ${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
+
+Enable OSD
+    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
+    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${storage_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${storage_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    CGI Node Role Enable OSD    storage_ip=${storage_ip}    sv_list=${osd_name}    cluster_iface=${storage_network}   public_iface=${public_network}     pool_to_join=${pool_to_join}    add_metadata_pool=${add_metadata_pool}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
 Remove OSD
     [Arguments]    ${storage_ip}    ${osd_name}
@@ -104,13 +110,6 @@ Remove OSD
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     ${osd_name_list}=    Create List    ${osd_name}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
-
-Enable OSD
-    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
-    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-    ${storage_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${storage_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-    CGI Node Role Enable OSD    storage_ip=${storage_ip}    sv_list=${osd_name}    cluster_iface=${storage_network}   public_iface=${public_network}     pool_to_join=${pool_to_join}    add_metadata_pool=${add_metadata_pool}
-    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    ONLINE    ${osd_name}
 
 
 ##############################################################################################
