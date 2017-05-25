@@ -1,0 +1,8 @@
+*** Settings ***
+Documentation     This configuration file define Default UI options
+
+*** Variables ***
+${DEFAULT ALLOW ALL INITIATORS}     false
+${DEFAULT GATEWAY GROUP}            Default
+${DEFAULT POOL}                     Default
+${DEFAULT VIRTUAL STORAGE}          Default

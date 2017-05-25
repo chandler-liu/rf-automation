@@ -1,0 +1,133 @@
+*** Settings ***
+Documentation       This keywords suite define common operation
+Library             Collections
+Library             HttpLibrary.HTTP
+Library             SSHLibrary
+Resource            ./defaultconfig.txt
+
+*** Keywords ***
+####################################################################3#########################
+# Setup and Teardown
+####################################################################3#########################
+Network Setup
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
+    Open All SSH Connections    ${USERNAME}    ${PASSWORD}    @{PUBLICIP}
+    Open Connection    127.0.0.1    alias=127.0.0.1
+    Login    ${LOCALUSER}    ${LOCALPASS}
+
+Network Teardown
+    Close All Connections
+
+
+
+
+####################################################################3#########################
+# Common operation
+####################################################################3#########################
+Open HTTP Connection And Log In
+    [Arguments]    ${host}    ${username}    ${password}
+    Create HTTP Context    ${host}:8080    https
+    Return Code Should be 0    /cgi-bin/ezs3/json/login?user_id=${username}&password=${password}
+
+Open All SSH Connections
+    [Arguments]    ${username}    ${password}    @{ip_list}
+    : FOR    ${ip}    IN    @{ip_list}
+    \    Open Connection    ${ip}    alias=${ip}
+    \    Login    ${username}    ${password}
+
+
+####################################################################3#########################
+# WEB operation
+####################################################################3#########################
+Get Json Path Value
+    [Arguments]    ${request}    ${json_path}
+    GET    ${request}
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    ${json_path}
+    [Return]    ${rc}
+
+Get Progress
+    [Arguments]    ${request_url}    ${json_key}    ${progress}=100
+    GET    ${request_url}
+    ${body} =    Get Response Body
+    ${json_data} =    Get Json Value    ${body}    ${json_key}
+    log    ${json_data}
+    Should Be Equal As Strings    ${json_data}    ${progress}
+
+Get Return Code
+    [Arguments]    ${request}
+    GET    ${request}
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    /return_code
+    [Return]    ${rc}
+
+Get Return Json
+    [Arguments]    ${request}    ${json_key}=/response
+    GET    ${request}
+    ${body} =    Get Response Body
+    ${json_data} =    Get Json Value    ${body}    ${json_key}
+    [Return]    ${json_data}
+
+POST Request
+    [Arguments]    ${request}    ${post_url}
+    Set Request Body    ${request}
+    POST    ${post_url}
+    Response Status Code Should Equal    200 OK
+
+Post Return Code
+    [Arguments]    ${request_body}    ${request}
+    Set Request Body    ${request_body}
+    POST    ${request}
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    /return_code
+    [Return]    ${rc}
+
+Post Return Code Should be 0
+    [Arguments]    ${request_body}    ${request}
+    Set Request Body    ${request_body}
+    POST    ${request}
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    /return_code
+    Should be Equal    ${rc}    0
+
+Return Code Should be
+    [Arguments]    ${request}    ${return_code}=0
+    log    ${request}
+    GET    ${request}
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    /return_code
+    Should be Equal    ${rc}    ${return_code}
+
+Return Code Should be 0
+    [Arguments]    ${request}
+    Log    ${request}
+    GET    ${request}
+    ${body} =    Get Response Body
+    ${rc} =    Get Json Value    ${body}    /return_code
+    Should be Equal    ${rc}    0
+
+
+####################################################################3#########################
+# iSCSI operation
+####################################################################3#########################
+Get Client Initiator Name
+    Switch Connection    127.0.0.1
+    ${client_initiator}=    Execute Command    cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | cut -d '=' -f 2
+    [Return]    ${client_initiator}
+
+Get RBD Image Name
+    [Arguments]    ${target_id}=    ${volume_name}=
+    ${iscsi_list}=    CGI iSCSI List    target_id=${target_id}
+    ${rbd_entry}=    Get From Dictionary    ${iscsi_list}    entry
+    ${length}=    Get Length    ${rbd_entry}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${rbd_image_name}=    Run Keyword If    '${rbd_entry[${INDEX}]['scsi_id']}' == '${volume_name}'
+    \    ...    Set Variable    ${rbd_entry[${INDEX}]['rbd_img']}
+    \    Exit For Loop If    '${rbd_entry[${INDEX}]['scsi_id']}' == '${volume_name}'
+    [Return]    ${rbd_image_name}
+
+
+
+####################################################################3#########################
+# NAS operation
+####################################################################3#########################
