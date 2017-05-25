@@ -9,21 +9,10 @@ Library             ../pylibrary/JsonParser.py
 # URL Encode : Return Value by URL Encode
 # URL Json Encode : Return List/Array by URL Encode
 Resource            ./defaultconfig.txt
+Resource            ../00_commonconfig.txt
 
 *** Keywords ***
 # Example #### Description API function by API document, default configuration import from resource file "defaultconfig.txt"
-# GET /ezs3/json/initiator_group_delete, Delete specified iSCSI/FC initiator groups.
-CGI Initiator Group Delete
-    [Arguments]    ${gateway_group}=${DEFAULT GATEWAY GROUP}    ${group_ids}=[]
-    ${group_ids_urlencode}=    URL Encode    ${group_ids}
-    Return Code Should be    /cgi-bin/ezs3/json/initiator_group_delete?gateway_group=${gateway_group}&group_ids=${group_ids_urlencode}    0
-
-# GET /ezs3/json/initiator_group_list, List all iSCSI/FC initiator groups of a virtual storage.
-CGI Initiator Group List
-    [Arguments]    ${gateway_group}=${DEFAULT GATEWAY GROUP}
-    ${initiator_entry}=    Get Return Json    /cgi-bin/ezs3/json/initiator_group_list?gateway_group=${gateway_group}    /response
-    ${initiator_entry_parse}=    Parse Json    ${initiator_entry}
-    [Return]    ${initiator_entry_parse}
 
 # GET /ezs3/json/iscsi_list, Return a list of volumes of a iSCSI/FC target exported by a virtual storage.
 CGI iSCSI List
@@ -32,3 +21,22 @@ CGI iSCSI List
     ${iscsi_list}=    Get Return Json    /cgi-bin/ezs3/json/iscsi_list?target_id=${target_id_urlencode}    /response
     ${iscsi_list_parse}=    Parse Json    ${iscsi_list}
     [Return]    ${iscsi_list_parse}
+
+# GET /ezs3/json/initiator_group_delete, Delete specified iSCSI/FC initiator groups.
+CGI Initiator Group Delete
+    [Arguments]    ${gateway_group}=${DEFAULT GATEWAY GROUP}    ${group_ids}=[]
+    ${group_ids_urlencode}=    URL Encode    ${group_ids}
+    Wait Until Keyword Succeeds    30 sec    5 sec    Return Code Should be    /cgi-bin/ezs3/json/initiator_group_delete?gateway_group=${gateway_group}&group_ids=${group_ids_urlencode}    0
+
+# GET /ezs3/json/initiator_group_list, List all iSCSI/FC initiator groups of a virtual storage.
+CGI Initiator Group List
+    [Arguments]    ${gateway_group}=${DEFAULT GATEWAY GROUP}
+    ${initiator_entry}=    Get Return Json    /cgi-bin/ezs3/json/initiator_group_list?gateway_group=${gateway_group}    /response
+    ${initiator_entry_parse}=    Parse Json    ${initiator_entry}
+    [Return]    ${initiator_entry_parse}
+
+# GET /ezs3/json/license_set, Input license key to activate a given node.
+CGI License Set
+    [Arguments]    ${key}    ${ip}
+    Wait Until Keyword Succeeds    3 min    5 sec    Return Code Should be    /cgi-bin/ezs3/json/license_set?ip=${ip}&key=${key}    0
+

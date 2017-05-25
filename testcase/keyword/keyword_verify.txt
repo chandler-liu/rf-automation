@@ -3,24 +3,25 @@ Documentation       This keywords suite define how to verify system operation co
 Library             OperatingSystem
 Library             SSHLibrary
 Resource            ./defaultconfig.txt
+Resource            ../00_commonconfig.txt
 
 *** Keywords ***
-#########################
+##############################################################################################
 # iSCSI operation
-#########################
+##############################################################################################
 Check iSCIS Volume can Access
-    [Arguments]    ${iscsi_target_ip}=    ${iscsi_target_name}=
+    [Arguments]    ${iscsi_target_ip}    ${iscsi_target_name}
     Switch Connection    127.0.0.1
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p ${iscsi_target_ip}    ${iscsi_target_name}
     Execute Command Successfully    iscsiadm -m node -o delete
 
 Check iSCIS Volume can not Access
-    [Arguments]    ${iscsi_target_ip}=    ${iscsi_target_name}=
+    [Arguments]    ${iscsi_target_ip}    ${iscsi_target_name}
     Switch Connection    127.0.0.1
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Not Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
     Execute Command    iscsiadm -m node -o delete
 
 
-#########################
+##############################################################################################
 # NAS operation
-#########################
+##############################################################################################

@@ -1,8 +1,11 @@
 *** Settings ***
-Documentation     This configuration file define Default UI options
+Documentation       This configuration file define Default UI options
+Resource            ../00_commonconfig.txt
+
 
 *** Variables ***
 ${DEFAULT ALLOW ALL INITIATORS}     false
 ${DEFAULT GATEWAY GROUP}            Default
 ${DEFAULT POOL}                     Default
+${DEFAULT UI PORTAL}                @{PUBLICIP}[0]
 ${DEFAULT VIRTUAL STORAGE}          Default
