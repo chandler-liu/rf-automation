@@ -87,60 +87,29 @@ Get OSD State
 ##############################################################################################
 # Storage operation
 ##############################################################################################
-Add Storage Volume
-    [Arguments]    ${storage_ip}    ${osd_name}    ${sv_type}=0    ${journal_dev}=data    ${cache_dev}=    ${spare_devs}=%5B%5D
-    ...    ${dedup}=False    ${compress}=False    ${BatFlag}=False    @{data_devs}    # BatFlag, Whether the batch mode, default value is False
-    log    sv_type vlues is : ${sv_type}
-    Run Keyword If    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
-    ...    ELSE IF    ${sv_type}==${0} and ${BatFlag}==${True}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%2C%22%2Fdev%2F@{data_devs}[1]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
-    POST    /cgi-bin/ezs3/json/storage_volume_add
-    Response Status Code Should Equal    200 OK
-
-Create OSD
-    [Arguments]    ${osd_name}
-    log    Create OSD, to test incremental recovery
-    @{data_devs}=    Create List    sdc
-    Add Storage Volume    @{STORAGEIP}[0]    ${osd_name}    0    data    \    %5B%5D
-    ...    False    False    False    @{data_devs}
-    log    Enable OSD
-    log    First, get network info
-    ${public_network}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-    ${storage_network}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 @{STORAGEIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-    log    Public network is: ${public_network}, Storage network is: ${storage_network}
-    log    Start to enable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=@{STORAGEIP}[0]&sv_list=${osd_name}&cluster_iface=${storage_network}&public_iface=${public_network}    0
-    log    Check if OSD is enabled
-    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    @{STORAGEIP}[0]    ONLINE    ${osd_name}
-    sleep    20
-
-Delete OSD
-    [Arguments]    ${storage_ip}    ${osd_name}
-    log    Delete OSD
-    ${del_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
-    ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
-    POST Request    ${del_osd_body}    ${delete_osd_url}
-    sleep    5
+Create OSD Role
+    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${data_dev}    ${sv_type}=0
+    CGI Storage Volume Add    host=${storage_ip}    name=${osd_name}    data_devs=${data_dev}    sv_type=${sv_type}    enable_osd=false
+    Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    ONLINE    ${osd_name}
 
 Disable OSD
     [Arguments]    ${storage_ip}    ${osd_name}
-    log    Disable OSD
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=${storage_ip}&sv_list=${osd_name}&force=true    0
+    CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name}    force=true
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    OFFLINE    ${osd_name}
-    sleep    10
 
-Disable and Delete OSD
+Remove OSD
     [Arguments]    ${storage_ip}    ${osd_name}
     Disable OSD    storage_ip=${storage_ip}    osd_name=${osd_name}
-    log    Get cluster status
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
-    sleep    5
-    Delete OSD    storage_ip=${storage_ip}    osd_name=${osd_name}
+    ${osd_name_list}=    Create List    ${osd_name}
+    CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
 
 Enable OSD
-    [Arguments]    ${storage_ip}    ${osd_name}    ${storage_network}    ${public_network}
-    log    Start to enable OSD again
-    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=${storage_ip}&sv_list=${osd_name}&cluster_iface=${storage_network}&public_iface=${public_network}    0
-    log    Check if OSD is enabled
+    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
+    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${storage_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${storage_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    CGI Node Role Enable OSD    storage_ip=${storage_ip}    sv_list=${osd_name}    cluster_iface=${storage_network}   public_iface=${public_network}     pool_to_join=${pool_to_join}    add_metadata_pool=${add_metadata_pool}
     Wait Until Keyword Succeeds    4 min    5 sec    Get OSD State    ${storage_ip}    ONLINE    ${osd_name}
 
 

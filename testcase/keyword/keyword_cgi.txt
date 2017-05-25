@@ -26,7 +26,7 @@ CGI iSCSI List
 CGI Initiator Group Delete
     [Arguments]    ${gateway_group}=${DEFAULT GATEWAY GROUP}    ${group_ids}=[]
     ${group_ids_urlencode}=    URL Encode    ${group_ids}
-    Wait Until Keyword Succeeds    30 sec    5 sec    Return Code Should be    /cgi-bin/ezs3/json/initiator_group_delete?gateway_group=${gateway_group}&group_ids=${group_ids_urlencode}    0
+    Return Code Should be    /cgi-bin/ezs3/json/initiator_group_delete?gateway_group=${gateway_group}&group_ids=${group_ids_urlencode}    0
 
 # GET /ezs3/json/initiator_group_list, List all iSCSI/FC initiator groups of a virtual storage.
 CGI Initiator Group List
@@ -40,3 +40,33 @@ CGI License Set
     [Arguments]    ${key}    ${ip}
     Wait Until Keyword Succeeds    3 min    5 sec    Return Code Should be    /cgi-bin/ezs3/json/license_set?ip=${ip}&key=${key}    0
 
+# GET /ezs3/json/node_role_disable_osd, Disable OSD role of a node. You can specify several storage volumes to disable multiple OSDs at the same time.
+CGI Node Role Disable OSD
+    [Arguments]    ${ip}    ${sv_list}    ${force}=false
+    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=${ip}&sv_list=${sv_list}&force=${force}    0
+
+# GET /ezs3/json/node_role_enable_osd, Enable OSD role of a node. You can specify several storage volumes to enable multiple OSDs at the same time.
+CGI Node Role Enable OSD
+    [Arguments]    ${storage_ip}    ${sv_list}    ${cluster_iface}    ${public_iface}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=false
+    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=${storage_ip}&sv_list=${sv_list}&cluster_iface=${cluster_iface}&public_iface=${public_iface}&pool_to_join=${pool_to_join}&add_metadata_pool=${add_metadata_pool}    0
+
+# POST /ezs3/json/storage_volume_add, Create a storage volume on a node.
+# data_devs provide device list [/dev/sdb,/dev/sdc] by Create List
+CGI Storage Volume Add
+    [Arguments]    ${host}    ${name}    ${data_devs}    ${sv_type}=0    ${journal_dev}=data    ${cache_devs}=    ${spare_devs}=[]    ${dedup}=false    ${compress}=false    ${write_cache}=false    ${enable_osd}=false
+    ${data_devs_url_encode}=    URL Json Encode    ${data_devs}
+    ${spare_devs_url_encode}=    URL Json Encode    ${spare_devs}
+    ${post_body}=    Set Variable    host=${host}&name=${name}&sv_type=${sv_type}&data_devs=${data_devs_url_encode}&journal_dev=${journal_dev}&cache_dev=${cache_devs}&spare_devs=${spare_devs_url_encode}&dedup=${dedup}&compress=${compress}&write_cache=${write_cache}&enable_osd=${enable_osd}
+    POST Request   ${post_body}    /cgi-bin/ezs3/json/storage_volume_add
+    Response Status Code Should Equal    200 OK
+
+# POST /ezs3/json/storage_volume_remove, Remove storage volumes on a node.
+# name provide device list [/dev/sdb,/dev/sdc] by Create List
+CGI Storage Volume Remove
+    [Arguments]    ${host}    ${name}
+    ${name_url_encode}=    URL Json Encode    ${name}
+    ${post_body}=    Set Variable    host=${host}&names=${name_url_encode}
+    ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
+    POST Request    ${post_body}    /cgi-bin/ezs3/json/storage_volume_remove
+    Response Status Code Should Equal    200 OK
+ 

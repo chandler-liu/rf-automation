@@ -6,6 +6,8 @@ Resource            ../00_commonconfig.txt
 *** Variables ***
 ${DEFAULT ALLOW ALL INITIATORS}     false
 ${DEFAULT GATEWAY GROUP}            Default
+${DEFAULT PASSWORD}                 p@ssw0rd
 ${DEFAULT POOL}                     Default
 ${DEFAULT UI PORTAL}                @{PUBLICIP}[0]
+${DEFAULT USERNAME}                 root
 ${DEFAULT VIRTUAL STORAGE}          Default
