@@ -45,7 +45,7 @@ ${osd_name}                         Disk
     Create OSD Role    public_ip=@{PUBLICIP}[0]    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}    data_dev=${data_dev}
     CGI Storage Volume Add    host=@{PUBLICIP}[0]    name=${osd_name}    data_devs=${data_devs}    sv_type=0
 02_KeywordExample
-    Disable OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}
+#    Disable OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}
     Enable OSD    public_ip=@{PUBLICIP}[0]    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}    pool_to_join=${default_pool}    add_metadata_pool=false
 03_KeywordExample
     Remove OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}
@@ -53,5 +53,8 @@ ${osd_name}                         Disk
 04_KeywordExample
     CGI Storage Volume List    host=@{STORAGEIP}[0]
     Get OSD State    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}
+05_KeywordExample
+    Get CTDB Status    public_ip=@{PUBLICIP}[2]
+    Wait Until Keyword Succeeds    30 sec    5 sec    Check Cluster Health
 *** Keywords ***
 

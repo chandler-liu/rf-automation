@@ -6,8 +6,11 @@ Resource            ../00_commonconfig.txt
 *** Variables ***
 ${DEFAULT ALLOW ALL INITIATORS}     false
 ${DEFAULT GATEWAY GROUP}            Default
-${DEFAULT PASSWORD}                 p@ssw0rd
 ${DEFAULT POOL}                     Default
-${DEFAULT UI PORTAL}                @{PUBLICIP}[0]
-${DEFAULT USERNAME}                 root
+${DEFAULT SSH IP}                   @{PUBLICIP}[0]
+${DEFAULT SSH PASSWORD}             ${PASSWORD}
+${DEFAULT SSH USERNAME}             ${USERNAME}
+${DEFAULT WEB IP}                   @{PUBLICIP}[0]
+${DEFAULT WEB PASSWORD}             ${UIPASS}
+${DEFAULT WEB USERNAME}             ${UIADMIN}
 ${DEFAULT VIRTUAL STORAGE}          Default

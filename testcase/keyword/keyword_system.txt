@@ -12,8 +12,8 @@ Resource            ../00_commonconfig.txt
 # Setup and Teardown
 ##############################################################################################
 Network Setup
-    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
-    Open All SSH Connections    ${USERNAME}    ${PASSWORD}    @{PUBLICIP}
+    Open HTTP Connection And Log In    host=${DEFAULT WEB IP}    username=${DEFAULT WEB USERNAME}    password=${DEFAULT WEB PASSWORD}
+    Open All SSH Connections    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    @{PUBLICIP}
     Open Connection    127.0.0.1    alias=127.0.0.1
     Login    ${LOCALUSER}    ${LOCALPASS}
 
@@ -40,37 +40,20 @@ Execute Command Successfully
     ${rc}=    Execute Command    ${cmd}    return_stdout=False    return_rc=True
     Should Be Equal As Integers    ${rc}    0
 
-Check OSD State
-    [Arguments]    ${storage_ip}    ${osd_name}    ${osd_state}=ONLINE
-    ${state}=    Get OSD State    ${storage_ip}    ${osd_name}
-    Should Be Equal As Strings    ${state}    ${osd_state}
-
 
 ##############################################################################################
 # Cluster operation
 ##############################################################################################
-Input License
-    [Arguments]    ${storage_ip}    ${license_key}
-    log    Input license key on node ${storage_ip}
-    CGI License Set    ip=${storage_ip}    key=${license_key}
-
-Get Product Type
-    [Documentation]    To get product type, the return value is scaler/controler/converger
-    log    Login background, get product type
-    ${product_type}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    cat /etc/ezs3/product \ | awk -F " " '{print $NF}'
-    log    ${product_type}
-    [Return]    ${product_type}
-
-Get ctdb Status
-    log    Check ctdb status
-    ${ctdb_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ctdb status | grep -i pnn
-    Should Contain X Times    ${ctdb_status}    OK    3
-
 Get Cluster Health Status
     [Documentation]    To get cluster current health status
-    ${health_status}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph health detail
+    ${health_status}=    Do SSH CMD    ${DEFAULT SSH IP}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph health detail
     Should Be Equal    ${health_status}    HEALTH_OK
     [Return]    ${health_status}
+
+Get CTDB Status
+    [Arguments]     ${public_ip}=${DEFAULT SSH IP}
+    ${ctdb_status}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ctdb status | grep -i pnn
+    [Return]    ${ctdb_status}
 
 Get OSD State
     [Arguments]    ${storage_ip}    ${osd_name}=
@@ -82,6 +65,17 @@ Get OSD State
     \    Exit For Loop If    '${volume_info[${INDEX}]['name']}' == '${osd_name}'
     [Return]    ${osd_state}
 
+Get Product Type
+    [Documentation]    To get product type, the return value is scaler/controler/converger
+    log    Login background, get product type
+    ${product_type}=    Do SSH CMD    ${DEFAULT SSH IP}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/ezs3/product \ | awk -F " " '{print $NF}'
+    log    ${product_type}
+    [Return]    ${product_type}
+
+Input License
+    [Arguments]    ${storage_ip}    ${license_key}
+    log    Input license key on node ${storage_ip}
+    CGI License Set    ip=${storage_ip}    key=${license_key}
 
 ##############################################################################################
 # Storage operation
@@ -99,8 +93,8 @@ Disable OSD
 
 Enable OSD
     [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
-    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-    ${storage_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT USERNAME}    ${DEFAULT PASSWORD}    ifconfig | grep -i -B 1 ${storage_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${storage_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 ${storage_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     CGI Node Role Enable OSD    storage_ip=${storage_ip}    sv_list=${osd_name}    cluster_iface=${storage_network}   public_iface=${public_network}     pool_to_join=${pool_to_join}    add_metadata_pool=${add_metadata_pool}
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
@@ -194,11 +188,11 @@ Check If SSH Output Is Empty
     ...    ELSE    Fail    The parameter should be '${true}' or '${false}'
 
 Do SSH CMD
-    [Arguments]    ${host_ip}    ${root}    ${root_password}    ${cmd}    ${cmp_flag}=False    ${expect_result}=
+    [Arguments]    ${host_ip}    ${username}    ${password}    ${cmd}    ${cmp_flag}=False    ${expect_result}=
     [Documentation]    ${cmp_flag} , it means if we need to do compare operation, the default vaule is False, means don't need to do the comparison.
     log    SSH login
     Open Connection    ${host_ip}
-    ${con_output}=    Login    ${USERNAME}    ${PASSWORD}
+    ${con_output}=    Login    ${username}    ${password}
     Should Contain    ${con_output}    Last login
     log    Do ssh command
     Start Command    ${cmd}
