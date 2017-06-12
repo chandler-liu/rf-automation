@@ -198,7 +198,7 @@ Set file QoS under sharefolder
 Can Search Folder In QoS Setting Dialog
     [Arguments]    ${vs_name}    ${filename}
     Return Code Should be 0    /cgi-bin/ezs3/json/search_file?gateway_group=${vs_name}&filename=${filename}&rw=true
-    ${ret} =   Get Json Path Value    /cgi-bin/ezs3/json/search_file?gateway_group=${vs_name}&filename=${filename}&rw=true    /response/file/0/name
+    ${ret} =   Get Json Path Value    /cgi-bin/ezs3/json/search_file?gateway_group=${vs_name}&filename=${filename}&rw=true    /response/file/0/path
     Should Be Equal    ${ret}    "${filename}"
 
 Enable File QoS
