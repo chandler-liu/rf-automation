@@ -73,12 +73,15 @@ Only listed client can access
     Switch Connection    127.0.0.1
     ${dummy_initiator} =    Set Variable    iqn.2014-02.thisisadummy:initiator
     Modify iSCSI LUN    allow_all=false    gateway_group=${vs_name}    allowed_initiators=${dummy_initiator}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_lun_size}
-    Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${true}
-    ${initiator_name} =    Execute Command    cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | cut -d '=' -f 2
+    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
+    Execute Command Successfully    iscsiadm -m node -T ${iscsi_target_name} -l
+    Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${true}
+	${initiator_name} =    Execute Command    cat /etc/iscsi/initiatorname.iscsi | grep InitiatorName= | cut -d '=' -f 2
     Modify iSCSI LUN    allow_all=false    gateway_group=${vs_name}    allowed_initiators=${initiator_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_lun_size}
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
     Execute Command Successfully    iscsiadm -m node -T ${iscsi_target_name} -l
-
+    Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${false}
+	
 QoS of iops takes effect
     [Documentation]     Testlink ID:
     ...    Sc-558:QoS of iops takes effect
