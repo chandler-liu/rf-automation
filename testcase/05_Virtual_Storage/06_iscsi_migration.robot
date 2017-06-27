@@ -60,7 +60,7 @@ Check data migration status
     ...    Sc-637:Check data migration status
     [Tags]    FAST
     Start iSCSI Migration    ${vs_name}    ${dest_target_name_urlencoding}    ${dest_lun_name}
-    Wait Until Keyword Succeeds    2m    3s    Migration Progress Is Over    ${vs_name}    ${dest_target_name_urlencoding}    ${0}
+    Wait Until Keyword Succeeds    2m    3s    Migration Progress Is Over    ${vs_name}    ${dest_target_name_urlencoding}    ${99}
 
 Data can be migrated successfully and completely
     [Documentation]    Testlink ID:
@@ -70,6 +70,7 @@ Data can be migrated successfully and completely
     Switch Connection    127.0.0.1
     Wait Until Keyword Succeeds    2m    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${dest_target_name}
     Execute Command Successfully    iscsiadm -m node -p @{PUBLICIP}[0] -T ${dest_target_name} -l
+	Wait Until Keyword Succeeds    5m    5s    Check If SSH Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${false}
     Sleep    5s
     ${sdx} =    Execute Command    iscsiadm -m session -P 3|grep -A 50 ${dest_target_name}|awk '/Attached scsi disk/ {print $4}'
     Execute Command Successfully    mount -t ext4 /dev/${sdx} /mnt/iscsi
