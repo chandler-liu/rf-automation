@@ -379,13 +379,15 @@ Check iSCIS Volume can Access but no disk
     Switch Connection    127.0.0.1
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
 	Wait Until Keyword Succeeds    30s    5s    Check If Disk Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${true}
-    Execute Command Successfully    iscsiadm -m node -o delete
+    Execute Command Successfully   iscsiadm -m node --logout -T ${iscsi_target_name}
+	Execute Command Successfully   iscsiadm -m node -o delete
 
 Check iSCIS Volume can Access and has disk
     Switch Connection    127.0.0.1
-    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Not Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
+    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
     Wait Until Keyword Succeeds    30s    5s    Check If Disk Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${false}
-	Execute Command    iscsiadm -m node -o delete
+	Execute Command Successfully   iscsiadm -m node --logout -T ${iscsi_target_name}
+	Execute Command Successfully   iscsiadm -m node -o delete
 
 Initiator Group Create
     [Arguments]    ${group_name}=    ${protocol}=    ${initiator_list}=[]
