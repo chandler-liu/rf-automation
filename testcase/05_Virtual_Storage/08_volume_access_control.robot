@@ -378,13 +378,13 @@ Check iSCIS Volume can Access
 Check iSCIS Volume can Access but no disk
     Switch Connection    127.0.0.1
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
-	Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${true}
+	Wait Until Keyword Succeeds    30s    5s    Check If Disk Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${true}
     Execute Command Successfully    iscsiadm -m node -o delete
 
 Check iSCIS Volume can Access and has disk
     Switch Connection    127.0.0.1
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Not Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
-    Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${false}
+    Wait Until Keyword Succeeds    30s    5s    Check If Disk Output Is Empty    iscsiadm -m session -P 3 | grep sd    ${false}
 	Execute Command    iscsiadm -m node -o delete
 
 Initiator Group Create
@@ -482,3 +482,11 @@ Disable iSCSI volume
     Disable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${volume_name}
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd showmapped | grep ${rbd_image}    ${true}
 
+Check If Disk Output Is Empty
+	[Arguments]    ${cmd}    ${true_false}
+	Execute Command    iscsiadm -m node --logout -T ${iscsi_target_name}
+	Execute Command Successfully    iscsiadm -m node -T ${iscsi_target_name} -l
+    ${output}=    Execute Command    ${cmd}
+    Run Keyword If    '${true_false}' == '${true}'    Should Be Empty    ${output}
+    ...    ELSE IF    '${true_false}' == '${false}'    Should Not Be Empty    ${output}
+    ...    ELSE    Fail    The parameter should be '${true}' or '${false}'
