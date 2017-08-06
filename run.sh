@@ -100,7 +100,7 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     esac
 
     ## Check md5sum ##
-    echo Start to check md5
+    echo "Start to check md5 of `ls *.iso`"
     isomd5sum=`md5sum *.iso | awk '{print $1}'`
     expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
     if [ -z "$expectedmd5sum" ]
