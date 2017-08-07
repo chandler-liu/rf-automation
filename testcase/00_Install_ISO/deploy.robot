@@ -13,7 +13,7 @@ ${delete_start}        1
 ${disk_type}           thin
 #${delete_vmdk_cmd}     cd /vmfs/volumes/539f2d1f-98e6569e-6d03-60eb69a5a98c; rm -f auto-1/*.vmdk; rm -f auto-2/*.vmdk; rm -f auto-3/*.vmdk;
 ${modify_ssh_config}   sed -i.bak 's/^#\ \ \ StrictHostKeyChecking ask/\ \ \ \ StrictHostKeyChecking no/' /etc/ssh/ssh_config
-${start_web_cmd_1}       python -c "from ezs3.utils import start_web_ui,start_freenode_service;start_web_ui();start_freenode_service()"
+${start_web_cmd_1}       python -c "from ezs3.utils import start_web_ui,start_freenode_service"
 ${start_web_cmd_2}       python -c "start_web_ui()"
 ${start_web_cmd_3}       python -c "start_freenode_service()"
 ${create_cfg_cmd}      python -c "from ezs3.config import Ezs3CephConfig; Ezs3CephConfig()"
