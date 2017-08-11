@@ -27,7 +27,7 @@ Install ISO on ESXi
 Make Sure All Nodes are Installed and Ready
     [Documentation]  Check if http can work to determine if install is finished, then do some init
     [Tags]  install
-    Wait HTTP Service Ready
+    Initiate Some Service On All Nodes
 
 
 *** Keywords ***
@@ -38,11 +38,12 @@ Destroy and Reinstall VM
     \    Add Disk To VM    ${vm}    ${disk_size_gb}  ${disk_type}  ${disk_count}
     \    Power VM    poweron    ${vm}
 
-Wait HTTP Service Ready
+Initiate Some Service On All Nodes
     :FOR    ${ip}   IN    @{PUBLICIP}
     \       Wait Until Keyword Succeeds  30m  30s  GET  http://${ip}
     \       Wait Until Keyword Succeeds  2m  5s  Open Connection    ${ip}
     \       Wait Until Keyword Succeeds  2m  5s  Login    ${USERNAME}    ${PASSWORD}
+    \       Wait Until Keyword Succeeds  1m  5s  SSH Output Should Be Equal    grep "resuming normal operations" /var/log/apache2/error.log | wc -l    3
     \       Modify System Config
 
 Modify System Config
