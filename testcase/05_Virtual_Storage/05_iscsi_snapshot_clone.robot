@@ -117,7 +117,7 @@ Delete snapshot when it has child volume
     Flatten iSCSI Volume    ${iscsi_target_name}    ${child_lun_name}
     # Delete parent lun
     Wait Until Keyword Succeeds    30s    5s    Delete iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${iscsi_lun_name}
-    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    rbd ls|wc -l    1 
+    Wait Until Keyword Succeeds    2m    5s    SSH Output Should Be Equal    rbd ls|wc -l    1 
     # Enable child lun and check its content
     Check If SSH Output Is Empty    rbd showmapped    ${true}
     Enable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${child_lun_name}
@@ -132,7 +132,7 @@ Delete snapshot when it has child volume
     [Teardown]    Run Keywords    Disable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${child_lun_name}
     ...           AND             Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd showmapped    ${true}
     ...           AND             Delete iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${child_lun_name}
-    ...           AND             Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd ls    ${true}
+    ...           AND             Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    rbd ls    ${true}
     ...           AND             Delete iSCSI Target    ${vs_name}    ${iscsi_target_name_urlencoding}
     ...           AND             Wait Until Keyword Succeeds    30s    5s    SSH Output Should Not Contain    cat /etc/scst.conf    DEVICE
     
@@ -150,6 +150,7 @@ Rollback Is Finished
     [Arguments]    ${gateway_group}    ${target_id}
     ${lun_state} =    Get Json Path Value    /cgi-bin/ezs3/json/iscsi_list?gateway_group=${gateway_group}&target_id=${target_id}&rw=true    /response/entry
     Should Not Contain    ${lun_state}    action_pending
+    Should Not Contain    ${lun_state}    rollbacking
 
 Delete iSCSI Snapshot
     [Arguments]    ${gateway_group}    ${lun_name}    ${target_id}    ${snap_id}
