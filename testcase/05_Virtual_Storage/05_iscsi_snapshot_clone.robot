@@ -130,6 +130,7 @@ Delete snapshot when it has child volume
     SSH Output Should Be Equal    cat /mnt/iscsi/mark.txt    Before take snapshot
     Execute Command Successfully    umount /mnt/iscsi;iscsiadm -m node -u;iscsiadm -m node -o delete
     [Teardown]    Run Keywords    Disable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${child_lun_name}
+    ...           AND             Switch Connection    @{PUBLICIP}[0]
     ...           AND             Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    rbd showmapped    ${true}
     ...           AND             Delete iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${child_lun_name}
     ...           AND             Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    rbd ls    ${true}
