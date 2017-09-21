@@ -6,7 +6,7 @@ Resource            ../00_commonconfig.txt
 *** Variables ***
 ${DEFAULT ALLOW ALL INITIATORS}     false
 ${DEFAULT GATEWAY GROUP}            Default
-${DEFAULT POOL}                     Default
+${DEFAULT POOL}                     default
 ${DEFAULT SSH IP}                   @{PUBLICIP}[0]
 ${DEFAULT SSH PASSWORD}             ${PASSWORD}
 ${DEFAULT SSH USERNAME}             ${USERNAME}
