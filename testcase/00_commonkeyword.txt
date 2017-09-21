@@ -3,12 +3,13 @@ Library           SSHLibrary
 Library           HttpLibrary.HTTP
 Library           Collections
 Library           OperatingSystem
+Library           ./pylibrary/JsonParser.py
 
 *** Keywords ***
 Check If SSH Output Is Empty
     [Arguments]    ${cmd}    ${true_false}
     ${output}=    Execute Command    ${cmd}
-    Run Keyword If    '${true_false}' == '${true}'    Should Be Empty    ${output}
+    Run Keyword IF    '${true_false}' == '${true}'    Should Be Empty    ${output}
     ...    ELSE IF    '${true_false}' == '${false}'    Should Not Be Empty    ${output}
     ...    ELSE    Fail    The parameter should be '${true}' or '${false}'
 
@@ -22,7 +23,7 @@ Do SSH CMD
     log    Do ssh command
     Start Command    ${cmd}
     ${stdout}=    Read Command Output
-    Run Keyword If    ${cmp_flag}==${True}    Should Be Equal As Strings    ${stdout}    ${expect_result}
+    Run Keyword IF    ${cmp_flag}==${True}    Should Be Equal As Strings    ${stdout}    ${expect_result}
     [Return]    ${stdout}
 
 Execute Command Successfully
@@ -160,7 +161,7 @@ Add Storage Volume
     [Arguments]    ${storage_ip}    ${osd_name}    ${sv_type}=0    ${journal_dev}=data    ${cache_dev}=    ${spare_devs}=%5B%5D
     ...    ${dedup}=False    ${compress}=False    ${BatFlag}=False    @{data_devs}    # BatFlag, Whether the batch mode, default value is False
     log    sv_type vlues is : ${sv_type}
-    Run Keyword If    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
+    Run Keyword IF    ${sv_type}==${0} and ${BatFlag}==${False}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
     ...    ELSE IF    ${sv_type}==${0} and ${BatFlag}==${True}    Set Request Body    host=${storage_ip}&name=${osd_name}&sv_type=${sv_type}&data_devs=%5B%22%2Fdev%2F@{data_devs}[0]%22%2C%22%2Fdev%2F@{data_devs}[1]%22%5D&journal_dev=data&cache_dev=&spare_devs=%5B%5D&dedup=false&compress=false&enable_osd=false
     POST    /cgi-bin/ezs3/json/storage_volume_add
     Response Status Code Should Equal    200 OK
@@ -175,7 +176,7 @@ Get OSD State
     log    Length of the list is : ${list_len}
     : FOR    ${i}    IN RANGE    ${list_len}
     \    ${res_lists_tmp}=    Get From List    ${result}    ${i}
-    \    Run Keyword If    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
+    \    Run Keyword IF    ${result}[${i}]['name']=='${osd_name}'    Exit For Loop
     ${res_lists}=    Set Variable    ${res_lists_tmp}
     log    Get result of list: ${res_lists}
     ${res_osd_state}=    Get From Dictionary    ${res_lists}    state

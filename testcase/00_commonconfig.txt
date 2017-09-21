@@ -2,22 +2,39 @@
 Documentation     This robot file includes all common configs about cluster
 
 *** Variables ***
+${Version}          'V7.0'    # The tested version number, because of the version is different(some URLs are diffeent), so want to distinguish between them
+
 ${ESXHOSTIP}      172.16.146.210
-${ESXUSER}        root
+#${ESXHOSTIP}        192.168.160.121
+${ESXUSER}          root
 ${ESXPASS}        trend#11
+#${ESXPASS}          password
 @{VMNAMES}        auto-1    auto-2    auto-3
+#@{VMNAMES}          OS154    OS155    OS156
 @{STORAGEIP}      192.168.200.101    192.168.200.102    192.168.200.103
+#@{STORAGEIP}        10.20.0.154    10.20.0.155    10.20.0.156
 @{PUBLICIP}       172.16.146.101    172.16.146.102    172.16.146.103
-${USERNAME}       root
+#@{PUBLICIP}         192.168.160.154    192.168.160.155    192.168.160.156
+${CLUSTERNODES}     3
+
+${USERNAME}         root
 ${PASSWORD}       1
-${UIADMIN}        admin
+#${PASSWORD}         p@ssw0rd
+${UIADMIN}          admin
 ${UIPASS}         1
-${LOCALUSER}      root
+#${UIPASS}           admin
+${LOCALUSER}        root
 ${LOCALPASS}      1
+#${LOCALPASS}        p@ssw0rd
+
 ${ADIP}           172.16.146.219
+#${ADIP}             192.168.160.129
 ${ADPASS}         Trend%2311
+#${ADPASS}           Adminsitrator
 ${DNSIP}          172.16.146.104
-${DUMMYRRSIP}     172.16.146.220    # Only used for RRS SSH Key case validation
-${DUMMYRRSUSER}    root
-${DUMMYRRSPASS}    p@ssw0rd
-${Version}        'V6.2'    # The tested version number, because of the version is different(some URLs are diffeent), so want to distinguish between them
+#${DNSIP}            192.168.160.129
+${NTPSERVER}        202.108.6.95
+
+${DUMMYRRSIP}       172.16.146.220    # Only used for RRS SSH Key case validation
+${DUMMYRRSUSER}     root
+${DUMMYRRSPASS}     p@ssw0rd

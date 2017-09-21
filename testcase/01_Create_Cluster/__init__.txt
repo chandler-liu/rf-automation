@@ -1,4 +1,0 @@
-*** Settings ***
-Resource          ../00_commonconfig.txt
-Resource          ../00_commonkeyword.txt
-Resource          00_createclusterkeywords.txt

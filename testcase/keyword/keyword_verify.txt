@@ -1,9 +1,9 @@
 *** Settings ***
 Documentation       This keywords suite define how to verify system operation correct
-Library             OperatingSystem
-Library             SSHLibrary
 Resource            ./defaultconfig.txt
 Resource            ../00_commonconfig.txt
+Library             OperatingSystem
+Library             SSHLibrary
 
 *** Keywords ***
 ##############################################################################################
@@ -25,7 +25,45 @@ Check Cluster Health
     ${health_pg}=    Do SSH CMD    ${DEFAULT SSH IP}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph pg stat | awk '{i=0;while (i<NF && $i!="active+clean," && $i!="active+clean;") {i++};print $(i-1)}'
     Should be Equal    ${request_blocked}    0
     Should be Equal    ${total_pg}    ${health_pg}
+    
+Check Role Status
+    [Arguments]    ${ip}    ${role}    ${status}=enabled
+    [Documentation]    Role and status like this:
+    ...    Role include "gw", "mon", "mds", "rrs", "osd"
 
+    ${check_status}=    Set Variable If
+    ...    '${status}' == 'disabled'         0
+    ...    '${status}' == 'starting'         1
+    ...    '${status}' == 'enabled'          2
+    ...    '${status}' == 'stoping'          3
+    ...    '${status}' == 'stoped failed'    4
+    ...    '${status}' == 'enable failed'    5
+#    ${int_check_status}=    Convert To Integer    ${check_status}
+
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+    ${node_roles}=    CGI Node Roles    @{STORAGEIP}
+    ${length}=    Get Length    ${node_roles}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${node_roles_status}=    Run Keyword IF    '${node_roles[${INDEX}]['ip']}' == '${ip}'
+    \    ...    Set Variable    ${node_roles[${INDEX}]['${role}']}
+    \    Exit For Loop IF    '${node_roles[${INDEX}]['ip']}' == '${ip}'
+
+#    Should Be Equal    ${int_check_status}    ${node_roles_status}
+    Should Be Equal As Integers    ${check_status}    ${node_roles_status}
+
+Check Storage Volume Exist
+    [Arguments]    ${storage_ip}    ${osd_name}
+
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+    ${storage_volume_list}=    CGI Storage Volume List    host=${storage_ip}
+    ${length}=    Get Length    ${storage_volume_list}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${volume_exist}=    Run Keyword IF    '${storage_volume_list[${INDEX}]['name']}' == '${osd_name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${storage_volume_list[${INDEX}]['name']}' == '${osd_name}'
+
+    Should Be True    ${volume_exist}
 
 ##############################################################################################
 # iSCSI operation

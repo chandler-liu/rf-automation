@@ -1,11 +1,11 @@
 *** Settings ***
 Documentation       This keywords suite define common operation
+Resource            ./defaultconfig.txt
+Resource            ../00_commonconfig.txt
 Library             Collections
 Library             HttpLibrary.HTTP
 Library             OperatingSystem
 Library             SSHLibrary
-Resource            ./defaultconfig.txt
-Resource            ../00_commonconfig.txt
 
 *** Keywords ***
 ##############################################################################################
@@ -50,6 +50,19 @@ Get Cluster Health Status
     Should Be Equal    ${health_status}    HEALTH_OK
     [Return]    ${health_status}
 
+Get Create Cluster Progress
+    ${time_stamp}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    cat /var/log/ezcloudstor/ezarpc.log| grep "node.join_cluster has been updated with info {'progress': 100}" | sort -rn | head -1 | awk -F " " '{print $1,$2}' | sed 's/\\[/\"/' | sed 's/\\]/\"/'
+    ${time_seconds}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    date -d ${time_stamp} +%s
+    ${current_time}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    date +%s
+    ${time_diff}=    Evaluate    ${current_time} - ${time_seconds}
+    ${check_progress}=    Set Variable    False
+    log    ---------------- \ ${check_progress} \ ----------------
+    ${check_progress}    Run Keyword If    ${time_diff} > 300    Set Variable    False
+    ...    ELSE    Set Variable    True
+#    Should Be Equal    ${check_progress}    True
+    Should Be True    ${check_progress}
+    [Return]    ${check_progress}
+
 Get CTDB Status
     [Arguments]     ${public_ip}=${DEFAULT SSH IP}
     ${ctdb_status}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ctdb status | grep -i pnn
@@ -73,9 +86,19 @@ Get Product Type
     [Return]    ${product_type}
 
 Input License
-    [Arguments]    ${storage_ip}    ${license_key}
+    [Arguments]    ${storage_ip}    ${order}
     log    Input license key on node ${storage_ip}
+    ${product_info}=    Get Product Type
+    ${license_key}=    Set Variable If
+    ...    '${product_info}'== 'Controller'    @{CONTROLLER_LICENSE}[${order}]
+    ...    '${product_info}'== 'Scaler'        @{SCALER_LICENSE}[${order}]
+    ...    '${product_info}'== 'Converger'     @{CONVERGER_LICENSE}[${order}]
     CGI License Set    ip=${storage_ip}    key=${license_key}
+
+Enable Gateway
+    [Arguments]    ${public_ip}    ${storage_ip}
+    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    CGI Gateway Role Enable    storage_ip=${storage_ip}    public_iface=${public_network}
 
 ##############################################################################################
 # Storage operation
@@ -83,6 +106,14 @@ Input License
 Create OSD Role
     [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${data_dev}    ${sv_type}=0
     CGI Storage Volume Add    host=${storage_ip}    name=${osd_name}    data_devs=${data_dev}    sv_type=${sv_type}    enable_osd=false
+    Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
+
+Create OSD and Volume
+    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${data_dev}
+    CGI Storage Volume with Config Add    ${storage_ip}    ${osd_name}    ext4    BigteraStore    ${data_dev}
+    ...    data    \    \    False    False    true
+    Wait Until Keyword Succeeds    30 sec    5 sec    Check Storage Volume Exist    ${storage_ip}    ${osd_name}
     Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=${osd_name}
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
@@ -189,7 +220,7 @@ Check If SSH Output Is Empty
 
 Do SSH CMD
     [Arguments]    ${host_ip}    ${username}    ${password}    ${cmd}    ${cmp_flag}=False    ${expect_result}=
-    [Documentation]    ${cmp_flag} , it means if we need to do compare operation, the default vaule is False, means don't need to do the comparison.
+    [Documentation]    ${cmp_flag} , it means if we need to do compare operation, the default vaule is False, means do not need to do the comparison.
     log    SSH login
     Open Connection    ${host_ip}
     ${con_output}=    Login    ${username}    ${password}
@@ -244,3 +275,5 @@ Get RBD Image Name
 ##############################################################################################
 # NAS operation
 ##############################################################################################
+
+

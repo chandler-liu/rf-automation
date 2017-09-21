@@ -1,5 +1,7 @@
 *** Settings ***
 Documentation       This keywords suite define API operation
+Resource            ./defaultconfig.txt
+Resource            ../00_commonconfig.txt
 Library             HttpLibrary.HTTP
 Library             ../pylibrary/JsonParser.py
 # Example #### Description imported Json Library function
@@ -8,11 +10,30 @@ Library             ../pylibrary/JsonParser.py
 # Query Keyword Value : Return the value for match dict keyword
 # URL Encode : Return Value by URL Encode
 # URL Json Encode : Return List/Array by URL Encode
-Resource            ./defaultconfig.txt
-Resource            ../00_commonconfig.txt
 
 *** Keywords ***
 # Example #### Description API function by API document, default configuration import from resource file "defaultconfig.txt"
+
+# Get /ezs3/json/create_cluster, Create a cluster.
+CGI Create Cluster    
+    [Arguments]    ${test_version}='V7.0'    ${mon_num}=3
+    Open HTTP Connection And Log In    ${DEFAULT SSH IP}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}
+    ${create_cluster_url}=    Run Keyword If    ${test_version}==${Version} and ${mon_num} ==3    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${DEFAULT WEB USERNAME}&admin_passwd=${DEFAULT WEB PASSWORD}&cluster_name=AutoTest&license_key=&mons=@{STORAGEIP}[1]+@{STORAGEIP}[2]&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=${NTPSERVER}&rack_id=0&rep_no=2&use_rack_aware=false
+    ...    ELSE IF    ${test_version}==${Version} and ${mon_num}==1    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${DEFAULT WEB USERNAME}&admin_passwd=${DEFAULT WEB PASSWORD}&cluster_name=AutoTest&license_key=&mons=&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=${NTPSERVER}&rack_id=0&rep_no=2&use_rack_aware=false
+    ...    ELSE IF    ${test_version}==${Version} and ${mon_num}==2    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${DEFAULT WEB USERNAME}&admin_passwd=${DEFAULT WEB PASSWORD}&cluster_name=AutoTest&license_key=&mons=@{STORAGEIP}[1]&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=${NTPSERVER}&rack_id=0&rep_no=2&use_rack_aware=false
+    ...    ELSE    Set Variable    /cgi-bin/ezs3/json/create_cluster?admin_account=${DEFAULT WEB USERNAME}&admin_passwd=${DEFAULT WEB PASSWORD}&cluster_name=AutoTest&license_key=&mons=&nodes=@{STORAGEIP}[0]+@{STORAGEIP}[1]+@{STORAGEIP}[2]&ntp_server_list=&rep_no=2
+    Return Code Should be    ${create_cluster_url}    0
+    Return Code Should be    /cgi-bin/ezs3/json/add_cluster_nodes_progress    0
+
+#GET /ezs3/json/gateway_role_disable, Disable gateway role of a node.
+CGI Gateway Role Disable
+    [Arguments]    ${storage_ip}
+    Return Code Should Be    /cgi-bin/ezs3/json/gateway_role_disable?ip=${storage_ip}    0
+
+#GET /ezs3/json/gateway_role_enable, Enable gateway role of a node.
+CGI Gateway Role Enable
+    [Arguments]    ${storage_ip}    ${public_iface}
+    Return Code Should Be    /cgi-bin/ezs3/json/gateway_role_enable?ip=${storage_ip}&public_iface=${public_iface}    0
 
 # GET /ezs3/json/iscsi_list, Return a list of volumes of a iSCSI/FC target exported by a virtual storage.
 CGI iSCSI List
@@ -35,10 +56,26 @@ CGI Initiator Group List
     ${initiator_entry_parse}=    Parse Json    ${initiator_entry}
     [Return]    ${initiator_entry_parse}
 
+#GET /ezs3/json/license_info_get, Return license information of all nodes.
+CGI License Info Get
+    ${license_info}=    Get Return Json    /cgi-bin/ezs3/json/license_info_get    /response
+    ${license_info}    evaluate    ${license_info}
+    [Return]    ${license_info}
+
 # GET /ezs3/json/license_set, Input license key to activate a given node.
 CGI License Set
-    [Arguments]    ${key}    ${ip}
+    [Arguments]    ${ip}    ${key}
     Wait Until Keyword Succeeds    3 min    5 sec    Return Code Should be    /cgi-bin/ezs3/json/license_set?ip=${ip}&key=${key}    0
+
+# GET /ezs3/json/mds_role_disable, Disable mds role of a node.
+CGI MDS Role Disable
+    [Arguments]    ${ip}
+    Return Code Should Be    /cgi-bin/ezs3/json/mds_role_disable?ip=${ip}    0
+
+# GET /ezs3/json/mds_role_enable, Enable mds role of a node.
+CGI MDS Role Enable
+    [Arguments]    ${ip}
+    Return Code Should Be    /cgi-bin/ezs3/json/mds_role_enable?ip=${ip}    0
 
 # GET /ezs3/json/node_role_disable_osd, Disable OSD role of a node. You can specify several storage volumes to disable multiple OSDs at the same time.
 CGI Node Role Disable OSD
@@ -49,6 +86,16 @@ CGI Node Role Disable OSD
 CGI Node Role Enable OSD
     [Arguments]    ${storage_ip}    ${sv_list}    ${cluster_iface}    ${public_iface}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=false
     Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_osd?ip=${storage_ip}&sv_list=${sv_list}&cluster_iface=${cluster_iface}&public_iface=${public_iface}&pool_to_join=${pool_to_join}&add_metadata_pool=${add_metadata_pool}    0
+
+# GET /ezs3/json/node_roles, Return all role states of nodes.
+CGI Node Roles
+    [Arguments]    @{hosts}
+    ${hosts_url_encode}=    URL Json Encode    ${hosts}
+    ${node_roles}=    Get Return Json    /cgi-bin/ezs3/json/node_roles?hosts=${hosts_url_encode}    /response
+#    ${node_roles_parse}=    Parse Json    ${node_roles}
+#    [Return]    ${node_roles_parse}
+    ${node_roles}    evaluate    ${node_roles}
+    [Return]    ${node_roles}
 
 # POST /ezs3/json/storage_volume_add, Create a storage volume on a node.
 # data_devs provide device list [/dev/sdb,/dev/sdc] by Create List
@@ -74,4 +121,24 @@ CGI Storage Volume Remove
     ${post_body}=    Set Variable    host=${host}&names=${name_url_encode}
     ${delete_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_remove
     POST Request    ${post_body}    /cgi-bin/ezs3/json/storage_volume_remove
- 
+
+# POST /ezs3/json/storage_volume_with_config_add
+# data_devs provide device list [/dev/sdb,/dev/sdc] by Create List
+CGI Storage Volume with Config Add
+    [Arguments]    ${storage_ip}    ${osd_name}    ${fsType}=ext4    ${osdEngineType}=BigteraStore    ${data_devs}=
+    ...    ${journal}=data    ${cache_dev}=    ${spare_devs}=    ${compress}=False    ${dedup}=False    ${memoryConserve}=true
+    @{data_devs_list}=    Create List
+    Append To List    ${data_devs_list}    ${data_devs}
+    @{cache_list}=    Create List
+    Append To List    ${cache_list}    ${cache_dev}
+    @{spare_list}=    Create List
+    Append To List    ${spare_list}    ${spare_devs}
+
+    &{svsConfig_dict}=    Create Dictionary    name=${osd_name}    fsType=${fsType}    osdEngineType=${osdEngineType}    data=${data_devs_list}    journal=${journal}
+    ...    cache=${cache_list}    spare=${spare_list}    compress=${compress}    dedup=${dedup}    memoryConserve=${memoryConserve}
+    @{svsConfig_list}=    Create List    ${svsConfig_dict}
+    ${svsConfig_list_urlencode}=    URL JSON Encode    ${svsConfig_list}
+
+    Set Request Body    host=${storage_ip}&svsConfig=${svsConfig_list_urlencode}
+    POST    /cgi-bin/ezs3/json/storage_volume_with_config_add
+    Response Status Code Should Equal    200 OK
