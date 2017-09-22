@@ -37,9 +37,10 @@ def main():
                 elif args.version in ( "7.0" ):
                     subprocess.call(["sed","-i","/host "+vmname+"/,+3d","/etc/dhcp/dhcpd.conf"])
                     subprocess.call(["sed","-i","/option broadcast-address/a\    host "+vmname+" {\\n        hardware ethernet "+mac+";\\n        filename \"pxelinux.7\";\\n    }","/etc/dhcp/dhcpd.conf"])
+                print('Config PXE environment for {}'.format(vmname))
                 break
         if stdout == "":
-            print("can not find pxelinux.cfg configure file for "+vmname+" in "+args.product+"_"+args.version)
+            print('Can not find pxelinux.cfg configure file for {} in {}_{} '.format(vmname,args.product,args.version))
     subprocess.call(["/etc/init.d/isc-dhcp-server","restart"])
 
 # Start program
