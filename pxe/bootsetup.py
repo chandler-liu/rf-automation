@@ -18,8 +18,8 @@ def GetArgs():
 
 def main():
     args = GetArgs()
+    output = glob.glob("/var/lib/tftpboot/pxelinux.cfg/"+args.product+"_"+args.version+"/*")
     for vmname in args.name:
-        output = glob.glob("/var/lib/tftpboot/pxelinux.cfg/"+args.product+"_"+args.version+"/*")
         for filename in output:
             p = Popen(["grep","-l",vmname,filename], stdout=PIPE, stderr=PIPE)
             stdout, stderr = p.communicate()
@@ -31,13 +31,16 @@ def main():
                     subprocess.call(["sed","-i","s/-wolicense.seed/-wtlicense.seed/g","/var/lib/tftpboot/pxelinux.cfg/"+match])
                 else:
                     subprocess.call(["sed","-i","s/-wtlicense.seed/-wolicense.seed/g","/var/lib/tftpboot/pxelinux.cfg/"+match])
-
                 if args.version in ( "6.1", "6.2", "6.3" ):
                     subprocess.call(["sed","-i","/host "+vmname+"/,+3d","/etc/dhcp/dhcpd.conf"])
-                    subprocess.call(["sed","-i","/option broadcast-address/a\    host "+vmname+" {\\n        hardware ethernet "+mac+";\\n        filename \"pxelinux.6\";}","/etc/dhcp/dhcpd.conf"])
+                    subprocess.call(["sed","-i","/option broadcast-address/a\    host "+vmname+" {\\n        hardware ethernet "+mac+";\\n        filename \"pxelinux.6\";\\n    }","/etc/dhcp/dhcpd.conf"])
                 elif args.version in ( "7.0" ):
                     subprocess.call(["sed","-i","/host "+vmname+"/,+3d","/etc/dhcp/dhcpd.conf"])
-                    subprocess.call(["sed","-i","/option broadcast-address/a\    host "+vmname+" {\\n        hardware ethernet "+mac+";\\n        filename \"pxelinux.7\";}","/etc/dhcp/dhcpd.conf"])
+                    subprocess.call(["sed","-i","/option broadcast-address/a\    host "+vmname+" {\\n        hardware ethernet "+mac+";\\n        filename \"pxelinux.7\";\\n    }","/etc/dhcp/dhcpd.conf"])
+                break
+        if stdout == "":
+            print("can not find pxelinux.cfg configure file for "+vmname+" in "+args.product+"_"+args.version)
+    subprocess.call(["/etc/init.d/isc-dhcp-server","restart"])
 
 # Start program
 if __name__ == "__main__":

@@ -1,11 +1,11 @@
 prompt 0
 timeout 20
-default bigtera70/vesamenu.c32
+default bigtera60/vesamenu.c32
 
-LABEL Install Ubuntu 14.04 (Ubuntu 14.04)
-    menu label Ubuntu 14.04 (Ubuntu 14.04)
-    kernel bigtera70/vmlinuz.14
-    append initrd=bigtera70/initrd.aoecdrom.14.gz root=/dev/ram0 locale=en_US console-setup/ask_detect=false vga=788 keyboard-configuration/layoutcode=us hostname=hmos132 url=http://10.80.3.126/seed_controller_6.3/ubuntu-ezs3-ctrl-wtlicense.seed aoecdrom=e12.2 quiet --
+LABEL Install Ubuntu 12.04 (Ubuntu 12.04)
+    menu label Ubuntu 12.04 (Ubuntu 12.04)
+    kernel bigtera60/vmlinuz
+    append initrd=bigtera60/initrd.aoecdrom.gz root=/dev/ram0 locale=en_US console-setup/ask_detect=false vga=788 keyboard-configuration/layoutcode=us hostname=hmos132 interface=eth0 url=http://10.80.3.126/seed_controller_6.3/ubuntu-ezs3-ctrl-wtlicense.seed aoecdrom=e12.2 quiet --
 
 LABEL Boot From Local Disk
   localboot 0
