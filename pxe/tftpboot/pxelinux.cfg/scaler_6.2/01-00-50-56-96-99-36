@@ -1,0 +1,14 @@
+prompt 0
+timeout 20
+default bigtera70/vesamenu.c32
+
+LABEL Install Ubuntu 14.04 (Ubuntu 14.04)
+    menu label Ubuntu 14.04 (Ubuntu 14.04)
+    kernel bigtera70/vmlinuz.14
+    append initrd=bigtera70/initrd.aoecdrom.14.gz root=/dev/ram0 locale=en_US console-setup/ask_detect=false vga=788 keyboard-configuration/layoutcode=us hostname=hmos139 url=http://10.80.3.126/seed_scaler_6.0/ubuntu-ezs3-scaler-wtlicense.seed aoecdrom=e11.1 quiet --
+
+LABEL Boot From Local Disk
+  localboot 0
+  TEXT HELP
+  Boot to the local hard disk
+  ENDTEXT

@@ -1,0 +1,13 @@
+auto lo eth1 eth2 eth3
+iface lo inet loopback
+iface eth1 inet static
+	address 192.168.160.134
+	netmask 255.255.252.0
+	gateway 192.168.163.254
+	dns-nameservers 192.168.160.129
+iface eth2 inet static
+	address 10.20.0.134
+	netmask 255.255.255.0
+iface eth3 inet static
+	address 10.30.0.134
+	netmask 255.255.255.0

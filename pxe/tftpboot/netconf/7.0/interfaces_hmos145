@@ -1,0 +1,13 @@
+auto lo eno33557248 eno50336512 eno67115776
+iface lo inet loopback
+iface eno33557248 inet static
+	address 192.168.160.145
+	netmask 255.255.252.0
+	gateway 192.168.163.254
+	dns-nameservers 192.168.160.129
+iface eno50336512 inet static
+	address 10.20.0.145
+	netmask 255.255.255.0
+iface eno67115776 inet static
+	address 10.30.0.145
+	netmask 255.255.255.0
