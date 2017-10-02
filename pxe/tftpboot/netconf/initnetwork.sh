@@ -1,4 +1,5 @@
 #!/bin/sh
+/sbin/ifdown -a
 cp /root/interfaces /etc/network/interfaces
 /sbin/ifup -a
 #sed -i.bak 's/^#\ \ \ StrictHostKeyChecking ask/\ \ \ \ StrictHostKeyChecking no/' /etc/ssh/ssh_config
