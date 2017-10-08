@@ -1,6 +1,6 @@
 #Work for Controller 7.0
 d-i debian-installer/allow_unauthenticated boolean true
-d-i preseed/early_command string umount /media
+d-i preseed/early_command string umount /media || echo
 d-i netcfg/enable boolean false
 #d-i netcfg/get_hostname string      #Edit
 #d-i netcfg/get_hostname seen false  #Edit
