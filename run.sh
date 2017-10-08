@@ -125,7 +125,7 @@ fi
 
 sudo killall vblade
 echo "Start to mount `ls *.iso`"
-sudo /usr/sbin/vblade 1 0 ens160 $isopath/*.iso &
+sudo /usr/sbin/vblade 2 0 ens192 $isopath/*.iso &
 if [ $installisoflag -eq 1 ];then
     pybot --logLevel DEBUG -d $scriptrootpath/report $scriptrootpath/testcase
 else

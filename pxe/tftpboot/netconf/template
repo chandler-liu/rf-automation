@@ -1,0 +1,10 @@
+auto lo PUBDEV STORDEV
+iface lo inet loopback
+iface PUBDEV inet static
+    address PUBIP
+    netmask PUBMASK
+    gateway PUBGW
+    dns-nameservers DNSIP
+iface STORDEV inet static
+    address STORIP
+    netmask STORMASK

@@ -1,0 +1,130 @@
+# Work for v6.3
+d-i netcfg/enable boolean false
+d-i time/zone string Asia/Shanghai # add
+#d-i partman-auto/choose_recipe select atomic
+d-i partman-auto/init_automatically_partition string some_device
+d-i partman-auto/method string regular
+d-i partman-auto/disk string /dev/sda # add
+d-i partman/early_command string \
+    if [ -d /sys/firmware/efi ]; then                                           \
+        debconf-set partman-auto/expert_recipe                                  \
+            "::                                                                 \
+                538 538 1075 free                                               \
+                    $primary{ }                                                 \
+                    method{ efi } format{ }                                     \
+                .                                                               \
+                3000 10000 102400 ext4                                          \
+                    $primary{ }                                                 \
+                    label{ BigTeraRoot }                                        \
+                    method{ format } format{ }                                  \
+                    use_filesystem{ } filesystem{ ext4 }                        \
+                    mountpoint{ / }                                             \
+                .                                                               \
+                2048 4096 27597 linux-swap                                      \
+                    method{ swap } format{ }                                    \
+                .                                                               \
+                0 128 -1 free                                                   \
+                .";                                                             \
+    else \
+        debconf-set partman-auto/expert_recipe                                  \
+            "::                                                                 \
+                8 8 8 free                                                      \
+                    method{ biosgrub }                                          \
+                .                                                               \
+                3000 10000 102400 ext4                                          \
+                    $primary{ }                                                 \
+                    label{ BigTeraRoot }                                        \
+                    method{ format } format{ }                                  \
+                    use_filesystem{ } filesystem{ ext4 }                        \
+                    mountpoint{ / }                                             \
+                .                                                               \
+                2048 4096 28664 linux-swap                                      \
+                    method{ swap } format{ }                                    \
+                .                                                               \
+                0 128 -1 free                                                   \
+                .";                                                             \
+    fi
+d-i partman-basicfilesystems/choose_label string gpt
+d-i partman-basicfilesystems/default_label string gpt
+d-i partman-partitioning/choose_label string gpt
+d-i partman-partitioning/default_label string gpt
+d-i partman/choose_label string gpt
+d-i partman/default_label string gpt
+partman-partitioning partman-partitioning/choose_label select gpt
+d-i partman-md/confirm boolean true
+d-i partman-partitioning/confirm_write_new_label boolean true
+d-i partman/choose_partition select finish
+d-i partman/confirm boolean true
+d-i partman/confirm_nooverwrite boolean true
+d-i passwd/root-login boolean true
+d-i passwd/make-user boolean false
+d-i passwd/root-password password 1
+d-i passwd/root-password-again password 1
+d-i user-setup/allow-password-weak boolean true
+d-i base-installer/kernel/override-image string linux-image-4.1.35-server
+d-i mirror/http/mirror select CC.archive.ubuntu.com
+d-i mirror/http/proxy string
+d-i apt-setup/restricted boolean true
+d-i apt-setup/universe boolean true
+d-i apt-setup/mutiverse boolean true
+d-i debian-installer/allow_unauthenticated boolean true
+tasksel tasksel/force-tasks string server
+tasksel tasksel/first multiselect none
+d-i pkgsel/include string acl attr btsnmp openssh-server dbus avahi-daemon \
+    python-avahi apache2 libapache2-mod-fastcgi dnsmasq ceph ceph-common \
+    cman pacemaker fence-agents resource-agents \
+    ceph-resource-agents radosgw ezs3-deploy ezs3-ui ezs3-webdav atop \
+    xfsprogs ntp ubuntu-zfs ezmonitor ezs3-disk-mon \
+    iftop inetutils-traceroute iperf iputils-arping sosreport sysstat \
+    ezgwvm ezqos fio libjemalloc1
+d-i pkgsel/language-pack-patterns string
+d-i pkgsel/install-language-support boolean false
+d-i pkgsel/update-policy select none
+d-i clock-setup/utc-auto boolean true
+d-i clock-setup/ntp-server string 202.108.6.95
+d-i debian-installer/splash boolean false
+d-i oem-config-udeb/frontend string debconf
+krb5-config krb5-config/default_realm string EZCLOUDSTOR.COM
+krb5-config krb5-config/kerberos_servers string 127.0.0.1
+krb5-config krb5-config/admin_server string 127.0.0.1
+postfix postfix/main_mailer_type select No configuration
+d-i grub-installer/skip boolean true
+d-i lilo-installer/skip boolean true
+d-i grub-installer/only_debian boolean false
+d-i grub-installer/with_other_os boolean false
+d-i nobootloader/confirmation_common boolean true
+postfix postfix/main_mailer_type select No configuration
+oem-config oem-config/steps multiselect language, timezone, keyboard, user, network, tasks
+d-i finish-install/reboot_in_progress note
+d-i preseed/late_command string \
+    mkdir -p /target/etc/ezs3; \
+    echo "ezs3" > /target/etc/ezs3/role; \
+    echo "net.ipv6.conf.all.disable_ipv6 = 1" > /target/etc/sysctl.d/30-ipv6.conf; \
+    echo "net.ipv6.conf.default.disable_ipv6 = 1" >> /target/etc/sysctl.d/30-ipv6.conf; \
+    echo "net.ipv6.conf.lo.disable_ipv6 = 1" >> /target/etc/sysctl.d/30-ipv6.conf; \
+    sed -i "s@weekly@size 512M@" /target/etc/logrotate.d/apache2; \
+    sed -i "s@rotate 52@rotate 4@" /target/etc/logrotate.d/apache2; \
+    mv /target/etc/cron.daily/logrotate /target/etc/cron.hourly/; \
+    sed -i "s@.*FAKE_SHELL.*@FAKE_SHELL /usr/local/bin/ezs3-console@" /target/etc/login.defs; \
+    sed -i "s@^ZFS_MOUNT=.*@ZFS_MOUNT='yes'@" /target/etc/default/zfs; \
+    echo -e "server 0.ubuntu.pool.ntp.org\nserver 1.ubuntu.pool.ntp.org\nserver 2.ubuntu.pool.ntp.org\nserver 3.ubuntu.pool.ntp.org" > /target/etc/ntp.conf; \
+    echo -e "" > /target/etc/ntp.conf; \
+    cp /target/usr/lib/insserv/insserv /target/usr/bin/insserv; \
+    rm -f /target/etc/newt/palette; cp /target/etc/newt/palette.original /target/etc/newt/palette; \
+    sed -i 's@.*pam_motd.so@#&@' /target/etc/pam.d/login; \
+    sed -i 's@.*pam_motd.so@#&@' /target/etc/pam.d/sshd; \
+    rm /target/var/run/motd; \
+    [ -f "/target/etc/ezs3/oem.tar.bz2" ] && \
+    	tar xjf /target/etc/ezs3/oem.tar.bz2 -C /target; \
+    in-target insserv -r ctdb; \
+    in-target insserv -r nfs-kernel-server; \
+    cp /cdrom/install/efi/* /target/tmp/; \
+    mount -o bind /dev /target/dev && \
+    in-target /bin/bash /tmp/patchboot && \
+    umount /target/dev; \
+    sed -i "s/^#\ \ \ StrictHostKeyChecking ask/\ \ \ \ StrictHostKeyChecking no/" /target/etc/ssh/ssh_config; \
+    sed -i 's/KeepAlive On/KeepAlive Off/' /target/etc/apache2/apache2.conf; \
+    wget http://192.168.200.1/netconf/6.3/interfaces_HOSTNAME_TOKEN -O /target/root/interfaces; \
+    wget http://192.168.200.1/netconf/initnetwork.sh -O /target/root/initnetwork.sh; \
+    chmod 755 /target/root/initnetwork.sh; \
+    sed -i "/^exit 0/i\/root\/initnetwork.sh" /target/etc/rc.local

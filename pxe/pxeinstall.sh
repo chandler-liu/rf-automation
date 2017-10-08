@@ -2,7 +2,7 @@
 cp -rf dhcp /etc/
 cp -rf tftpboot /var/lib/
 
-rm -rf /var/www/html
+mv /var/www/html /var/www/html_bak_`date +%s`
 ln -s /var/lib/tftpboot /var/www/html
 /etc/init.d/apache2 restart
 

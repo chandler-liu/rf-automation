@@ -1,0 +1,14 @@
+prompt 0
+timeout 20
+default VESAMENU_TOKEN
+
+LABEL Install VirtualStor (Automation)
+    menu label VirtualStor (Automation)
+    kernel VMLINUZ_TOKEN
+    append initrd=INITRD_TOKEN root=/dev/ram0 locale=en_US console-setup/ask_detect=false vga=788 keyboard-configuration/layoutcode=us hostname=HOSTNAME_TOKEN interface=INT_TOKEN url=http://URL_TOKEN/preseed/VERSION_TOKEN/ubuntu-ezs3-HOSTNAME_TOKEN.seed aoecdrom=AOE_TOKEN quiet --
+
+LABEL Boot From Local Disk
+  localboot 0
+  TEXT HELP
+  Boot to the local hard disk
+  ENDTEXT
