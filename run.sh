@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Initiate default parameter
-serverflag=0 # 0 represents 172.16.146.220, 1 represents 125.227.238.56, 2 represents 192.168.163.254
+serverflag=0 # 0 represents 172.17.59.120, 1 represents 125.227.238.56, 2 represents 192.168.163.254
 downloadisoflag=1
 installisoflag=1
 md5server=192.168.168.8
@@ -18,7 +18,7 @@ usage()
     echo "          1: download iso before execute testcases [default]"
     echo "  -i      0: skip iso installation testcases"
     echo "          1: install iso before execute other testcases [default]"
-    echo "  -s      0: use 172.16.146.220 as build server [default]"
+    echo "  -s      0: use 172.17.59.120 as build server [default]"
     echo "          1: use 125.227.238.56 as build server"
     echo "          2: use 192.168.163.254 as build server"
     echo "  -p      {product_name}"
@@ -61,7 +61,7 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     rm -rf iso
     rm -rf precise/$product
     case $serverflag in
-        0 ) dailyfolder=`ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@172.16.146.220 "ls /vol/share/Builds/buildwindow/precise/$product/builds/"|tail -n 1`
+        0 ) dailyfolder=`ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@172.17.59.120 "ls /vol/share/Builds/buildwindow/precise/$product/builds/"|tail -n 1`
             ;;
         1 ) # Register first
             # wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
@@ -92,7 +92,7 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     fi
 
     case $serverflag in
-        0 ) scp root@172.16.146.220:/vol/share/Builds/buildwindow/precise/$product/builds/$dailyfolder/*.iso .
+        0 ) scp root@172.17.59.120:/vol/share/Builds/buildwindow/precise/$product/builds/$dailyfolder/*.iso .
             ;;
         1 ) cp precise/$product/builds/$dailyfolder/*.iso .
             ;;
