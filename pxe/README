@@ -1,0 +1,175 @@
+---
+typora-copy-images-to: ipic
+---
+
+## 1. Check if network environment is all right
+
+Target VMs have at least 3 nic
+
+* Public nic
+* Storage nic
+* PXE nic
+
+PXE server has at least 2 nic
+
+- Public nic
+- PXE nic
+
+![Network topology](https://ws4.sinaimg.cn/large/006tKfTcgy1fkfuxz1tsxj30z40gq0wt.jpg)
+
+
+
+## 2. Check if the following packages are installed and right configured
+
+* **DHCP**
+
+  * Install
+
+    `apt-get -y install dhcp3-server`
+
+  * Config
+
+    ```Bash
+    $ cat /etc/dhcp/dhcpd.conf  # Sample, please replace IP related with yours
+    ......
+    option domain-name "bigtera.lab";
+    option domain-name-servers 192.168.200.1;
+    ......
+    allow booting;
+    allow bootp;
+    subnet 192.168.200.0 netmask 255.255.255.0 {
+        get-lease-hostnames off;
+        use-host-decl-names on;
+        range 192.168.200.100 192.168.200.200;
+        option routers 192.168.200.1;
+        option subnet-mask 255.255.255.0;
+        option broadcast-address 192.168.200.255;
+        next-server 192.168.200.1;
+    }
+    ```
+
+  ​
+
+* **TFTP**
+
+  * Install
+
+    `apt-get install tftpd tftp xinetd`
+
+  * Config
+
+    ```Bash
+    $ cat /etc/xinetd.d/tftp
+    service tftp
+    {
+        protocol = udp
+        port = 69
+        socket_type = dgram
+        wait = yes
+        user = nobody
+        server = /usr/sbin/in.tftpd
+        server_args = -s /var/lib/tftpboot
+        disable = no
+    }
+    ```
+
+  ​
+
+* **apache2**
+
+  * Install
+
+    `apt-get install apache2`
+
+  * Config
+
+    ```Bash
+    $ cat /etc/apache2/apache2.conf # Sample, please replace IP related with yours
+    ......
+    ServerName 192.168.200.1
+    ......
+    <Directory /var/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+    </Directory>
+    ......
+    ```
+
+
+
+ *  **AOE**
+
+     *  Install
+
+        `apt-get install vblade`
+
+
+
+## 3. Set root dir of tftp as a softlink of apache2, to simplify the config path
+
+Before this step, suggest backup the currenct root dir of apache2, like below:
+
+```Bash
+mv /var/www/html /var/www/html_bak_`date +%s` # Backup currenct root dir of apache2
+ln -s /var/lib/tftpboot /var/www/html
+/etc/init.d/apache2 restart
+```
+
+
+
+## 4. Copy files and subfolders under tftpboot into /var/lib/tfptboot
+
+```Bash
+cp -rf tftpboot /var/lib/
+```
+
+
+
+## 5. Register VMs into PXE environment with json file as config
+
+Below is a sample of json config, please note that the config must apply json format.
+
+```Bash
+$ cat vm.json
+[
+    {
+        "hostname":        "auto-60-1",
+        "version":         "6.3",
+        "pxe_mac":         "00:50:56:a7:ca:ab",
+        "pxe_filename":    "pxelinux.6",
+        "pxelinux.cfg":    {
+            "vesamenu":    "bigtera60/vesamenu.c32",
+            "vmlinuz":     "bigtera60/vmlinuz",
+            "initrd":      "bigtera60/initrd.aoecdrom.gz",
+            "pxeint":      "eth2",
+            "httpurl":     "192.168.200.1",
+            "aoecdrom":    "e1.0"
+        },
+        "netconf": {
+            "pub_ip":      "172.17.59.101",
+            "pub_mask":    "255.255.254.0",
+            "pub_dev":     "eth0",
+            "pub_gw":      "172.17.59.254",
+            "dns_ip":      "114.114.114.114",
+            "stor_ip":     "192.168.100.101",
+            "stor_mask":   "255.255.255.0",
+            "stor_dev":    "eth1"
+        }
+    },
+    {
+        "hostname":        "auto-60-2",
+        ......
+    }
+]
+```
+
+Register VM with earlier config:
+
+```Bash
+sudo .../register_new_vm.py -i vm.json
+```
+
+
+
+> For more details, please refer to the automation deployment guide.
