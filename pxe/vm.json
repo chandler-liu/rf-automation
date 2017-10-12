@@ -3,6 +3,7 @@
         "hostname":        "auto-70-1",
         "version":         "7.0",
         "pxe_mac":         "00:50:56:a7:0f:e4",
+        "pxe_filename":    "pxelinux.7",
         "pxelinux.cfg":    {
             "vesamenu":    "bigtera70/vesamenu.c32",
             "vmlinuz":     "bigtera70/vmlinuz.14",
@@ -26,6 +27,7 @@
         "hostname":        "auto-70-2",
         "version":         "7.0",
         "pxe_mac":         "00:50:56:a7:bf:55",
+        "pxe_filename":    "pxelinux.7",
         "pxelinux.cfg":    {
             "vesamenu":    "bigtera70/vesamenu.c32",
             "vmlinuz":     "bigtera70/vmlinuz.14",
@@ -49,6 +51,7 @@
         "hostname":        "auto-70-3",
         "version":         "7.0",
         "pxe_mac":         "00:0c:29:49:c8:ea",
+        "pxe_filename":    "pxelinux.7",
         "pxelinux.cfg":    {
             "vesamenu":    "bigtera70/vesamenu.c32",
             "vmlinuz":     "bigtera70/vmlinuz.14",

@@ -11,6 +11,7 @@ Register a new node in PXE environment, below is a sample of INFILE which is man
         "hostname":        "auto-161",
         "version":         "6.3",
         "pxe_mac":         "01:02:03:04:05:06",
+        "pxe_filename":    "pxelinux.7",
         "pxelinux.cfg":    {
             "vesamenu":    "bigtera60/vesamenu.c32",
             "vmlinuz":     "bigtera60/vmlinuz",
@@ -41,6 +42,11 @@ def GetArgs():
     data = json.load(args.infile)
     args.infile.close()
     return data
+
+def ModifyDHCPConf(vm):
+    dhcp_conf = "/etc/dhcp/dhcpd.conf"
+    subprocess.call(["sed","-i","/host " + vm["hostname"] + "/,+3d", dhcp_conf])
+    subprocess.call(["sed","-i","/option broadcast-address/a\    host " + vm["hostname"] + " {\\n        hardware ethernet " + vm["pxe_mac"] + ";\\n        filename \"" + vm["pxe_filename"] + "\";\\n    }", dhcp_conf])
 
 def GeneratePXEConf(vm):
     template_path = "tftpboot/pxelinux.cfg/template"
@@ -105,6 +111,7 @@ def GeneratePreseed(vm):
 def main():
     vms = GetArgs()
     for vm in vms:
+        ModifyDHCPConf(vm)
         GeneratePXEConf(vm)
         GenerateNetConf(vm)
         GeneratePreseed(vm)
