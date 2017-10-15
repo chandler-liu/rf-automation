@@ -168,6 +168,10 @@ Register VM with earlier config:
 
 ```Bash
 sudo .../register_new_vm.py -i vm.json
+# It will generate corresponding pxelinux.cfg, netconf and preseed file for vm(s), e.g.
+Generate pxelinux.cfg for auto-70-1: /var/lib/tftpboot/pxelinux.cfg/01-00-50-56-a7-ca-ab
+Generate netconf for auto-70-1: /var/lib/tftpboot/netconf/7.0/interfaces_auto-70-1
+Generate preseed for auto-70-1: /var/lib/tftpboot/preseed/7.0/ubuntu-ezs3-auto-70-1.seed
 ```
 
 
