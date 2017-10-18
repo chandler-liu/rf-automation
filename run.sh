@@ -4,7 +4,7 @@
 serverflag=0 # 0 represents 172.17.59.120, 1 represents 125.227.238.56, 2 represents 192.168.163.254
 downloadisoflag=1
 installisoflag=1
-md5server=192.168.168.8
+md5server=192.168.168.6
 isopath=/iso
 scriptrootpath=/work/automation-test/rf-automation
 product=virtualstor_scaler_master
@@ -59,16 +59,16 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
 {
     rm -rf *.iso
     rm -rf iso
-    rm -rf precise/$product
+    rm -rf trusty/$product
     case $serverflag in
-        0 ) dailyfolder=`ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@172.17.59.120 "ls /vol/share/Builds/buildwindow/precise/$product/builds/"|tail -n 1`
+        0 ) dailyfolder=`ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@172.17.59.120 "ls /vol/share/Builds/buildwindow/trusty/$product/builds/"|tail -n 1`
             ;;
         1 ) # Register first
             # wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
             # sleep 300
-            dailyfolder=`wget -q -O - --no-check-certificate https://125.227.238.56/precise/$product/builds/ |grep "201"|tail -n 1|cut -b 28-46` # 125.227.238.56's
+            dailyfolder=`wget -q -O - --no-check-certificate https://125.227.238.56/trusty/$product/builds/ |grep "201"|tail -n 1|cut -b 28-46` # 125.227.238.56's
             ;;
-        2 ) dailyfolder=`wget -q -O - --no-check-certificate http://192.168.163.254/iso/precise/$product/builds/ |grep "201"|tail -n 1|cut -b 74-92` # 192.168.163.254's
+        2 ) dailyfolder=`wget -q -O - --no-check-certificate http://192.168.163.254/iso/trusty/$product/builds/ |grep "201"|tail -n 1|cut -b 74-92` # 192.168.163.254's
             ;;
         * ) echo ":< Server flag is not found!"
             exit 1
@@ -80,9 +80,9 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     fi
     
     case $serverflag in
-        1 ) wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://125.227.238.56/precise/$product/builds/$dailyfolder/
+        1 ) wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://125.227.238.56/trusty/$product/builds/$dailyfolder/
             ;;
-        2 ) wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://192.168.163.254/iso/precise/$product/builds/$dailyfolder/
+        2 ) wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://192.168.163.254/iso/trusty/$product/builds/$dailyfolder/
             ;;
     esac
 
@@ -92,17 +92,17 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     fi
 
     case $serverflag in
-        0 ) scp root@172.17.59.120:/vol/share/Builds/buildwindow/precise/$product/builds/$dailyfolder/*.iso .
+        0 ) scp root@172.17.59.120:/vol/share/Builds/buildwindow/trusty/$product/builds/$dailyfolder/*.iso .
             ;;
-        1 ) cp precise/$product/builds/$dailyfolder/*.iso .
+        1 ) cp trusty/$product/builds/$dailyfolder/*.iso .
             ;;
-        2 ) cp iso/precise/$product/builds/$dailyfolder/*.iso .
+        2 ) cp iso/trusty/$product/builds/$dailyfolder/*.iso .
     esac
 
     ## Check md5sum ##
     echo "Start to check md5 of `ls *.iso`"
     isomd5sum=`md5sum *.iso | awk '{print $1}'`
-    expectedmd5sum=`sudo ssh bruce@$md5server "md5sum /home/jenkins/jobs/$product/builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
+    expectedmd5sum=`ssh chandler@$md5server "md5sum /var/lib/jenkins/jobs/$product/builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
     if [ -z "$expectedmd5sum" ]
     then
         echo ":< Cannot retrieve md5sum of ISO from $md5server!"
