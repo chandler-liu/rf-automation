@@ -7,7 +7,7 @@ Library           SSHLibrary
 Library           HttpLibrary.HTTP
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
-Resource          ../05_Virtual_Storage/00_virtual_storage_keyword.txt
+Resource          ../06_Virtual_Storage/00_virtual_storage_keyword.txt
 Resource          00_remote_replicate_keywords.txt
 
 *** Test Cases ***
