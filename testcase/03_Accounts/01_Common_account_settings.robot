@@ -36,14 +36,14 @@ AD/LDAP settings
     [Documentation]    Testlink ID: Sc-60:AD/LDAP settings
     [Tags]    FAST
     log    Start to set AD/LDAP
-    Return Code Should be    /cgi-bin/ezs3/json/set_ad_settings?enabled=True&server=${ADIP}&port=389&base_dn=DC%3Dhype%2CDC%3Dcom&use_https=False&search_dn=CN%3Dusers%2CDC%3Dhype%2CDC%3Dcom&ad_account=hype%5CAdministrator&ad_password=${ADPASS}    0
+    Return Code Should be    /cgi-bin/ezs3/json/set_ldap_settings?enabled=True&server=${ADIP}&port=389&base_dn=DC%3Dhype%2CDC%3Dcom&use_https=False&search_dn=CN%3Dusers%2CDC%3Dhype%2CDC%3Dcom&ad_account=hype%5CAdministrator&ad_password=${ADPASS}    0
 
 Import user from AD/LDAP
     [Documentation]    Testlink ID: Sc-61:Import user from AD/LDAP
     [Tags]    FAST
     log    Start to set AD/LDAP
     ${user_name}=    Set Variable    zhangsan
-    Return Code Should be    /cgi-bin/ezs3/json/set_ad_settings?enabled=True&server=${ADIP}&port=389&base_dn=DC%3Dhype%2CDC%3Dcom&use_https=False&search_dn=CN%3Dusers%2CDC%3Dhype%2CDC%3Dcom&ad_account=hype%5CAdministrator&ad_password=${ADPASS}    0
+    Return Code Should be    /cgi-bin/ezs3/json/set_ldap_settings?enabled=True&server=${ADIP}&port=389&base_dn=DC%3Dhype%2CDC%3Dcom&use_https=False&search_dn=CN%3Dusers%2CDC%3Dhype%2CDC%3Dcom&ad_account=hype%5CAdministrator&ad_password=${ADPASS}    0
     Return Code Should be    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=%E5%BC%A0%E4%B8%89&email=&password=&confirm_password=&type=AD&dn=CN%3D%E5%BC%A0%E4%B8%89%2CCN%3DUsers%2CDC%3Dhype%2CDC%3Dcom    0
     [Teardown]    Delete User    ${user_name}
 
