@@ -2,26 +2,34 @@
 Documentation     This suite includes cases related to general cases about edit storage volume
 Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
-Resource          ../00_commonkeyword.txt
-Resource          00_hostconfigurationkeywords.txt
+#Resource          ../00_commonkeyword.txt
+#Resource          00_hostconfigurationkeywords.txt
+Resource          ../keyword/keyword_verify.txt
+Resource          ../keyword/keyword_system.txt
+Resource          ../keyword/keyword_cgi.txt
 
 *** Variables ***
 ${osd_name}       osd_add_cache_partion
+${data_dev}    /dev/sdc
+${cache_dev}    /dev/sdd
 
 *** Test Cases ***
 Add cache partition
     [Documentation]    Testlink ID: Sc-87:Add cache partition
     [Tags]    RAT
-    log    Create OSD, Single partition
-    @{data_devs}=    Create List    sdc
-    Add Storage Volume    @{STORAGEIP}[0]    ${osd_name}    0    data    \    %5B%5D
-    ...    False    False    False    @{data_devs}
-    log    Start to add cache partition
-    ${cache_devs}=    Set Variable    sdd
-    ${request_body}=    Set Variable    host=@{STORAGEIP}[0]&name=${osd_name}&cache_devs=%5B%22%2Fdev%2F${cache_devs}%22%5D&spare_devs=%5B%5D&write_cache=false
-    ${modify_cache_partition_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_edit
-    POST Request    ${request_body}    ${modify_cache_partition_url}
-    log    Check if add cache partition success
+    Create Single partition OSD
+    Start to add cache partition
+    Check if add cache partition success
+    [Teardown]    Delete OSD    @{STORAGEIP}[0]    ${osd_name}
+
+*** Keywords ***
+Create Single partition OSD
+    Run Keyword    Create Volume    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}   fsType=ext4    osdEngineType=FileStore    data_dev=${data_dev}
+
+Start to add cache partition
+    Run Keyword    Edit Volume    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}    cache_dev=${cache_dev}   
+
+Check if add cache partition success
     Wait Until Keyword Succeeds    4 min    5 sec    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}
     ...    lsblk | grep -i ${osd_name} | wc -l    True    2
-    [Teardown]    Delete OSD    @{STORAGEIP}[0]    ${osd_name}
+    

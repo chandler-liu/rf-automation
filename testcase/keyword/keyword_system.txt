@@ -109,18 +109,48 @@ Create OSD Role
     Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=${osd_name}
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
+Create Volume
+    [Arguments]    ${storage_ip}    ${osd_name}  ${fsType}  ${osdEngineType}    ${data_dev}
+    CGI Storage Volume with Config Add    ${storage_ip}    ${osd_name}    ${fsType}    ${osdEngineType}     ${data_dev}
+    ...    data    \    \    False    False    true
+    Wait Until Keyword Succeeds    30 sec    5 sec    Check Storage Volume Exist    ${storage_ip}    ${osd_name}
+
+Edit Volume
+    [Arguments]    ${storage_ip}    ${osd_name}   ${cache_dev}   
+    CGI Storage Volume Edit    ${storage_ip}    ${osd_name}    ${cache_dev}    \
+
 Create OSD and Volume
-    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${data_dev}
-    CGI Storage Volume with Config Add    ${storage_ip}    ${osd_name}    ext4    BigteraStore    ${data_dev}
+    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}  ${fsType}  ${osdEngineType}    ${data_dev}
+    CGI Storage Volume with Config Add    ${storage_ip}    ${osd_name}    ${fsType}    ${osdEngineType}     ${data_dev}
     ...    data    \    \    False    False    true
     Wait Until Keyword Succeeds    30 sec    5 sec    Check Storage Volume Exist    ${storage_ip}    ${osd_name}
     Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=${osd_name}
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
+Create Batch OSD and Volume
+    [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}  ${fsType}  ${osdEngineType}    ${data_devs}
+    CGI Storage Volume with Config Batch Add    ${storage_ip}    ${osd_name}    ${fsType}    ${osdEngineType}     ${data_devs}
+    ...    data    \    \    False    False    true
+    ${length}=    Get Length    ${data_devs}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}    
+    \    Wait Until Keyword Succeeds    30 sec    5 sec    Check Storage Volume Exist    ${storage_ip}    g-${osd_name}-${INDEX}
+    \    Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=g-${osd_name}-${INDEX}
+    \    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    g-${osd_name}-${INDEX}    ONLINE
+    \    Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status    ${storage_ip}    role=osd    status=enabled
+
 Disable OSD
-    [Arguments]    ${storage_ip}    ${osd_name}
+    [Arguments]    ${storage_ip}    ${osd_name}    
     CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name}    force=true
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
+
+Disable Batch OSD
+    [Arguments]    ${storage_ip}    ${osd_name}    ${data_devs}
+    ${length}=    Get Length    ${data_devs}
+    ${osd_name_list}    Set Variable    g-${osd_name}-0
+    :FOR    ${INDEX}    IN RANGE    1    ${length}
+    \    ${osd_name_list}    Set Variable    ${osd_name_list}+g-${osd_name}-${INDEX}
+    CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name_list}    force=true
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Batch OSD State    ${storage_ip}    ${osd_name}    OFFLINE    ${data_devs}
 
 Enable OSD
     [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
@@ -130,12 +160,24 @@ Enable OSD
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
 Remove OSD
-    [Arguments]    ${storage_ip}    ${osd_name}
-    Disable OSD    storage_ip=${storage_ip}    osd_name=${osd_name}
+    [Arguments]    ${storage_ip}    ${osd_name}   
+    Disable OSD    storage_ip=${storage_ip}    osd_name=${osd_name}  
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     ${osd_name_list}=    Create List    ${osd_name}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
 
+Delete OSD
+    [Arguments]    ${storage_ip}    ${osd_name}
+    ${osd_name_list}=    Create List    ${osd_name}
+    CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
+
+Delete Batch OSD
+    [Arguments]    ${storage_ip}    ${osd_name}    ${data_devs}
+    @{osd_name_list}=    Create List
+    ${length}=    Get Length    ${data_devs}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    Append To List    ${osd_name_list}    g-${osd_name}-${INDEX}
+    CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
 
 ##############################################################################################
 # WEB operation
@@ -275,5 +317,4 @@ Get RBD Image Name
 ##############################################################################################
 # NAS operation
 ##############################################################################################
-
 
