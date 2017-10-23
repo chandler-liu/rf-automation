@@ -6,7 +6,7 @@ downloadisoflag=1
 installisoflag=1
 md5server=192.168.168.6
 isopath=/iso
-scriptrootpath=/work/automation-test/rf-automation
+scriptrootpath=/work/automation-test/rf-automation-7.0
 product=virtualstor_scaler_master
 
 # Specified parameter
