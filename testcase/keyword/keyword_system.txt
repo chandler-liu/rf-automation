@@ -100,6 +100,25 @@ Enable Gateway
     ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     CGI Gateway Role Enable    storage_ip=${storage_ip}    public_iface=${public_network}
 
+Create Pool
+    [Arguments]    ${pool_name}    ${pool_type}    ${r}=2    ${k}=2    ${m}=1
+    CGI Common Pool Create    pool_name=${pool_name}    pool_type=${pool_type}    r=${r}    k=${k}    m=${m}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Pool Exist    ${pool_name}
+
+Delete Pool
+    [Arguments]    ${pool_name}
+    CGI Common Pool Delete    pool_name=${pool_name}    delete_data=true
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Pool Nonexist    ${pool_name}
+
+Add Node To Pool
+    [Arguments]     ${pool_name}    @{node_ids}
+    ${node_list}    Set Variable    @{node_ids}[0]
+    ${length}=    Get Length    ${node_ids}
+    :FOR    ${INDEX}    IN RANGE    1    ${length}
+    \    ${node_list}    Set Variable    ${node_list}+@{node_ids}[${INDEX}]
+    CGI Pool Node Add    pool_name=${pool_name}    node_list=${node_list}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Pool Contain Node    ${pool_name}    ${node_list}    
+
 ##############################################################################################
 # Storage operation
 ##############################################################################################
@@ -163,6 +182,7 @@ Remove OSD
     [Arguments]    ${storage_ip}    ${osd_name}   
     Disable OSD    storage_ip=${storage_ip}    osd_name=${osd_name}  
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status Is Not   ${storage_ip}    role=osd    status=stoping
     ${osd_name_list}=    Create List    ${osd_name}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
 

@@ -33,6 +33,16 @@ Check Cluster Health
     Should be Equal    ${request_blocked}    0
     Should be Equal    ${total_pg}    ${health_pg}
     
+Check Pool Exist
+    [Arguments]    ${pool_name}
+    ${get_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd lspools | sed 's/,/\\n/g' | awk '{print $2}' | grep -w ${pool_name}
+    Should Be Equal As Strings    ${pool_name}    ${get_pool_name}
+
+Check Pool nonexist
+    [Arguments]    ${pool_name}
+    ${get_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd lspools | sed 's/,/\\n/g' | awk '{print $2}' | grep -w ${pool_name}
+    Should Be Empty    ${get_pool_name}
+
 Check Role Status
     [Arguments]    ${ip}    ${role}    ${status}=enabled
     [Documentation]    Role and status like this:
@@ -112,6 +122,58 @@ Check Storage Volume Nonexist
 
     Should Not Be True    ${volume_exist}
 
+Check Pool Exist UI
+    [Arguments]    ${pool_name}
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+    ${pool_list}=    CGI Pool List
+    ${length}=    Get Length    ${pool_list}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${pool_exist}=    Run Keyword IF    '${pool_list[${INDEX}]}' == '${pool_name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${pool_list[${INDEX}]}' == '${pool_name}'
+    \    log    ${pool_list[${INDEX}]}
+    Should Be True    ${pool_exist}
+
+Check Pool Nonexist UI
+    [Arguments]    ${pool_name}
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+    ${pool_list}=    CGI Pool List
+    ${length}=    Get Length    ${pool_list}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${pool_exist}=    Run Keyword IF    '${pool_list[${INDEX}]}' == '${pool_name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${pool_list[${INDEX}]}' == '${pool_name}'
+
+    Should not Be True    ${pool_exist}
+
+Check Pool Contain Node
+    [Arguments]    ${pool_name}    ${node_list}
+    ${get_pool_nodes}=    Do SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph pg ls-by-pool rbd | awk '{print $16}' | sort -u | sed '$d' | xargs | sed 's/\ /+/g'
+    Should Be Equal As Strings    ${node_list}    ${get_pool_nodes}     
+
+Check Pool UI Contain Node
+    [Arguments]    ${pool_name}    @{node_ids}
+    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+    @{pool_node_list}=    CGI Pool Node List    pool_name=${pool_name}
+    ${length}=    Get Length    ${node_ids}
+    ${list_length}=    Get Length    ${pool_node_list}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${node_exist}=    Check Pool UI Contain Node Sub FOR    ${list_length}    ${INDEX}    @{node_ids}[${INDEX}]    @{pool_node_list}
+    \    ${nodes_exist_pool}=    Run Keyword IF    '${node_exist}' == 'True'    
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${nodes_exist_pool}' == 'True'
+
+Check Pool UI Contain Node Sub FOR
+    [Arguments]    ${list_length}    ${INDEX}    ${node_ids_x}    @{pool_node_list}
+    :FOR    ${LIST_INDEX}    IN RANGE    0    ${list_length}
+    \    ${node_exist}=    Run Keyword IF    '@{pool_node_list}[${LIST_INDEX}]' == '${node_ids_x}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '@{pool_node_list}[${LIST_INDEX}]' == '${node_ids_x}'
+    [Return]    ${node_exist}
 ##############################################################################################
 # iSCSI operation
 ##############################################################################################

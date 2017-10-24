@@ -167,3 +167,31 @@ CGI Storage Volume Edit
     Set Request Body    host=${storage_ip}&name=${osd_name}&cache_devs=${cache_dev_urlencode}&spare_devs=${spare_dev_urlencode}
     POST    /cgi-bin/ezs3/json/storage_volume_edit
     Response Status Code Should Equal    200 OK
+
+CGI Common Pool Create
+    [Arguments]    ${pool_name}    ${pool_type}    ${r}    ${k}    ${m}
+    ${rep_value}=    Set Variable    {"r":"${r}"}
+    ${ec_value}=    Set Variable    {"k":"${k}","m":"${m}"}
+    ${setting_list}=    Set Variable If    
+    ...    '${pool_type}'=='1'    ${rep_value}
+    ...    '${pool_type}'=='3'    ${ec_value}
+    Return Code Should Be    /cgi-bin/ezs3/json/pool_create?pool_name=${pool_name}&pool_type=${pool_type}&settings=${setting_list}    0  
+    
+CGI Pool List
+    ${pool}=    Get Return Json    /cgi-bin/ezs3/json/pool_list    /response/pools/pool
+    ${pool_parse}=    Parse Json    ${pool}
+    [Return]    ${pool_parse}
+
+CGI Common Pool Delete
+    [Arguments]    ${pool_name}    ${delete_data}
+    Return Code Should Be    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}&delete_data=${delete_data}    0
+
+CGI Pool Node Add
+    [Arguments]    ${pool_name}    ${node_list}
+    Return Code Should Be    /cgi-bin/ezs3/json/pool_add_node?pool_id=${pool_name}&node_ids=${node_list}    0
+
+CGI Pool Node List
+    [Arguments]    ${pool_name}
+    ${get_node_list}=    Get Return Json    /cgi-bin/ezs3/json/pool_list_node?pool_name=${pool_name}    /response/nodes/node
+    ${pool_parse}=    Parse Json    ${get_node_list}
+    [Return]    ${pool_parse}
