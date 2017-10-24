@@ -103,6 +103,7 @@ def GeneratePreseed(vm):
         with open(template_path, 'r') as source, open(target_path, 'w') as target:
             scontent = source.read()
             tcontent = scontent.replace("HOSTNAME_TOKEN", vm["hostname"])
+            tcontent = scontent.replace("HTTPSERVER_TOKEN", vm["pxelinux.cfg"]["httpurl"])
             target.write(tcontent)
             print 'Generate preseed for {}: {}'.format(vm["hostname"], target_path)
     except IOError as e:

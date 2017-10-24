@@ -122,7 +122,7 @@ d-i preseed/late_command string \
     mount -o bind /dev /target/dev && \
     in-target /bin/bash /tmp/patchboot && \
     umount /target/dev; \
-    wget http://192.168.200.1/netconf/6.3/interfaces_HOSTNAME_TOKEN -O /target/etc/network/interfaces; \
-    wget http://192.168.200.1/netconf/autoinit.sh -O /target/root/autoinit.sh; \
+    wget http://HTTPSERVER_TOKEN/netconf/6.3/interfaces_HOSTNAME_TOKEN -O /target/etc/network/interfaces; \
+    wget http://HTTPSERVER_TOKEN/netconf/autoinit.sh -O /target/root/autoinit.sh; \
     chmod 755 /target/root/autoinit.sh; \
     sed -i "/^exit 0/i\/root\/autoinit.sh" /target/etc/rc.local
