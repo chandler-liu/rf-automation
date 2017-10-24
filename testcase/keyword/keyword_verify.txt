@@ -156,7 +156,7 @@ Check Pool Contain Node
 Check Pool UI Contain Node
     [Arguments]    ${pool_name}    @{node_ids}
     Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
-    @{pool_node_list}=    CGI Pool Node List    pool_name=${pool_name}
+    @{pool_node_list}=    CGI Pool List Node    pool_name=${pool_name}
     ${length}=    Get Length    ${node_ids}
     ${list_length}=    Get Length    ${pool_node_list}
     :FOR    ${INDEX}    IN RANGE    0    ${length}

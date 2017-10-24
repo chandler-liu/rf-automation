@@ -186,11 +186,11 @@ CGI Common Pool Delete
     [Arguments]    ${pool_name}    ${delete_data}
     Return Code Should Be    /cgi-bin/ezs3/json/pool_delete?pool_name=${pool_name}&delete_data=${delete_data}    0
 
-CGI Pool Node Add
+CGI Pool Add Node
     [Arguments]    ${pool_name}    ${node_list}
     Return Code Should Be    /cgi-bin/ezs3/json/pool_add_node?pool_id=${pool_name}&node_ids=${node_list}    0
 
-CGI Pool Node List
+CGI Pool List Node
     [Arguments]    ${pool_name}
     ${get_node_list}=    Get Return Json    /cgi-bin/ezs3/json/pool_list_node?pool_name=${pool_name}    /response/nodes/node
     ${pool_parse}=    Parse Json    ${get_node_list}

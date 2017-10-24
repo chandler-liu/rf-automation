@@ -116,7 +116,7 @@ Add Node To Pool
     ${length}=    Get Length    ${node_ids}
     :FOR    ${INDEX}    IN RANGE    1    ${length}
     \    ${node_list}    Set Variable    ${node_list}+@{node_ids}[${INDEX}]
-    CGI Pool Node Add    pool_name=${pool_name}    node_list=${node_list}
+    CGI Pool Add Node    pool_name=${pool_name}    node_list=${node_list}
     Wait Until Keyword Succeeds    4 min    5 sec    Check Pool Contain Node    ${pool_name}    ${node_list}    
 
 ##############################################################################################
