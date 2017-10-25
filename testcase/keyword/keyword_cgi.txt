@@ -195,3 +195,15 @@ CGI Pool List Node
     ${get_node_list}=    Get Return Json    /cgi-bin/ezs3/json/pool_list_node?pool_name=${pool_name}    /response/nodes/node
     ${pool_parse}=    Parse Json    ${get_node_list}
     [Return]    ${pool_parse}
+
+CGI Storage Volume Scan
+    [Arguments]    ${storage_ip}    ${osd_name}
+    ${repair_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
+    ${repair_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_scan
+    Post Return Code Should be 0    ${repair_osd_body}    ${repair_osd_url}
+
+CGI Storage Volume Reformat
+    [Arguments]    ${storage_ip}    ${osd_name}
+    ${repair_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
+    ${repair_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_reformat
+    Post Return Code Should be 0    ${repair_osd_body}    ${repair_osd_url}

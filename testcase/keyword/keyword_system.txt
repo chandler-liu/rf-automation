@@ -199,6 +199,16 @@ Delete Batch OSD
     \    Append To List    ${osd_name_list}    g-${osd_name}-${INDEX}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
 
+Scan Fix OSD
+    [Arguments]    ${storage_ip}    ${osd_name}
+    CGI Storage Volume Scan    ${storage_ip}    ${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    SCANNING
+
+Reformat OSD
+    [Arguments]    ${storage_ip}    ${osd_name}
+    CGI Storage Volume Reformat    ${storage_ip}    ${osd_name}
+    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    REFORMATING
+
 ##############################################################################################
 # WEB operation
 ##############################################################################################
