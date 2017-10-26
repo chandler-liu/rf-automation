@@ -187,6 +187,7 @@ Get OSD Reweight
 
 Get Objects By Pool
     [Arguments]    ${pool_name}
+    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${pool_name}
     ${objects_in_pool}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${pool_name} | head -n 1 | awk -F " " '{print $NF}'
     [Return]    ${objects_in_pool}
 
