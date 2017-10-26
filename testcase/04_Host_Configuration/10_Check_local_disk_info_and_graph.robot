@@ -12,7 +12,7 @@ Check local disk
     log    Go to Hosts > Storage page, check status of local disk
     Return Code Should be 0    /cgi-bin/ezs3/json/host_local_disk_list?host=@{STORAGEIP}[0]
     ${response_tmp}=    Get Return Json    /cgi-bin/ezs3/json/host_local_disk_list?host=@{STORAGEIP}[0]    /response
-    ${response}    evaluate    ${response_tmp}
+    ${response}=    Evaluate    ${response_tmp}
     ${res_lists}=    Get From List    ${response}    0
     ${dev_info}=    get from dictionary    ${res_lists}    name
     log    Check get local disk result
@@ -26,7 +26,7 @@ Check "Physical Disks Status" when all disks work well
     Return Code Should be 0    /cgi-bin/ezs3/json/host_disk_status_image?host=@{STORAGEIP}[0]
     ${response_tmp}=    Get Return Json    /cgi-bin/ezs3/json/host_disk_status_image?host=@{STORAGEIP}[0]    /response
     log    ${response_tmp}
-    ${response}    evaluate    ${response_tmp}
+    ${response}=    Evaluate    ${response_tmp}
     ${res_lists}=    Get From List    ${response}    0
     log    Get result of list: ${res_lists}
     log    Check the machine is a physical machine or virtual machine
