@@ -122,7 +122,6 @@ Delete Pool
     # ${dump_pool_name}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    rados lspools
     # Should Not Contain    ${dump_pool_name}    ${pool_name}
     Wait Until Keyword Succeeds    1m    5s    SSH Output Should Not Contain    rados lspools    ${pool_name}
-    log    Delete pool ${pool_name} success
 
 Delete Shared Folder
     [Arguments]    ${vs_name}    ${folder_name}
