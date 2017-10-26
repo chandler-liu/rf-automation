@@ -43,6 +43,10 @@ Set user pool as S3 pool against default pool
     ${objects_after}=    Get Objects By Pool    ${pool_name}
     log    Check default S3 pool
     Should be True    ${objects_after}>${objects_before}
+    [Teardown]    Set Default To S3 Pool And Delete User Pool
+
+*** Keywords ***
+Set Default To S3 Pool And Delete User Pool
     log    To delete pool ${pool_name}, need to Set other pool as S3 pool
     Return Code Should Be 0    /cgi-bin/ezs3/json/pool_enable_s3?pool_name=Default
-    [Teardown]    Delete Pool    S3-pool
+    Run Keyword    Delete Pool    S3-pool
