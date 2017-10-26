@@ -200,7 +200,7 @@ Incremental Recovery
     Return Code Should Be 0    ${incremental_recovery_url}
     log    Check set maintenance mode result
     ${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph -s
-    Run Keyword If    '${enable_flag}'=='True'    Should Contain    ${set_out_put}    flags inc-in,inc-out,inc-recovery
+    Run Keyword If    '${enable_flag}'=='True'    Should Contain    ${set_out_put}    inc-in,inc-out,inc-recovery
     ...    ELSE    Should Not Contain    ${set_out_put}    flags inc-in,inc-out,inc-recovery
 
 Input Data To Bucket
