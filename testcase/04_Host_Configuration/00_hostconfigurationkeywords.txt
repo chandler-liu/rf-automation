@@ -1,4 +1,4 @@
-*** Settings ***
+﻿*** Settings ***
 Library           SSHLibrary
 Library           HttpLibrary.HTTP
 Library           Collections
@@ -280,6 +280,6 @@ Add FS Cache
 Add SAN Cache
     [Arguments]    ${rbd_image_name}    ${cache_disk}
     log    Add SAN cache
-    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should be 0    /cgi-bin/ezs3/json/rbd_volume_cache_create?host=@{STORAGEIP}[1]&rbd_img=${rbd_image_name}&pool_id=Default&cache_path=%2Fdev%2F${cache_disk}
+    Wait Until Keyword Succeeds    2 min    5 sec    Return Code Should be 0    /cgi-bin/ezs3/json/rbd_volume_cache_create?host=@{STORAGEIP}[1]&rbd_img=${rbd_image_name}&cache_path=%2Fdev%2F${cache_disk}
     log    Check add SAN Cache result
     Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    eio_cli info    Source Device
