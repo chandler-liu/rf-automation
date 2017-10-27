@@ -179,13 +179,13 @@ Check Maintenance Mode State
 	[Arguments]    ${state}
 	${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph -s
     Run Keyword IF    '${state}' == 'ON'    Should Contain    ${set_out_put}    inc-in,inc-out,inc-recovery
-	....    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
+	...    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
 
 Check Incremental Recovery State
 	[Arguments]    ${state}
 	${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph -s
     Run Keyword IF    '${state}' == 'ON'    Should Contain    ${set_out_put}    inc-in,inc-out,inc-recovery
-	....    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
+	...    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
 	
 ##############################################################################################
 # iSCSI operation
