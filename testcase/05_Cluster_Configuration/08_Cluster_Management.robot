@@ -5,8 +5,11 @@ Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}
 ...               AND    Switch Connection    @{PUBLICIP}[0]
 Suite Teardown    Close All Connections
 Resource          ../00_commonconfig.txt
-Resource          ../00_commonkeyword.txt
-Resource          00_clusterconfigurationkeywords.txt
+#Resource          ../00_commonkeyword.txt
+#Resource          00_clusterconfigurationkeywords.txt
+Resource          ../keyword/keyword_verify.txt
+Resource          ../keyword/keyword_system.txt
+Resource          ../keyword/keyword_cgi.txt
 
 *** Variables ***
 ${data_dev}     /dev/sdc
