@@ -241,7 +241,7 @@ Check Shared Folder Nonexist UI
     \    log    ${share_folder_list[${INDEX}]}
     Should Not Be True    ${share_folder_exist}
 	
-Check Shared Folder Exist
+Check Shared Folder Nonexist
 	[Arguments]    ${name}    ${gateway_group}
 	@{gw_ip}=    CGI List All Nodes GW    ${gateway_group}
 	${length}=    Get Length    @{gw_ip}
