@@ -44,9 +44,8 @@ Incremental recovery in case OSD down and up
     [Tags]    FAST
 	Cluster Enable Incremental Recovery
 	Stop OSD & Start OSD Check Reweight Change
-	Check Incremental Recovery Speed
 	[Teardown]    Cluster Disable Incremental Recovery
-	...    AND    Delete Shared Folder    ${vs_name}    ${folder_name}
+	...    AND    Delete Shared Folder    gateway_group=Default    names=    Create List    incremental_folder
     ...    AND    SSH Output Should Contain    /etc/init.d/ceph start osd.0    Starting Ceph osd.0
 	
 *** Keywords ***
