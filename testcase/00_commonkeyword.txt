@@ -222,7 +222,7 @@ Delete OSD
 Create OSD
     [Arguments]    ${osd_name}
     log    Create OSD, to test incremental recovery
-    @{data_devs}=    Create List    sdc
+    @{data_devs}=    Create List    /dev/sdc
     Add Storage Volume    @{STORAGEIP}[0]    ${osd_name}    0    data    \    %5B%5D
     ...    False    False    False    @{data_devs}
     log    Enable OSD

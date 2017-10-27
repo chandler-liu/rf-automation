@@ -117,8 +117,58 @@ Add Node To Pool
     :FOR    ${INDEX}    IN RANGE    1    ${length}
     \    ${node_list}    Set Variable    ${node_list}+@{node_ids}[${INDEX}]
     CGI Pool Add Node    pool_name=${pool_name}    node_list=${node_list}
-    Wait Until Keyword Succeeds    4 min    5 sec    Check Pool Contain Node    ${pool_name}    ${node_list}    
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Pool Contain Node    ${pool_name}    ${node_list}  
 
+Enable Maintenance Mode
+    CGI Enable Maintenance Mode
+    Check Maintenance Mode State    state=ON
+
+Disable Maintenance Mode
+    CGI Disable Maintenance Mode
+    Check Maintenance Mode State    state=OFF
+	
+Enable Incremental Recovery
+    CGI Enable Incremental Recovery
+    Check Incremental Recovery State    state=ON
+
+Disable Incremental Recovery
+    CGI Disnable Incremental Recovery
+    Check Incremental Recovery State    state=OFF
+
+Get OSD Reweight
+	[Arguments]    ${pool_name}    ${changing}
+	${osd_numbsers}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | sed -n "/pool ${pool_name}/,/pool /p" |grep "osd" | wc -l| sed 's/ //g'
+    ${osd_index}=    Evaluate    ${osd_numbsers}-1
+    ${before_reweight}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | grep -A 2 "${pool_name}_@{STORAGEIP}[0]" | grep -v host| grep -v pool | grep osd.${osd_index} | awk -F " " '{print $2}'
+    log    before_reweight: ${before_reweight}
+    sleep    20
+	${after_reweight}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | grep -A 2 "${pool_name}_@{STORAGEIP}[0]" | grep -v host| grep -v pool | grep osd.${osd_index} | awk -F " " '{print $2}'
+    log    after rewright: ${after_reweight}
+	Run Keyword If    '${changing}'=='increasing'    Should Be True    ${after_reweight} > ${before_reweight}
+    ...    ELSE IF    '${changing}'=='diminishing'    Should Be True    ${after_reweight} < ${before_reweight}
+    
+Down Up Reweight Change
+	[Arguments]    ${folder_name}    ${vs_name}
+	Stop OSD At Backend
+    log    Create share folder and input data to this folder
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    log    Write data to folder of ${folder_name}
+    Write    cd /vol/${folder_name}
+    Write    dd if=/dev/zero of=/vol/${folder_name}/test.txt bs=1M count=200
+    log    type ceph osd dump to get recovery_weight
+    ${before_recovery_weight}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep osd.0 | awk -F " " '{print $7}'
+    Stop OSD At Backend
+    log    type ceph osd dump again, to get recovery_weight
+    ${after_recovery_weight}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep osd.0 | awk -F " " '{print $7}'
+    Should Be True    ${after_recovery_weight}<${before_recovery_weight}
+    log    Check incremental rcovery speed
+    ${first_get_recovery_weight}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep osd.0 | awk -F " " '{print $7}'
+    sleep    10
+    ${second_get_recovery_weight}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep osd.0 | awk -F " " '{print $7}'
+    Should Be True    ${first_get_recovery_weight}<${second_get_recovery_weight}
+    Should Be True    ${second_get_recovery_weight}<${before_recovery_weight}
+	
+	
 ##############################################################################################
 # Storage operation
 ##############################################################################################
@@ -208,6 +258,14 @@ Reformat OSD
     [Arguments]    ${storage_ip}    ${osd_name}
     CGI Storage Volume Reformat    ${storage_ip}    ${osd_name}
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    REFORMATING
+	
+Stop OSD At Backend
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph stop osd.0    Exit Code: 0x00
+
+Start OSD At Backend
+	Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph start osd.0    Exit Code: 0x00
+	log    Check osd status
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    ceph osd tree | grep osd.0    up
 
 ##############################################################################################
 # WEB operation
@@ -347,4 +405,27 @@ Get RBD Image Name
 ##############################################################################################
 # NAS operation
 ##############################################################################################
+Add Shared Folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${mode}=sync    ${hidden}=false
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=false    ${guest_only}=false    ${user_list}=    ${cephfs}=cephfs    ${pool}=data
+    ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_windows_host}=false    ${migrate_path}=    ${migrate_copyup}=open
+    ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
+    CGI Create Shared Folder    ${name}    ${gateway_group}    ${nfs}    ${smb}    ${read_only}    ${s3_folder}    ${bucket}    ${mode}    ${hidden}
+    ...    ${write_list}    ${smb_allowed_hosts}    ${nfs_allowed_hosts}    ${guest_ok}    ${guest_only}    ${user_list}    ${cephfs}    ${pool}
+    ...    ${migrate_folder}    ${migrate_gw_ip}    ${migrate_server}    ${migrate_fs_type}    ${migrate_windows_host}    ${migrate_path}    ${migrate_copyup}
+    ...    ${migrate_account}    ${migrate_passwd}    ${migrate_cifsacl}    ${migrate_fs_options}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Exist UI   ${name}    ${gateway_group}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Exist    ${name}    ${gateway_group}
 
+Delete Shared Folder
+	[Arguments]    ${gateway_group}    @{names}
+	${length}=    Get Length    ${names}
+	${name_list}=    Set Variable    @{names}[0]
+	:FOR    ${INDEX}    IN RANGE    1    ${length}
+	\    ${name_list}=    Set Variable    ${name_list},@{names}[${INDEX}]
+	CGI Delete Multi Shared Folder    ${name_list}    ${gateway_group}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist UI   @{names}[${INDEX}]    ${gateway_group}
+	\    Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist    @{names}[${INDEX}]    ${gateway_group}
+	
+	

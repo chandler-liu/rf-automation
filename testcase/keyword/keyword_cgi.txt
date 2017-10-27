@@ -207,3 +207,44 @@ CGI Storage Volume Reformat
     ${repair_osd_body}=    Set Variable    host=${storage_ip}&names=%5B%22${osd_name}%22%5D
     ${repair_osd_url}=    Set Variable    /cgi-bin/ezs3/json/storage_volume_reformat
     Post Return Code Should be 0    ${repair_osd_body}    ${repair_osd_url}
+
+CGI Enable Maintenance Mode
+	Return Code Should Be    /cgi-bin/ezs3/json/enable_maintenance_mode    0
+
+CGI Disable Maintenance Mode
+	Return Code Should Be    /cgi-bin/ezs3/json/disable_maintenance_mode    0
+	
+CGI Enable Incremental Recovery
+	Return Code Should Be    /cgi-bin/ezs3/json/enable_incremental_recovery    0
+
+CGI Disable Incremental Recovery
+	Return Code Should Be    /cgi-bin/ezs3/json/disable_incremental_recovery    0
+	
+CGI Create Shared Folder
+	[Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${mode}=sync    ${hidden}=false
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=false    ${guest_only}=false    ${user_list}=    ${cephfs}=cephfs    ${pool}=data
+    ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_windows_host}=false    ${migrate_path}=    ${migrate_copyup}=open
+    ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
+	Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&s3_folder=${s3_folder}&bucket=${bucket}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}&cephfs=${cephfs}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_windows_host=${migrate_windows_host}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+	
+CGI List Shared Folder
+	[Arguments]    ${gateway_group}
+	${share_folder_list}=    Get Return Json    /cgi-bin/ezs3/json/list_shared_folder?gateway_group=${gateway_group}    /response/folders/folder
+    ${share_folder_parse}=    Parse Json    ${share_folder_list}
+    [Return]    ${share_folder_parse}
+	
+CGI List All Nodes
+	${node_list}=    Get Return Json    /cgi-bin/ezs3/json/list_all_nodes    /response
+	${node_parse}=    Parse Json    ${node_list}
+	[Return]    ${node_parse}
+	
+CGI List All Nodes GW
+	[Arguments]    ${gateway_group}
+	${gw_node_list}=    Get Return Json    /cgi-bin/ezs3/json/list_all_nodes?gwgroup=${gateway_group}   /response
+	${gw_node_parse}=    Parse Json    ${gw_node_list}
+	[Return]    ${gw_node_parse}
+
+CGI Delete Multi Shared Folder
+	[Arguments]    ${name_list}    ${gateway_group}
+	Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${name_list}&gateway_group=${gateway_group}
+	

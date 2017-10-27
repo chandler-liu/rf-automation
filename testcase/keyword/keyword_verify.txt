@@ -174,6 +174,19 @@ Check Pool UI Contain Node Sub FOR
     \    ...    ELSE    Set Variable    False
     \    Exit For Loop IF    '@{pool_node_list}[${LIST_INDEX}]' == '${node_ids_x}'
     [Return]    ${node_exist}
+	
+Check Maintenance Mode State
+	[Arguments]    ${state}
+	${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph -s
+    Run Keyword IF    '${state}' == 'ON'    Should Contain    ${set_out_put}    inc-in,inc-out,inc-recovery
+	....    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
+
+Check Incremental Recovery State
+	[Arguments]    ${state}
+	${set_out_put}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph -s
+    Run Keyword IF    '${state}' == 'ON'    Should Contain    ${set_out_put}    inc-in,inc-out,inc-recovery
+	....    ELSE    Should Not Contain    ${set_out_put}    noout flag(s) set
+	
 ##############################################################################################
 # iSCSI operation
 ##############################################################################################
@@ -193,3 +206,45 @@ Check iSCIS Volume can not Access
 ##############################################################################################
 # NAS operation
 ##############################################################################################
+Check Shared Folder Exist UI
+	[Arguments]    ${name}    ${gateway_group}
+	Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+	${share_folder_list}=    CGI List Shared Folder    ${gateway_group}
+	${length}=    Get Length    ${share_folder_list}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]}' == '${name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${share_folder_list[${INDEX}]}' == '${name}'
+    \    log    ${share_folder_list[${INDEX}]}
+    Should Be True    ${share_folder_exist}
+	
+Check Shared Folder Exist
+	[Arguments]    ${name}    ${gateway_group}
+	@{gw_ip}=    CGI List All Nodes GW    ${gateway_group}
+	${length}=    Get Length    @{gw_ip}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${get_share_folder}=    Do SSH CMD    @{gw_ip}[${INDEX}]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
+    \    Should Contain    ${get_share_folder}    ${name}
+
+	
+Check Shared Folder Nonexist UI
+	[Arguments]    ${name}    ${gateway_group}
+	Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+	${share_folder_list}=    CGI List Shared Folder    ${gateway_group}
+	${length}=    Get Length    ${share_folder_list}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]}' == '${name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${share_folder_list[${INDEX}]}' == '${name}'
+    \    log    ${share_folder_list[${INDEX}]}
+    Should Not Be True    ${share_folder_exist}
+	
+Check Shared Folder Exist
+	[Arguments]    ${name}    ${gateway_group}
+	@{gw_ip}=    CGI List All Nodes GW    ${gateway_group}
+	${length}=    Get Length    @{gw_ip}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${get_share_folder}=    Do SSH CMD    @{gw_ip}[${INDEX}]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
+    \    Should Not Contain    ${get_share_folder}    ${name}
