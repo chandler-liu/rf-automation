@@ -80,7 +80,6 @@ Wait Cluster Status Is Health_OK
 
 Disable The OSD Gracefully
     Run Keyword    Disable OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}    force=false
-    Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status Is Not   @{STORAGEIP}[0]    role=osd    status=stoping
 
 Stop OSD & Start OSD Check Reweight Change
     Run Keyword    Down Up Reweight Change    incremental_folder    Default
