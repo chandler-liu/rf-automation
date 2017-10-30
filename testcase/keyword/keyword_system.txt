@@ -210,7 +210,8 @@ Create Batch OSD and Volume
 Disable OSD
     [Arguments]    ${storage_ip}    ${osd_name}    ${force}=true
     CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name}    force=${force}
-    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
+	Run Keyword If    '${force}'=='false'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    DISABLING
+    ...    ELSE IF    '${force}'=='true'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
 
 Disable Batch OSD
     [Arguments]    ${storage_ip}    ${osd_name}    ${data_devs}    ${force}=true
@@ -219,7 +220,8 @@ Disable Batch OSD
     :FOR    ${INDEX}    IN RANGE    1    ${length}
     \    ${osd_name_list}    Set Variable    ${osd_name_list}+g-${osd_name}-${INDEX}
     CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name_list}    force=${force}
-    Wait Until Keyword Succeeds    4 min    5 sec    Check Batch OSD State    ${storage_ip}    ${osd_name}    OFFLINE    ${data_devs}
+	Run Keyword If    '${force}'=='false'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    DISABLING
+    ...    ELSE IF    '${force}'=='true'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
 
 Enable OSD
     [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
