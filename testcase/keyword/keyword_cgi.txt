@@ -79,7 +79,7 @@ CGI MDS Role Enable
 
 # GET /ezs3/json/node_role_disable_osd, Disable OSD role of a node. You can specify several storage volumes to disable multiple OSDs at the same time.
 CGI Node Role Disable OSD
-    [Arguments]    ${ip}    ${sv_list}    ${force}=false
+    [Arguments]    ${ip}    ${sv_list}    ${force}
     Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_osd?ip=${ip}&sv_list=${sv_list}&force=${force}    0
 
 # GET /ezs3/json/node_role_enable_osd, Enable OSD role of a node. You can specify several storage volumes to enable multiple OSDs at the same time.

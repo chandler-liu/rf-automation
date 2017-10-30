@@ -208,17 +208,17 @@ Create Batch OSD and Volume
     \    Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status    ${storage_ip}    role=osd    status=enabled
 
 Disable OSD
-    [Arguments]    ${storage_ip}    ${osd_name}    
-    CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name}    force=true
+    [Arguments]    ${storage_ip}    ${osd_name}    ${force}=true
+    CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name}    force=${force}
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
 
 Disable Batch OSD
-    [Arguments]    ${storage_ip}    ${osd_name}    ${data_devs}
+    [Arguments]    ${storage_ip}    ${osd_name}    ${data_devs}    ${force}=true
     ${length}=    Get Length    ${data_devs}
     ${osd_name_list}    Set Variable    g-${osd_name}-0
     :FOR    ${INDEX}    IN RANGE    1    ${length}
     \    ${osd_name_list}    Set Variable    ${osd_name_list}+g-${osd_name}-${INDEX}
-    CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name_list}    force=true
+    CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name_list}    force=${force}
     Wait Until Keyword Succeeds    4 min    5 sec    Check Batch OSD State    ${storage_ip}    ${osd_name}    OFFLINE    ${data_devs}
 
 Enable OSD
@@ -423,7 +423,7 @@ Add Shared Folder
 
 Delete Shared Folder
 	[Arguments]    ${gateway_group}    @{names}
-	${length}=    Get Length    ${names}
+	${length}=    Get Length    @{names}
 	${name_list}=    Set Variable    @{names}[0]
 	:FOR    ${INDEX}    IN RANGE    1    ${length}
 	\    ${name_list}=    Set Variable    ${name_list},@{names}[${INDEX}]
