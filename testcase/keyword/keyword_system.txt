@@ -201,7 +201,7 @@ Create Batch OSD and Volume
     CGI Storage Volume with Config Batch Add    ${storage_ip}    ${osd_name}    ${fsType}    ${osdEngineType}     ${data_devs}
     ...    data    \    \    False    False    true
     ${length}=    Get Length    ${data_devs}
-    :FOR    ${INDEX}    IN RANGE    0    ${length}    
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    Wait Until Keyword Succeeds    30 sec    5 sec    Check Storage Volume Exist    ${storage_ip}    g-${osd_name}-${INDEX}
     \    Enable OSD    public_ip=${public_ip}    storage_ip=${storage_ip}    osd_name=g-${osd_name}-${INDEX}
     \    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    g-${osd_name}-${INDEX}    ONLINE
@@ -229,17 +229,19 @@ Enable OSD
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    ONLINE
 
 Remove OSD
-    [Arguments]    ${storage_ip}    ${osd_name}   
-    Disable OSD    storage_ip=${storage_ip}    osd_name=${osd_name}  
+    [Arguments]    ${storage_ip}    ${osd_name}
+    Disable OSD    storage_ip=${storage_ip}    osd_name=${osd_name}
     Wait Until Keyword Succeeds    4 min    5 sec    Get Cluster Health Status
     Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status Is Not   ${storage_ip}    role=osd    status=stoping
     ${osd_name_list}=    Create List    ${osd_name}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Storage Volume Nonexist    ${storage_ip}    ${osd_name}
 
 Delete OSD
     [Arguments]    ${storage_ip}    ${osd_name}
     ${osd_name_list}=    Create List    ${osd_name}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Storage Volume Nonexist    ${storage_ip}    ${osd_name}
 
 Delete Batch OSD
     [Arguments]    ${storage_ip}    ${osd_name}    ${data_devs}
@@ -248,6 +250,8 @@ Delete Batch OSD
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    Append To List    ${osd_name_list}    g-${osd_name}-${INDEX}
     CGI Storage Volume Remove    host=${storage_ip}    name=${osd_name_list}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    Wait Until Keyword Succeeds    4 min    5 sec    Check Storage Volume Nonexist    ${storage_ip}    g-${osd_name}-${INDEX}
 
 Scan Fix OSD
     [Arguments]    ${storage_ip}    ${osd_name}
