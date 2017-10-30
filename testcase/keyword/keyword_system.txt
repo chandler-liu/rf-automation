@@ -132,17 +132,17 @@ Enable Incremental Recovery
     Check Incremental Recovery State    state=ON
 
 Disable Incremental Recovery
-    CGI Disnable Incremental Recovery
+    CGI Disable Incremental Recovery
     Check Incremental Recovery State    state=OFF
 
 Get OSD Reweight
 	[Arguments]    ${pool_name}    ${changing}
 	${osd_numbsers}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | sed -n "/pool ${pool_name}/,/pool /p" |grep "osd" | wc -l| sed 's/ //g'
     ${osd_index}=    Evaluate    ${osd_numbsers}-1
-    ${before_reweight}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | grep -A 2 "${pool_name}_@{STORAGEIP}[0]" | grep -v host| grep -v pool | grep osd.${osd_index} | awk -F " " '{print $2}'
+    ${before_reweight}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | grep -A 2 "${pool_name}_" | grep -v host| grep -v pool | grep osd.${osd_index} | awk -F " " '{print $2}'
     log    before_reweight: ${before_reweight}
     sleep    20
-	${after_reweight}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | grep -A 2 "${pool_name}_@{STORAGEIP}[0]" | grep -v host| grep -v pool | grep osd.${osd_index} | awk -F " " '{print $2}'
+	${after_reweight}=    DO SSH CMD    @{PUBLICIP}[0]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph osd tree | grep -A 2 "${pool_name}_" | grep -v host| grep -v pool | grep osd.${osd_index} | awk -F " " '{print $2}'
     log    after rewright: ${after_reweight}
 	Run Keyword If    '${changing}'=='increasing'    Should Be True    ${after_reweight} > ${before_reweight}
     ...    ELSE IF    '${changing}'=='diminishing'    Should Be True    ${after_reweight} < ${before_reweight}
@@ -358,7 +358,7 @@ Do SSH CMD
     log    SSH login
     Open Connection    ${host_ip}
     ${con_output}=    Login    ${username}    ${password}
-    Should Contain    ${con_output}    Last login
+    Wait Until Keyword Succeeds    3 min    5 sec    Should Contain    ${con_output}    Last login
     log    Do ssh command
     Start Command    ${cmd}
     ${stdout}=    Read Command Output

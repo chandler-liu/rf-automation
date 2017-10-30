@@ -27,7 +27,7 @@ Incremental Recovery In Case OSD In
     [Tags]    FAST
         Cluster Enable Incremental Recovery
         Add OSD & Join Default pool
-        Get OSD Reweight Increase
+        Get OSD Reweight Increasing
         [Teardown]    Run Keywords    Cluster Disable Incremental Recovery
         ...    AND    Remove OSD    @{STORAGEIP}[0]    ${osd_name}
 
@@ -37,7 +37,7 @@ Incremental recovery in case OSD out
         Add OSD & Join Default pool
         Wait Cluster Status Is Health_OK
         Cluster Enable Incremental Recovery
-        Disable The OSD
+        Disable The OSD Gracefully
         Get OSD Reweight Diminishing
         [Teardown]    Run Keywords    Cluster Disable Incremental Recovery
         ...    AND    Remove OSD    @{STORAGEIP}[0]    ${osd_name}
@@ -77,8 +77,8 @@ Get OSD Reweight Diminishing
 Wait Cluster Status Is Health_OK
         Wait Until Keyword Succeeds    4 min    5 sec    Check Cluster Health
 
-Disable The OSD
-        Run Keyword    Disable OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}
+Disable The OSD Gracefully
+        Run Keyword    Disable OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}    force=false
     Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status Is Not   @{STORAGEIP}[0]    role=osd    status=stoping
 
 Stop OSD & Start OSD Check Reweight Change
