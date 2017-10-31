@@ -157,7 +157,7 @@ Down Up Reweight Change
     Write    dd if=/dev/zero of=/vol/${folder_name}/test.txt bs=1M count=200
     log    type ceph osd dump to get recovery_weight
     ${before_recovery_weight}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep osd.0 | awk -F " " '{print $7}'
-    Stop OSD At Backend
+    Start OSD At Backend
     log    type ceph osd dump again, to get recovery_weight
     ${after_recovery_weight}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph osd dump | grep osd.0 | awk -F " " '{print $7}'
     Should Be True    ${after_recovery_weight}<${before_recovery_weight}
