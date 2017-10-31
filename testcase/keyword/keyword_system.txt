@@ -220,8 +220,9 @@ Disable Batch OSD
     :FOR    ${INDEX}    IN RANGE    1    ${length}
     \    ${osd_name_list}    Set Variable    ${osd_name_list}+g-${osd_name}-${INDEX}
     CGI Node Role Disable OSD    ip=${storage_ip}    sv_list=${osd_name_list}    force=${force}
-	Run Keyword If    '${force}'=='false'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    DISABLING
-    ...    ELSE IF    '${force}'=='true'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    OFFLINE
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    Run Keyword If    '${force}'=='false'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    g-${osd_name}-${INDEX}    DISABLING
+    \    ...    ELSE IF    '${force}'=='true'    Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    g-${osd_name}-${INDEX}    OFFLINE
 
 Enable OSD
     [Arguments]    ${public_ip}    ${storage_ip}    ${osd_name}    ${pool_to_join}=${DEFAULT POOL}    ${add_metadata_pool}=true
