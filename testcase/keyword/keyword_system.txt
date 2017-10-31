@@ -424,14 +424,10 @@ Add Shared Folder
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Exist    ${name}    ${gateway_group}
 
 Delete Shared Folder
-	[Arguments]    ${gateway_group}    @{names}
-	${length}=    Get Length    @{names}
-	${name_list}=    Set Variable    @{names}[0]
-	:FOR    ${INDEX}    IN RANGE    1    ${length}
-	\    ${name_list}=    Set Variable    ${name_list},@{names}[${INDEX}]
-	CGI Delete Multi Shared Folder    ${name_list}    ${gateway_group}
-	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist UI   @{names}[${INDEX}]    ${gateway_group}
-	\    Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist    @{names}[${INDEX}]    ${gateway_group}
+	[Arguments]    ${gateway_group}    ${name}
+	CGI Delete Multi Shared Folder    ${name}    ${gateway_group}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist UI   ${name}    ${gateway_group}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist    ${name}    ${gateway_group}
+	
 	
 	

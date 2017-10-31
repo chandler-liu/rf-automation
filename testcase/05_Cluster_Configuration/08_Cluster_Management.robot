@@ -14,7 +14,7 @@ Resource          ../keyword/keyword_cgi.txt
 *** Variables ***
 ${data_dev}     /dev/sdc
 ${osd_name}    incremental-test
-@{shared_folder_names}    incremental_folder
+${shared_folder_name}    incremental_folder
 
 *** Test Cases ***
 Enable/Disable Maintenance Mode
@@ -49,7 +49,7 @@ Incremental recovery in case OSD down and up
     Cluster Enable Incremental Recovery
     Stop OSD & Start OSD Check Reweight Change
     [Teardown]    Run Keywords    Cluster Disable Incremental Recovery
-    ...    AND    Delete Shared Folder    gateway_group=Default    names=@{shared_folder_names}
+    ...    AND    Delete Shared Folder    gateway_group=Default    name=${shared_folder_name}
     ...    AND    SSH Output Should Contain    /etc/init.d/ceph start osd.0    Starting Ceph osd.0
 
 *** Keywords ***

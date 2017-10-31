@@ -222,7 +222,7 @@ Check Shared Folder Exist UI
 Check Shared Folder Exist
 	[Arguments]    ${name}    ${gateway_group}
 	@{gw_ip}=    CGI List All Nodes GW    ${gateway_group}
-	${length}=    Get Length    @{gw_ip}
+	${length}=    Get Length    ${gw_ip}
 	:FOR    ${INDEX}    IN RANGE    0    ${length}
 	\    ${get_share_folder}=    Do SSH CMD    @{gw_ip}[${INDEX}]    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Contain    ${get_share_folder}    ${name}
