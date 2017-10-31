@@ -361,7 +361,6 @@ Do SSH CMD
     log    SSH login
     Open Connection    ${host_ip}
     ${con_output}=    Login    ${username}    ${password}
-    Wait Until Keyword Succeeds    3 min    5 sec    Should Contain    ${con_output}    Last login
     log    Do ssh command
     Start Command    ${cmd}
     ${stdout}=    Read Command Output
