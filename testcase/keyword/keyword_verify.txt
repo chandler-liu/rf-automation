@@ -212,11 +212,11 @@ Check Shared Folder Exist UI
 	${share_folder_list}=    CGI List Shared Folder    ${gateway_group}
 	${length}=    Get Length    ${share_folder_list}
 	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]}' == '${name}'
+	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]['name']}' == '${name}'
     \    ...    Set Variable    True
     \    ...    ELSE    Set Variable    False
-    \    Exit For Loop IF    '${share_folder_list[${INDEX}]}' == '${name}'
-    \    log    ${share_folder_list[${INDEX}]}
+    \    Exit For Loop IF    '${share_folder_list[${INDEX}]['name']}' == '${name}'
+    \    log    ${share_folder_list[${INDEX}]['name']}
     Should Be True    ${share_folder_exist}
 	
 Check Shared Folder Exist
@@ -234,11 +234,11 @@ Check Shared Folder Nonexist UI
 	${share_folder_list}=    CGI List Shared Folder    ${gateway_group}
 	${length}=    Get Length    ${share_folder_list}
 	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]}' == '${name}'
+	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]['name']}' == '${name}'
     \    ...    Set Variable    True
     \    ...    ELSE    Set Variable    False
-    \    Exit For Loop IF    '${share_folder_list[${INDEX}]}' == '${name}'
-    \    log    ${share_folder_list[${INDEX}]}
+    \    Exit For Loop IF    '${share_folder_list[${INDEX}]['name']}' == '${name}'
+    \    log    ${share_folder_list[${INDEX}]['name']}
     Should Not Be True    ${share_folder_exist}
 	
 Check Shared Folder Nonexist
