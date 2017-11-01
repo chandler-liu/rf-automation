@@ -301,7 +301,7 @@ Rollback Interfaces Settings
     # SSH Output Should Contain    sed -i 's/dns-nameservers ${bigtera_dns_ip}/dns-nameservers 114.114.114.114/' /etc/network/interfaces    expect=
     SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces    expect=
     log    Start to restart network
-    SSH Output Should Contain    /etc/init.d/networking restart    ssh start/running, process
+    SSH Output Should Contain    ifdown -a & ifup -a    Done
     log    Rollback dns-server info success
 
 Set S3 Domain
