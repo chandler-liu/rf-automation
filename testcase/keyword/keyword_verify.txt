@@ -224,7 +224,8 @@ Check Shared Folder Exist
 	@{gw_list}=    CGI List All Nodes GW    ${gateway_group}
 	${length}=    Get Length    ${gw_list}
 	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    ${get_share_folder}=    Do SSH CMD    @{gw_list}[${INDEX}]['ip']    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
+	\    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+	\    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['ens160']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Contain    ${get_share_folder}    ${name}
 
 	
@@ -233,6 +234,7 @@ Check Shared Folder Nonexist UI
 	Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
 	${share_folder_list}=    CGI List Shared Folder    ${gateway_group}
 	${length}=    Get Length    ${share_folder_list}
+	${share_folder_exist}=    Set Variable IF     '${length}'=='0'    False
 	:FOR    ${INDEX}    IN RANGE    0    ${length}
 	\    ${share_folder_exist}=    Run Keyword IF    '${share_folder_list[${INDEX}]['name']}' == '${name}'
     \    ...    Set Variable    True
@@ -246,5 +248,6 @@ Check Shared Folder Nonexist
 	@{gw_list}=    CGI List All Nodes GW    ${gateway_group}
 	${length}=    Get Length    ${gw_list}
 	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    ${get_share_folder}=    Do SSH CMD    @{gw_list}[${INDEX}]['ip']    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
+	\    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+	\    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['ens160']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Not Contain    ${get_share_folder}    ${name}

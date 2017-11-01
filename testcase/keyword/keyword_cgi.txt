@@ -248,3 +248,9 @@ CGI Delete Multi Shared Folder
 	[Arguments]    ${name_list}    ${gateway_group}
 	Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${name_list}&gateway_group=${gateway_group}
 	
+CGI Host Nic List
+	[Arguments]    ${storage_ip}    ${exclude_ha_iface}=false
+	${host_nic_list}=    Get Return Json    /cgi-bin/ezs3/json/host_nic_list?host=${storage_ip}&exclude_ha_iface=${exclude_ha_iface}   /response/interface_list
+	${host_nic_parse}=    Parse Json    ${host_nic_list}
+	[Return]    ${host_nic_parse}
+	
