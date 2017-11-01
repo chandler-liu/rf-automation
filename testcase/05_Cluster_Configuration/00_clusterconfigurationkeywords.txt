@@ -274,9 +274,9 @@ Set SNMP
     Return Code Should Be 0    ${set_snmp_url}
     log    Check set snmp result
     Run Keyword IF    '${enabled}'=='true'    Wait Until Keyword Succeeds    2 min    5 sec    SSH Output Should Contain    ps -ef | grep -i snmp
-    ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid
+    ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux mteTrigger mteTriggerConf -p /var/run/snmpd.pid
     ...    ELSE    Wait Until Keyword Succeeds    2 min    5 sec    SSH Output Should Not Contain    ps -ef | grep -i snmp
-    ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux -p /var/run/snmpd.pid
+    ...    /usr/sbin/snmpd -Lsd -Lf /dev/null -u snmp -g snmp -I -smux mteTrigger mteTriggerConf -p /var/run/snmpd.pid
 
 Set Load Balance
     [Arguments]    ${vip}    ${enable}=true    ${hostname_s3webdav}=autotest    ${domain}=com
