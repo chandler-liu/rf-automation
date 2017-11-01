@@ -292,7 +292,7 @@ Modify Interfaces Settings
     # SSH Output Should Contain    sed -i 's/dns-nameservers 114.114.114.114/dns-nameservers ${bigtera_dns_ip}/' /etc/network/interfaces    expect=
     SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces;echo "dns-nameservers ${bigtera_dns_ip}" >> /etc/network/interfaces    expect=
     log    Start to restart network
-    SSH Output Should Contain    /etc/init.d/networking restart    ssh start/running, process
+    SSH Output Should Contain    ifdown -a & ifup -a    Done
 
 Rollback Interfaces Settings
     [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
