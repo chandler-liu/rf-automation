@@ -116,6 +116,18 @@ Create Cephfs
     POST    /cgi-bin/ezs3/json/create_cephfs
     Response Status Code Should Equal    200 OK
 
+Enable Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_name=${fs_name}
+    POST    /cgi-bin/ezs3/json/enable_mds_to_cephfs
+    Response Status Code Should Equal    200 OK
+
+Disable Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_name=${fs_name}
+    POST    /cgi-bin/ezs3/json/disable_mds_on_cephfs
+    Response Status Code Should Equal    200 OK
+
 Delete Cephfs
     [Arguments]    ${gateway_group}    ${fs_name}
     ${cephfs_list}=    Create List    ${fs_name}
@@ -217,6 +229,33 @@ Get Cephfs
     \    Exit For Loop IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
     \    log    ${cephfs_parse[${INDEX}]['name']}
     Should Be True    ${cephfs_exist}
+
+Get Cephfs Out
+    [Arguments]    ${gateway_group}    ${fs_name}
+    ${cephfs_list}=    Get Return Json    /cgi-bin/ezs3/json/list_ceph_filesystems?gateway_group=${gateway_group}    /response
+    ${cephfs_parse}=    Parse Json    ${cephfs_list}
+    ${length}=    Get Length    ${cephfs_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${cephfs_exist}=    Run Keyword IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    log    ${cephfs_parse[${INDEX}]['name']}
+    Should Not Be True    ${cephfs_exist}
+
+Get Cephfs Status
+    [Arguments]    ${gateway_group}    ${fs_name}    ${status}=active
+    ${cephfs_list}=    Get Return Json    /cgi-bin/ezs3/json/list_ceph_filesystems?gateway_group=${gateway_group}    /response
+    ${cephfs_parse}=    Parse Json    ${cephfs_list}
+    ${length}=    Get Length    ${cephfs_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${cephfs_status}=    Run Keyword IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    ...    Set Variable    ${cephfs_parse[${INDEX}]['status']}
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    log    ${cephfs_parse[${INDEX}]['name']}
+    \    log    ${cephfs_parse[${INDEX}]['status']}
+    Should Be Equal As Strings    ${cephfs_status}    ${status}
 
 Incremental Recovery
     [Arguments]    ${enable_flag}=True

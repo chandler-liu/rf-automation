@@ -63,6 +63,8 @@ Remove cache pool for replicated pool
 	Wait Until Keyword Succeeds    6 min    5 sec    Get Cluster Health Status
 	Create Cephfs    ${vs_name}    ${fs_name}    ${base_pool_name}    ${metadata_pool_name}
 	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
+	Enable Cephfs    ${vs_name}    ${fs_name}
+	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${base_pool_name}    nfs=true    cephfs=${fs_name}
     log    Get objects of base pool
     ${base_pool_objects}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${base_pool_name} | head -n 1 | awk -F " " '{print $NF}'
@@ -77,5 +79,9 @@ Remove cache pool for replicated pool
     ${after_base_pool_objects}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${base_pool_name} | head -n 1 | awk -F " " '{print $NF}'
     Should Be True    ${after_base_pool_objects}>${base_pool_objects}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=down
 	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
     ...    AND    Delete Pool    ${base_pool_name}
+	...    AND    Delete Pool    ${metadata_pool_name}
