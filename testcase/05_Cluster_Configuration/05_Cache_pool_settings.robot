@@ -48,7 +48,7 @@ Remove cache pool for replicated pool
     ${vs_name}=    Set Variable    Default
     ${base_pool_name}=    Set Variable    base-replicate-pool
     ${cache_pool_name}=    Set Variable    replica-cache-pool
-	${metadata_pool_name}=    Set Variable    cache-metadata_pool
+	${metadata_pool_name}=    Set Variable    cache-metadata-pool
 	${fs_name}=    Set Variable    cache-cephfs
     Create Pool    1    ${cache_pool_name}
     Add OSD To Pool    ${cache_pool_name}    0+1+2
