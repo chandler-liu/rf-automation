@@ -77,4 +77,5 @@ Remove cache pool for replicated pool
     ${after_base_pool_objects}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${base_pool_name} | head -n 1 | awk -F " " '{print $NF}'
     Should Be True    ${after_base_pool_objects}>${base_pool_objects}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
     ...    AND    Delete Pool    ${base_pool_name}

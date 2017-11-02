@@ -116,6 +116,14 @@ Create Cephfs
     POST    /cgi-bin/ezs3/json/create_cephfs
     Response Status Code Should Equal    200 OK
 
+Delete Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+    ${cephfs_list}=    Create List    ${fs_name}
+    ${scephfs_list_urlencode}=    URL JSON Encode    ${cephfs_list}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_list=${scephfs_list_urlencode}
+    POST    /cgi-bin/ezs3/json/delete_cephfs
+    Response Status Code Should Equal    200 OK
+
 Delete Bucket
     [Arguments]    ${bucket_name}    ${file_name}=ceph.log
     log    Delete bucket ${bucket_name}
