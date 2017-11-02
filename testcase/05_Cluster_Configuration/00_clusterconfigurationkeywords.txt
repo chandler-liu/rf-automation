@@ -327,6 +327,6 @@ Set S3 Domain
     log    ${set_s3domain_url}
     Return Code Should Be 0    ${set_s3domain_url}
 
-x
+Get S3 Pool State
     [Arguments]    ${pool_name}
     SSH Output Should Contain    radosgw-admin zone get --rgw-zone=default    ${pool_name}
