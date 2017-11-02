@@ -291,8 +291,8 @@ Modify Interfaces Settings
     Switch Connection    ${access_dns_client_ip}
     # SSH Output Should Contain    sed -i 's/dns-nameservers 114.114.114.114/dns-nameservers ${bigtera_dns_ip}/' /etc/network/interfaces    expect=
     SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces;echo "dns-nameservers ${bigtera_dns_ip}" >> /etc/network/interfaces    expect=
-    log    Start to restart network
-    SSH Output Should Contain    ifdown -a & ifup -a    Done
+    log    Start to restart network    
+    Start Command    ip link set ens160 down & ip link set ens160 up
 
 Rollback Interfaces Settings
     [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
@@ -301,8 +301,24 @@ Rollback Interfaces Settings
     # SSH Output Should Contain    sed -i 's/dns-nameservers ${bigtera_dns_ip}/dns-nameservers 114.114.114.114/' /etc/network/interfaces    expect=
     SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces    expect=
     log    Start to restart network
-    SSH Output Should Contain    ifdown -a & ifup -a    Done
+    Start Command    ip link set ens160 down & ip link set ens160 up
     log    Rollback dns-server info success
+
+Modify DNS Settings
+    [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
+    log    Modify /etc/resolv.conf file,set dns-server replace 127.0.0.1
+    Switch Connection    ${access_dns_client_ip}
+    SSH Output Should Contain    sed -i 's/nameserver 127.0.0.1/nameserver ${bigtera_dns_ip}/' /etc/resolv.conf    expect=
+    #SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces;echo "dns-nameservers ${bigtera_dns_ip}" >> /etc/network/interfaces    expect=
+
+Rollback DNS Settings
+    [Arguments]    ${access_dns_client_ip}    ${bigtera_dns_ip}
+    log    Rollback dns-server info in /etc/resolv.conf
+    Switch Connection    ${access_dns_client_ip}
+    SSH Output Should Contain    sed -i 's/nameserver ${bigtera_dns_ip}/nameserver 127.0.0.1/' /etc/resolv.conf    expect=
+    #SSH Output Should Contain    sed -in '/dns-nameservers/d' /etc/network/interfaces    expect=
+    log    Rollback dns-server info success
+
 
 Set S3 Domain
     [Arguments]    ${domain_name}
@@ -310,3 +326,7 @@ Set S3 Domain
     ${set_s3domain_url}=    Set Variable    /cgi-bin/ezs3/json/s3_domain_set?domain_name=${domain_name}
     log    ${set_s3domain_url}
     Return Code Should Be 0    ${set_s3domain_url}
+
+x
+    [Arguments]    ${pool_name}
+    SSH Output Should Contain    radosgw-admin zone get --rgw-zone=default    ${pool_name}
