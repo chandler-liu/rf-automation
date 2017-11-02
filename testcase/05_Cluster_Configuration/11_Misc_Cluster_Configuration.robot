@@ -17,8 +17,8 @@ Load balancing
     log    For client to ping this domain, need set this ${DNSIP} as DNS-Server,so we use the last node of cluster as client
     Modify DNS Settings    @{PUBLICIP}[-1]    ${DNSIP}
     log    From client ping this domain name
-    ${ping_host_name01}=    Do SSH CMD    @{PUBLICIP}[-1]    ${USERNAME}    ${PASSWORD}    ping -c 1 ${host_s3webdav}.com | grep -i icmp_req | awk -F ":" '{print $1}' | awk -F " " '{print $NF}'
-    ${ping_host_name02}=    Do SSH CMD    @{PUBLICIP}[-1]    ${USERNAME}    ${PASSWORD}    ping -c 1 ${host_s3webdav}.com | grep -i icmp_req | awk -F ":" '{print $1}' | awk -F " " '{print $NF}'
+    ${ping_host_name01}=    Do SSH CMD    @{PUBLICIP}[-1]    ${USERNAME}    ${PASSWORD}    ping -c 1 ${host_s3webdav}.com | grep -i icmp_seq | awk -F ":" '{print $1}' | awk -F " " '{print $NF}'
+    ${ping_host_name02}=    Do SSH CMD    @{PUBLICIP}[-1]    ${USERNAME}    ${PASSWORD}    ping -c 1 ${host_s3webdav}.com | grep -i icmp_seq | awk -F ":" '{print $1}' | awk -F " " '{print $NF}'
     log    ${ping_host_name01} ;${ping_host_name02}
     Should Not Be Equal    ${ping_host_name01}    ${ping_host_name02}
     Rollback DNS Settings    @{PUBLICIP}[-1]    ${DNSIP}
