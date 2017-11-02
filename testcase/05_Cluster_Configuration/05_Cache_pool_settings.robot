@@ -48,6 +48,8 @@ Remove cache pool for replicated pool
     ${vs_name}=    Set Variable    Default
     ${base_pool_name}=    Set Variable    base-replicate-pool
     ${cache_pool_name}=    Set Variable    replica-cache-pool
+	${metadata_pool_name}=    Set Variable    cache-metadata_pool
+	${fs_name}=    Set Variable    cache-cephfs
     Create Pool    1    ${cache_pool_name}
     Add OSD To Pool    ${cache_pool_name}    0+1+2
     Wait Until Keyword Succeeds    6 min    5 sec    Get Cluster Health Status
@@ -56,6 +58,11 @@ Remove cache pool for replicated pool
     Wait Until Keyword Succeeds    6 min    5 sec    Get Cluster Health Status
     Add Cache Pool    ${base_pool_name}    ${cache_pool_name}
     Wait Until Keyword Succeeds    3 min    5 sec    Get Cluster Health Status
+	Create Pool    1    ${metadata_pool_name}
+	Add OSD To Pool    ${metadata_pool_name}    0+1+2
+	Wait Until Keyword Succeeds    6 min    5 sec    Get Cluster Health Status
+	Create Cephfs    ${vs_name}    ${fs_name}    ${base_pool_name}    ${metadata_pool_name}
+	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${base_pool_name}    nfs=true
     log    Get objects of base pool
     ${base_pool_objects}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${base_pool_name} | head -n 1 | awk -F " " '{print $NF}'
