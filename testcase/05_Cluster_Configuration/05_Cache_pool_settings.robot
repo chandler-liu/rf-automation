@@ -63,7 +63,7 @@ Remove cache pool for replicated pool
 	Wait Until Keyword Succeeds    6 min    5 sec    Get Cluster Health Status
 	Create Cephfs    ${vs_name}    ${fs_name}    ${base_pool_name}    ${metadata_pool_name}
 	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${base_pool_name}    nfs=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${base_pool_name}    nfs=true    cephfs=${fs_name}
     log    Get objects of base pool
     ${base_pool_objects}=    DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph df | grep ${base_pool_name} | head -n 1 | awk -F " " '{print $NF}'
     log    Check share folder create result
