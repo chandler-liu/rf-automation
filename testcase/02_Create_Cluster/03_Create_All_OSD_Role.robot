@@ -23,6 +23,6 @@ Create All OSD Role
 Enable All OSD Role
     [Arguments]     ${num_nodes}
     : FOR    ${i}    IN RANGE    ${num_nodes}
-    \    Run Keyword    Create OSD and Volume     public_ip=@{PUBLICIP}[${i}]    storage_ip=@{STORAGEIP}[${i}]    osd_name=${osd_name_prefix}${i}    fsType=ext4    osdEngineType=BigteraStore    data_dev=${osd_volume}
+    \    Run Keyword    Create OSD and Volume     public_ip=@{PUBLICIP}[${i}]    storage_ip=@{STORAGEIP}[${i}]    osd_name=${osd_name_prefix}${i}    fsType=ext4    osdEngineType=FileStore    data_dev=${osd_volume}
     \    Wait Until Keyword Succeeds    4 min    5 sec    Check Role Status    @{STORAGEIP}[${i}]    role=osd    status=enabled
 
