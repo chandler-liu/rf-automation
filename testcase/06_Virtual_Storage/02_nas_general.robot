@@ -23,7 +23,7 @@ Create NFS share folder
     [Tags]    RAT
     ${folder_name} =    Set Variable    nfsfolder
     ${mount_point} =    Set Variable    /mnt/nfs
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Assign Gateway to Virtual Storage    ${vs_name}    @{STORAGEIP}[0]
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
@@ -38,7 +38,7 @@ Create CIFS share folder
     [Tags]    RAT
     ${folder_name} =    Set Variable    cifsfolder
     ${mount_point} =    Set Variable    /mnt/cifs
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    smb=true    guest_ok=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    smb=true    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_name}    ${false}
     Switch Connection    127.0.0.1
@@ -55,7 +55,7 @@ Create share folder for both NFS and CIFS
     ${folder_name} =    Set Variable    nfscifsfolder
     ${nfs_mount_point} =    Set Variable    /mnt/nfs
     ${cifs_mount_point} =    Set Variable    /mnt/cifs
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true    smb=true    guest_ok=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    smb=true    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_name}    ${false}
@@ -78,7 +78,7 @@ Enable share folder
     [Tags]    FAST
     ${folder_name} =    Set Variable    nfsfolder
     ${mount_point} =    Set Variable    /mnt/nfs
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Disable Shared Folder    name_list=${folder_name}    gateway_group=${vs_name}
     Enable Shared Folder    name_list=${folder_name}    gateway_group=${vs_name}
     Switch Connection    @{PUBLICIP}[0]
@@ -96,7 +96,7 @@ Disable share folder
     [Tags]    FAST
     ${folder_name} =    Set Variable    nfsfolder
     ${mount_point} =    Set Variable    /mnt/nfs
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
     Disable Shared Folder    name_list=${folder_name}    gateway_group=${vs_name}
@@ -114,7 +114,7 @@ Delete share folder
     ...    Sc-437:Delete share folder
     [Tags]    FAST
     ${folder_name} =    Set Variable    nfsfolder
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true    smb=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    smb=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
     ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/list_shared_folder?gateway_group=${vs_name}    /response/folders/folder
@@ -130,7 +130,7 @@ Configure NFS server accessing model
     ...    Sc-438:Configure NFS server accessing model
     [Tags]    TOFT
     ${folder_name} =    Set Variable    sync_async_folder
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true    mode=sync
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    mode=sync
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/exports | grep ",sync,"    ${false}
     Modify Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    mode=async
@@ -143,10 +143,18 @@ Configure storage pool for share folder
     ...    Sc-439:Configure sotrage pool for share folder
     [Tags]    TOFT
     ${new_pool} =    Set Variable    pool1
+	${new_metapool} =    Set Variable    metapool1
     ${osd_ids} =    Set Variable    0
     ${folder_name} =    Set Variable    folder1
+	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${new_pool}
+	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
+	Assign Pool to Virtual Storage    vs_name=${vs_name}    pool_name=${new_metapool}%2C${new_pool}%2CDefault
+	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}
+	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
+	Enable Cephfs    ${vs_name}    ${fs_name}
+	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${new_pool}    cephfs=${fs_name}
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
     Write    cd /vol/${folder_name}
@@ -154,8 +162,12 @@ Configure storage pool for share folder
     Wait Until Keyword Succeeds    3x    3s    Read Until    copied
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep ${new_pool}|awk {'print \$3'}    1024
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
-    ...           AND             Delete Pool    ${new_pool}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
+	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=down
+	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
+	...    AND    Delete Pool    ${new_pool}
 
 Set file QoS under sharefolder
     [Documentation]    Testlink ID:
@@ -167,7 +179,7 @@ Set file QoS under sharefolder
     ${write_maxbw} =    Set Variable    5242880   # 5M
     ${read_maxiops} =    Set Variable    50
     ${write_maxiops} =    Set Variable    50
-    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     # Before set QoS
