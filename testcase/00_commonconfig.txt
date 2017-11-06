@@ -5,33 +5,23 @@ Documentation     This robot file includes all common configs about cluster
 ${Version}          'V7.0'    # The tested version number, because of the version is different(some URLs are diffeent), so want to distinguish between them
 
 ${ESXHOSTIP}      172.17.59.110
-#${ESXHOSTIP}        192.168.160.121
 ${ESXUSER}          root
 ${ESXPASS}        trend#11
-#${ESXPASS}          password
 @{VMNAMES}        auto-70-1    auto-70-2    auto-70-3
-#@{VMNAMES}          OS154    OS155    OS156
 @{STORAGEIP}      192.168.100.105    192.168.100.106    192.168.100.107
-#@{STORAGEIP}        10.20.0.154    10.20.0.155    10.20.0.156
 @{PUBLICIP}       172.17.59.105    172.17.59.106    172.17.59.107
-#@{PUBLICIP}         192.168.160.154    192.168.160.155    192.168.160.156
 ${CLUSTERNODES}     3
 
 ${USERNAME}         root
 ${PASSWORD}         p@ssw0rd
 ${UIADMIN}          admin
 ${UIPASS}         1
-#${UIPASS}           admin
 ${LOCALUSER}        root
 ${LOCALPASS}      1
-#${LOCALPASS}        p@ssw0rd
 
 ${ADIP}           172.17.59.231
-#${ADIP}             192.168.160.129
 ${ADPASS}         Trend%2311
-#${ADPASS}           Adminsitrator
 ${DNSIP}          172.17.59.108
-#${DNSIP}            192.168.160.129
 ${NTPSERVER}        202.108.6.95
 
 ${DUMMYRRSIP}       172.17.59.120    # Only used for RRS SSH Key case validation
