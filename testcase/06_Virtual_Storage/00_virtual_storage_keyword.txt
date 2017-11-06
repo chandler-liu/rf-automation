@@ -93,3 +93,29 @@ Remove Virtual Storage
     [Arguments]    ${vs_name}
     Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_delete?name=${vs_name}
 
+Create Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}    ${data_pool}    ${mdata_pool}    ${enable_fscache}=false    ${selected_gateway}=@{STORAGEIP}[1]    ${selected_cache_disk}=/dev/sda4    ${cache_size}=    ${cache_use_whole_disk}=false
+    ${selected_cache_disk_urlencode}=    URL JSON Encode    ${selected_cache_disk}
+    Set Request Body    gateway_group=${gateway_group}&fs_name=${fs_name}&data_pool=${data_pool}&mdata_pool=${mdata_pool}&enable_fscache=${enable_fscache}&selected_gateway=${selected_gateway}&selected_cache_disk=${selected_cache_disk_urlencode}&cache_size=${cache_size}&cache_use_whole_disk=${cache_use_whole_disk}    
+    POST    /cgi-bin/ezs3/json/create_cephfs
+    Response Status Code Should Equal    200 OK
+
+Enable Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_name=${fs_name}
+    POST    /cgi-bin/ezs3/json/enable_mds_to_cephfs
+    Response Status Code Should Equal    200 OK
+
+Disable Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_name=${fs_name}
+    POST    /cgi-bin/ezs3/json/disable_mds_on_cephfs
+    Response Status Code Should Equal    200 OK
+
+Delete Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+    ${cephfs_list}=    Create List    ${fs_name}
+    ${scephfs_list_urlencode}=    URL JSON Encode    ${cephfs_list}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_list=${scephfs_list_urlencode}
+    POST    /cgi-bin/ezs3/json/delete_cephfs
+    Response Status Code Should Equal    200 OK
