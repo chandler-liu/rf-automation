@@ -47,6 +47,7 @@ def ModifyDHCPConf(vm):
     dhcp_conf = "/etc/dhcp/dhcpd.conf"
     subprocess.call(["sed","-i","/host " + vm["hostname"] + "/,+3d", dhcp_conf])
     subprocess.call(["sed","-i","/option broadcast-address/a\    host " + vm["hostname"] + " {\\n        hardware ethernet " + vm["pxe_mac"] + ";\\n        filename \"" + vm["pxe_filename"] + "\";\\n    }", dhcp_conf])
+    subprocess.call(["/etc/init.d/isc-dhcp-server","restart"])
     return
 
 def GeneratePXEConf(vm):
