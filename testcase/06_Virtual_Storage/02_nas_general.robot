@@ -168,6 +168,7 @@ Configure storage pool for share folder
 	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
 	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
 	...    AND    Delete Pool    ${new_pool}
+	...    AND    Delete Pool    ${new_metapool}
 
 Set file QoS under sharefolder
     [Documentation]    Testlink ID:
