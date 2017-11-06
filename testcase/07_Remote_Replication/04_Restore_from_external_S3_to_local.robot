@@ -41,7 +41,7 @@ Restore to local shared folder
     [Documentation]    estLink ID: Sc-690:Restore to local shared folder
     [Tags]    RAT
     [Setup]    Run Keywords    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
     ...    ${false}
     log    Create S3 account, create bucket and input some data to bucket

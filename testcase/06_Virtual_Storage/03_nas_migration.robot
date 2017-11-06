@@ -31,7 +31,7 @@ Select "copy on open" in NAS migration(NFS)
     [Documentation]    Testlink ID:
     ...    Sc-474:Select "copy on open" in NAS migration
     [Tags]    FAST
-    Add Shared Folder    name=${nfs_folder_name}    gateway_group=${vs_name}    pool=${default_pool}    smb=false
+    Add Shared Folder    name=${nfs_folder_name}    gateway_group=${vs_name}    smb=false
     ...    migrate_folder=true    migrate_gw_ip=@{STORAGEIP}[0]    migrate_server=@{PUBLICIP}[2]    migrate_fs_type=nfs
     ...    migrate_windows_host=false    migrate_path=%2Fvol%2F${external_nas_name}    migrate_copyup=open
     Switch Connection    @{PUBLICIP}[0]
@@ -119,7 +119,7 @@ Select "copy on open" in NAS migration(CIFS)
     [Documentation]    Testlink ID:
     ...    Sc-474:Select "copy on open" in NAS migration
     [Tags]    FAST
-    Add Shared Folder    name=${cifs_folder_name}    gateway_group=${vs_name}    pool=${default_pool}    smb=true    migrate_folder=true
+    Add Shared Folder    name=${cifs_folder_name}    gateway_group=${vs_name}    smb=true    migrate_folder=true
     ...    migrate_gw_ip=@{STORAGEIP}[0]    migrate_server=@{PUBLICIP}[2]    migrate_fs_type=cifs    migrate_windows_host=false
     ...    migrate_path=${external_nas_name}    migrate_copyup=open    migrate_account=nobody    migrate_passwd=nopass    
     Switch Connection    @{PUBLICIP}[0]
@@ -207,7 +207,7 @@ Click Suspend/Resume Before Migration Finish
     ...     Sc-489:Click Suspend/Resume
     [Tags]    FAST
     ${suspend_start_num} =    Set Variable    50
-    Add Shared Folder    name=${nfs_folder_name}    gateway_group=${vs_name}    pool=${default_pool}    smb=false
+    Add Shared Folder    name=${nfs_folder_name}    gateway_group=${vs_name}    smb=false
     ...    migrate_folder=true    migrate_gw_ip=@{STORAGEIP}[0]    migrate_server=@{PUBLICIP}[2]    migrate_fs_type=nfs
     ...    migrate_windows_host=false    migrate_path=%2Fvol%2F${external_nas_name}    migrate_copyup=open
     Switch Connection    @{PUBLICIP}[0]
@@ -246,7 +246,7 @@ Select "copy on write" in NAS migration
     [Documentation]    Testlink ID:
     ...    Sc-468:Select "copy on write" in NAS migration
     [Tags]    FAST
-    Add Shared Folder    name=${nfs_folder_name}    gateway_group=${vs_name}    pool=${default_pool}    smb=false
+    Add Shared Folder    name=${nfs_folder_name}    gateway_group=${vs_name}    smb=false
     ...    migrate_folder=true    migrate_gw_ip=@{STORAGEIP}[0]    migrate_server=@{PUBLICIP}[2]    migrate_fs_type=nfs
     ...    migrate_windows_host=false    migrate_path=%2Fvol%2F${external_nas_name}    migrate_copyup=write
     Switch Connection    @{PUBLICIP}[0]

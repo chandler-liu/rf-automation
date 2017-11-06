@@ -57,12 +57,12 @@ One time replication task for iSCSI/FC volumes
 One time replication task for shared folders
     [Documentation]    TestLink ID: Sc-667:One time replication task for shared folders
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
     ...    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}
@@ -85,7 +85,7 @@ One time replication task for shared folders
 One time replication task for S3 buckets
     [Documentation]    TestLink ID: Sc-668:One time replication task for S3 buckets
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     log    Create S3 account, create bucket and input some data to bucket
@@ -146,12 +146,12 @@ Create a recurrent replication task for iSCSI/FC volumes
 Create a recurrent replication task for shared folders
     [Documentation]    TestLink ID: Sc-670:Create a recurrent replication task for shared folders
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
     ...    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}
@@ -170,7 +170,7 @@ Create a recurrent replication task for shared folders
 Create a recurrent replication task for S3 buckets
     [Documentation]    TestLink ID: Sc-671:Create a recurrent replication task for S3 buckets
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     log    Create S3 account, create bucket and input some data to bucket
@@ -194,11 +194,11 @@ Create a recurrent replication task for S3 buckets
 Delete selected replication task(s)
     [Documentation]    TestLink ID: Sc-672:Delete selected replication task(s)
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}
@@ -219,11 +219,11 @@ Delete selected replication task(s)
 Edit a selected replication task
     [Documentation]    TestLink ID: Sc-674:Edit a selected replication task
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}
