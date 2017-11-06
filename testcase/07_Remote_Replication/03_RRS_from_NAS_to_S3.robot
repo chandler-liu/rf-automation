@@ -30,10 +30,10 @@ No side effect to legacy replications
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Disable iSCSI LUN    ${dest_vs_name}
     ...    ${dest_iscsi_target_name_urlencoding}    ${dest_iscsi_lun_name}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
     ...    ${false}
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}

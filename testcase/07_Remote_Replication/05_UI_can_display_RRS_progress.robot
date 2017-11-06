@@ -14,12 +14,12 @@ Resource          00_remote_replicate_keywords.txt
 UI should refresh the progress
     [Documentation]    TestLink ID: Sc-697:UI should refresh the progress
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${default_pool}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
     ...    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    pool=${default_pool}    nfs=true
+    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
     ...    ${false}
