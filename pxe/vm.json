@@ -4,10 +4,9 @@
         "version":         "7.0",
         "pxe_mac":         "00:50:56:a7:0f:e4",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera70/vesamenu.c32",
-            "vmlinuz":     "bigtera70/vmlinuz.14",
-            "initrd":      "bigtera70/initrd.aoecdrom.14.gz",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e2.0"
@@ -28,10 +27,9 @@
         "version":         "7.0",
         "pxe_mac":         "00:50:56:a7:bf:55",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera70/vesamenu.c32",
-            "vmlinuz":     "bigtera70/vmlinuz.14",
-            "initrd":      "bigtera70/initrd.aoecdrom.14.gz",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e2.0"
@@ -52,10 +50,9 @@
         "version":         "7.0",
         "pxe_mac":         "00:0c:29:49:c8:ea",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera70/vesamenu.c32",
-            "vmlinuz":     "bigtera70/vmlinuz.14",
-            "initrd":      "bigtera70/initrd.aoecdrom.14.gz",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e2.0"
