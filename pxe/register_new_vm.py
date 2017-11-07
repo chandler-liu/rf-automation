@@ -12,10 +12,9 @@ Register a new node in PXE environment, below is a sample of INFILE which is man
         "version":         "6.3",
         "pxe_mac":         "01:02:03:04:05:06",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sdc",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera60/vesamenu.c32",
-            "vmlinuz":     "bigtera60/vmlinuz",
-            "initrd":      "bigtera60/initrd.aoecdrom.gz",
+            "bootpath":    "bigtera60",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e1.0"
@@ -47,7 +46,6 @@ def ModifyDHCPConf(vm):
     dhcp_conf = "/etc/dhcp/dhcpd.conf"
     subprocess.call(["sed","-i","/host " + vm["hostname"] + "/,+3d", dhcp_conf])
     subprocess.call(["sed","-i","/option broadcast-address/a\    host " + vm["hostname"] + " {\\n        hardware ethernet " + vm["pxe_mac"] + ";\\n        filename \"" + vm["pxe_filename"] + "\";\\n    }", dhcp_conf])
-    subprocess.call(["/etc/init.d/isc-dhcp-server","restart"])
     return
 
 def GeneratePXEConf(vm):
@@ -59,9 +57,7 @@ def GeneratePXEConf(vm):
     try:
         with open(template_path, 'r') as source, open(target_path, 'w') as target:
             scontent = source.read()
-            tcontent = scontent.replace("VESAMENU_TOKEN", vm["pxelinux.cfg"]["vesamenu"]) \
-                               .replace("VMLINUZ_TOKEN", vm["pxelinux.cfg"]["vmlinuz"]) \
-                               .replace("INITRD_TOKEN", vm["pxelinux.cfg"]["initrd"]) \
+            tcontent = scontent.replace("BOOTPATH_TOKEN", vm["pxelinux.cfg"]["bootpath"]) \
                                .replace("HOSTNAME_TOKEN", vm["hostname"]) \
                                .replace("INT_TOKEN", vm["pxelinux.cfg"]["pxeint"]) \
                                .replace("URL_TOKEN", vm["pxelinux.cfg"]["httpurl"]) \
@@ -103,8 +99,9 @@ def GeneratePreseed(vm):
     try:
         with open(template_path, 'r') as source, open(target_path, 'w') as target:
             scontent = source.read()
-            tcontent = scontent.replace("HOSTNAME_TOKEN", vm["hostname"])
-            tcontent = scontent.replace("HTTPSERVER_TOKEN", vm["pxelinux.cfg"]["httpurl"])
+            tcontent = scontent.replace("OS_DISK_TOKEN", vm["os_disk"]) \
+                               .replace("HOSTNAME_TOKEN", vm["hostname"]) \
+                               .replace("HTTPSERVER_TOKEN", vm["pxelinux.cfg"]["httpurl"])
             target.write(tcontent)
             print 'Generate preseed for {}: {}'.format(vm["hostname"], target_path)
     except IOError as e:
@@ -118,6 +115,7 @@ def main():
         GeneratePXEConf(vm)
         GenerateNetConf(vm)
         GeneratePreseed(vm)
+    subprocess.call(["/etc/init.d/isc-dhcp-server","restart"])
     
 if __name__ == "__main__":
     main()
