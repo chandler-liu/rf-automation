@@ -23,7 +23,7 @@ Enable/Disable FS cache
 	${folder_name} =    Set Variable    folder4
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
 	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
-	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}    enable_fscache=true    selected_cache_disk={cache_disk}    cache_use_whole_disk=true    cache_size=40
+	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}    enable_fscache=true    selected_cache_disk=${cache_disk}    cache_use_whole_disk=true    cache_size=40
 	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
 	Enable Cephfs    ${vs_name}    ${fs_name}
 	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}
