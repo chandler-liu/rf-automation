@@ -14,7 +14,7 @@ Enable/Disable FS cache
     [Documentation]    TestLink ID: Sc-125 Enable/Disable FS cache
     [Tags]    FAST
     log    Start to enable FS cache
-    ${cache_disk}=    Set Variable    /dev/sdd
+    ${cache_disk}=    Set Variable    sdd
     ${new_pool} =    Set Variable    pool4
 	${new_metapool} =    Set Variable    metapool4
     ${osd_ids} =    Set Variable    0
