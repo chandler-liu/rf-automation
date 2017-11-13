@@ -100,7 +100,7 @@ Add pool for virtual storage
     Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep ${new_pool}|awk {'print \$3'}    1024
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name} 
 	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
-	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=down
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=offline
 	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
 	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
 	...    AND    Delete Pool    ${new_pool}

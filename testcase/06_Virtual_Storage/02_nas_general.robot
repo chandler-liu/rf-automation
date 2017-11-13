@@ -164,7 +164,7 @@ Configure storage pool for share folder
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
-	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=down
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=offline
 	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
 	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
 	...    AND    Delete Pool    ${new_pool}
