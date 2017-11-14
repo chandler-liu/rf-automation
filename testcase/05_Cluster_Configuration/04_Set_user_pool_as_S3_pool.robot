@@ -25,7 +25,7 @@ Check default S3 pool
 Set user pool as S3 pool against default pool
     [Documentation]    TestLink ID: Sc-263:Set user pool as S3 pool against default pool
     [Tags]    RAT
-    ${bucket_name}=    Set Variable    s3://bucketAutomation1
+    ${bucket_name}=    Set Variable    s3://bucketAutomation
     ${pool_name}=    Set Variable    S3-pool
     log    Create a S3 pool
     Create Pool    1    ${pool_name}
