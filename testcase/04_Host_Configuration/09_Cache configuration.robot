@@ -28,7 +28,7 @@ Enable/Disable FS cache
 	Enable Cephfs    ${vs_name}    ${fs_name}
 	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}
 	Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${new_pool}    nfs=true    cephfs=${fs_name}
-	Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
+	Wait Until Keyword Succeeds    6 min    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
 	log    Check enable FS cache result
     Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
