@@ -78,9 +78,9 @@ Enable iSCSI LUN
     Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_enable?gateway_group=${vs_name}&iscsi_id_list=${iscsi_lun_name}&target_id=${iscsi_target_name}
 
 Modify Shared Folder
-    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
-    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=
-    Post Return Code Should be 0    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}    /cgi-bin/ezs3/json/edit_shared_folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync    ${hidden}=false
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${guest_only}=false    ${user_list}=
+    Post Return Code Should be 0    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}    /cgi-bin/ezs3/json/edit_shared_folder
 
 Modify iSCSI LUN
     [Arguments]    ${allow_all}=true    ${allowed_initiator_groups}=    ${allowed_initiators}=    ${gateway_group}=Default    ${iscsi_id}=    
