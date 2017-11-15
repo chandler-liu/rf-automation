@@ -317,7 +317,7 @@ Start backend migration in case of "copy on write"
     
 *** Keywords ***
 Prepare External NAS
-    Add Shared Folder    name=${external_nas_name}    gateway_group=${vs_name}    pool=${default_pool}
+    Add Shared Folder    name=${external_nas_name}    gateway_group=${vs_name}
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${external_nas_name}   ${false}
     Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${external_nas_name}    ${false}
