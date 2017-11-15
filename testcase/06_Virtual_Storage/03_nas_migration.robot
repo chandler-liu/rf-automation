@@ -119,7 +119,7 @@ Select "copy on open" in NAS migration(CIFS)
     [Documentation]    Testlink ID:
     ...    Sc-474:Select "copy on open" in NAS migration
     [Tags]    FAST
-    Add Shared Folder    name=${cifs_folder_name}    gateway_group=${vs_name}    smb=true    migrate_folder=true
+    Add Shared Folder    name=${cifs_folder_name}    gateway_group=${vs_name}    smb=true    guest_ok=true    migrate_folder=true
     ...    migrate_gw_ip=@{STORAGEIP}[0]    migrate_server=@{PUBLICIP}[2]    migrate_fs_type=cifs    migrate_windows_host=false
     ...    migrate_path=${external_nas_name}    migrate_copyup=open    migrate_account=nobody    migrate_passwd=nopass    
     Switch Connection    @{PUBLICIP}[0]
@@ -317,7 +317,7 @@ Start backend migration in case of "copy on write"
     
 *** Keywords ***
 Prepare External NAS
-    Add Shared Folder    name=${external_nas_name}    gateway_group=${vs_name}
+    Add Shared Folder    name=${external_nas_name}    gateway_group=${vs_name}    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${external_nas_name}   ${false}
     Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${external_nas_name}    ${false}
