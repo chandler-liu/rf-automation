@@ -144,7 +144,7 @@ Configure storage pool for share folder
     [Tags]    TOFT
     ${new_pool} =    Set Variable    pool1
 	${new_metapool} =    Set Variable    metapool1
-    ${osd_ids} =    Set Variable    0
+    ${osd_ids} =    Set Variable    0+1+2
     ${folder_name} =    Set Variable    folder1
 	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}

@@ -17,7 +17,7 @@ Enable/Disable FS cache
     ${cache_disk}=    Set Variable    sdd
     ${new_pool} =    Set Variable    pool4
 	${new_metapool} =    Set Variable    metapool4
-    ${osd_ids} =    Set Variable    0
+    ${osd_ids} =    Set Variable    0+1+2
 	${fs_name} =    Set Variable    cephfs4
 	${vs_name} =    Set Variable    Default
 	${folder_name} =    Set Variable    folder4

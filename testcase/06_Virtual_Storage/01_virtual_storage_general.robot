@@ -80,7 +80,7 @@ Add pool for virtual storage
     [Tags]    FAST
     ${new_pool} =    Set Variable    pool1
 	${new_metapool} =    Set Variable    metapool1
-    ${osd_ids} =    Set Variable    0
+    ${osd_ids} =    Set Variable    0+1+2
     ${folder_name} =    Set Variable    folder1
 	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
@@ -111,7 +111,7 @@ Remove pool for virtual storage
     ...    Sc-417:Remove pool for virtual storage
     [Tags]    FAST
     ${new_pool} =    Set Variable    pool1
-    ${osd_ids} =    Set Variable    0
+    ${osd_ids} =    Set Variable    0+1+2
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
     Assign Pool to Virtual Storage    vs_name=${vs_name}    pool_name=${new_pool}%2CDefault
     ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}    /response/gateway_group
