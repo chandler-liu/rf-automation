@@ -149,7 +149,6 @@ Configure storage pool for share folder
 	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
 	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
-	Assign Pool to Virtual Storage    vs_name=${vs_name}    pool_name=${new_metapool}%2C${new_pool}%2CDefault
 	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}
 	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
 	Enable Cephfs    ${vs_name}    ${fs_name}
