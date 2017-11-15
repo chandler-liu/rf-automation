@@ -87,9 +87,9 @@ Add pool for virtual storage
 	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
     Assign Pool to Virtual Storage    vs_name=${vs_name}    pool_name=${new_metapool}%2C${new_pool}%2CDefault
 	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}
-	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
+	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${vs_name}_${fs_name}
 	Enable Cephfs    ${vs_name}    ${fs_name}
-	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}
+	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${vs_name}_${fs_name}
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${new_pool}    nfs=true    cephfs=${fs_name}
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
@@ -97,12 +97,12 @@ Add pool for virtual storage
     Write    dd if=/dev/zero of=1.tst bs=1K count=1 conv=fsync
     ${output}=    Read    delay=10s
     Should Contain    ${output}    copied
-    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep ${new_pool}|awk {'print \$3'}    1024
+    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep -w ${new_pool}|awk {'print \$3'}    1024
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name} 
 	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
-	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=offline
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${vs_name}_${fs_name}    status=offline
 	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
-	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${vs_name}_${fs_name}
 	...    AND    Delete Pool    ${new_pool}
 	...    AND    Delete Pool    ${new_metapool}
 

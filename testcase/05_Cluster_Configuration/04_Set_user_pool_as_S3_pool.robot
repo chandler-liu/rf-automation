@@ -34,6 +34,7 @@ Set user pool as S3 pool against default pool
     log    Set user pool as S3 pool
     Return Code Should Be 0    /cgi-bin/ezs3/json/pool_enable_s3?pool_name=${pool_name}
     Wait Until Keyword Succeeds    6 min    5 sec    Get S3 Pool State    ${pool_name}
+	Sleep    10 sec
     Create Bucket    ${bucket_name}
     log    Get objects in pool
     ${objects_before}=    Get Objects By Pool    ${pool_name}

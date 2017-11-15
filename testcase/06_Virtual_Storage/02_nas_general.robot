@@ -160,7 +160,7 @@ Configure storage pool for share folder
     Write    cd /vol/${folder_name}
     Write    dd if=/dev/zero of=1.tst bs=1K count=1 conv=fsync
     Wait Until Keyword Succeeds    3x    3s    Read Until    copied
-    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep ${new_pool}|awk {'print \$3'}    1024
+    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep -w ${new_pool}|awk {'print \$3'}    1024
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
