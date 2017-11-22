@@ -8,27 +8,31 @@ import os
 Register a new node in PXE environment, below is a sample of INFILE which is mandatory:
 [
     {
-        "hostname":        "auto-161",
-        "version":         "6.3",
-        "pxe_mac":         "01:02:03:04:05:06",
+        "hostname":        "auto-70-1",
+        "version":         "7.0",
+        "pxe_mac":         "00:50:56:a7:0f:e4",
         "pxe_filename":    "pxelinux.7",
-        "os_disk":         "/dev/sdc",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "bootpath":    "bigtera60",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
-            "aoecdrom":    "e1.0"
+            "aoecdrom":    "e2.0"
         },
-        "netconf": {
-            "pub_ip":      "17.16.146.161",
-            "pub_mask":    "255.255.255.0",
-            "pub_dev":     "eth0",
-            "pub_gw":      "17.16.146.1",
-            "dns_ip":      "114.114.114.114",
-            "stor_ip":     "10.10.10.161",
-            "stor_mask":   "255.255.255.0",
-            "stor_dev":    "eth1"
-        }
+        "netconf": [
+            {
+                "iface":       "ens160",
+                "address":     "172.17.59.105",
+                "netmask":     "255.255.254.0",
+                "gateway":     "172.17.59.254",
+                "dns-nameservers": "114.114.114.114"
+            },
+            {
+                "iface":       "ens192",
+                "address":     "192.168.100.105",
+                "netmask":     "255.255.255.0"
+            }
+        ]
     }
 ]
 '''
@@ -70,21 +74,21 @@ def GeneratePXEConf(vm):
     return
 
 def GenerateNetConf(vm):
-    template_path = "tftpboot/netconf/template"
     target_path = "/var/lib/tftpboot/netconf/{}/interfaces_{}".format(vm["version"], vm["hostname"])
     if not os.path.exists(os.path.dirname(target_path)):
         os.makedirs(os.path.dirname(target_path))
     try:
-        with open(template_path, 'r') as source, open(target_path, 'w') as target:
-            scontent = source.read()
-            tcontent = scontent.replace("PUBDEV", vm["netconf"]["pub_dev"]) \
-                               .replace("STORDEV", vm["netconf"]["stor_dev"]) \
-                               .replace("PUBIP", vm["netconf"]["pub_ip"]) \
-                               .replace("PUBMASK", vm["netconf"]["pub_mask"]) \
-                               .replace("PUBGW", vm["netconf"]["pub_gw"]) \
-                               .replace("DNSIP", vm["netconf"]["dns_ip"]) \
-                               .replace("STORIP", vm["netconf"]["stor_ip"]) \
-                               .replace("STORMASK", vm["netconf"]["stor_mask"])
+        with open(target_path, 'w') as target:
+            int_list = []
+            tcontent = 'iface lo inet loopback\n'
+            for net in vm["netconf"]:
+                int_list.append(net["iface"])
+                tcontent += "iface {} inet static\n".format(net["iface"])
+                for key, value in net.iteritems():
+                    if key == "iface":
+                        continue
+                    tcontent += "    {} {}\n".format(key, value)
+            tcontent = "auto lo {}\n".format(' '.join(int_list)) + tcontent
             target.write(tcontent)
             print 'Generate netconf for {}: {}'.format(vm["hostname"], target_path)
     except IOError as e:
