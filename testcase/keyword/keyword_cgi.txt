@@ -35,14 +35,16 @@ CGI Gateway Role Enable
     [Arguments]    ${storage_ip}    ${public_iface}
     Return Code Should Be    /cgi-bin/ezs3/json/gateway_role_enable?ip=${storage_ip}&public_iface=${public_iface}    0
 
-# GET /ezs3/json/iscsi_list, Return a list of volumes of a iSCSI/FC target exported by a virtual storage.
-CGI iSCSI List
-    [Arguments]    ${target_id}=
-    ${target_id_urlencode}=    URL Encode    ${target_id}
-    ${iscsi_list}=    Get Return Json    /cgi-bin/ezs3/json/iscsi_list?target_id=${target_id_urlencode}    /response
-    ${iscsi_list_parse}=    Parse Json    ${iscsi_list}
-    [Return]    ${iscsi_list_parse}
+#GET /ezs3/json/node_role_disable_rrs, Disable rrs role of a node.
+CGI Node Role Disable RRS
+    [Arguments]    ${storage_ip}
+    Return Code Should Be    /cgi-bin/ezs3/json/node_role_disable_rrs?ip=${storage_ip}    0
 
+#GET /ezs3/json/node_role_enable_rrs, Enable rrs role of a node.
+CGI Node Role Enable RRS
+    [Arguments]    ${storage_ip}    ${public_iface}
+    Return Code Should Be    /cgi-bin/ezs3/json/node_role_enable_rrs?ip=${storage_ip}&public_iface=${public_iface}    0
+	
 # GET /ezs3/json/initiator_group_delete, Delete specified iSCSI/FC initiator groups.
 CGI Initiator Group Delete
     [Arguments]    ${gateway_group}=${DEFAULT GATEWAY GROUP}    ${group_ids}=[]
@@ -221,11 +223,11 @@ CGI Disable Incremental Recovery
 	Return Code Should Be    /cgi-bin/ezs3/json/disable_incremental_recovery    0
 	
 CGI Create Shared Folder
-	[Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${mode}=sync    ${hidden}=false
+	[Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${s3fs_user}=    ${mode}=sync    ${hidden}=false
     ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=false    ${guest_only}=false    ${user_list}=    ${cephfs}=cephfs    ${pool}=data
     ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_windows_host}=false    ${migrate_path}=    ${migrate_copyup}=open
     ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
-	Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&s3_folder=${s3_folder}&bucket=${bucket}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}&cephfs=${cephfs}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_windows_host=${migrate_windows_host}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+	Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&s3_folder=${s3_folder}&bucket=${bucket}&s3fs_user=${s3fs_user}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}&cephfs=${cephfs}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_windows_host=${migrate_windows_host}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
 	
 CGI List Shared Folder
 	[Arguments]    ${gateway_group}
@@ -254,3 +256,79 @@ CGI Host Nic List
 	${host_nic_parse}=    Parse Json    ${host_nic_list}
 	[Return]    ${host_nic_parse}
 	
+CGI Create Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}    ${data_pool}    ${mdata_pool}    ${enable_fscache}=false    ${selected_gateway}=@{STORAGEIP}[1]    ${selected_cache_disk}=sda4    ${cache_size}=    ${cache_use_whole_disk}=false
+    ${selected_cache_disk_urlencode}=    URL JSON Encode    ${selected_cache_disk}
+    Set Request Body    gateway_group=${gateway_group}&fs_name=${fs_name}&data_pool=${data_pool}&mdata_pool=${mdata_pool}&enable_fscache=${enable_fscache}&selected_gateway=${selected_gateway}&selected_cache_disk=%2Fdev%2F${selected_cache_disk}&cache_size=${cache_size}&cache_use_whole_disk=${cache_use_whole_disk}    
+    POST    /cgi-bin/ezs3/json/create_cephfs
+    Response Status Code Should Equal    200 OK
+	
+CGI List Ceph Filesystems
+	[Arguments]    ${gateway_group}
+	${cephfs_list}=    Get Return Json    /cgi-bin/ezs3/json/list_ceph_filesystems?gateway_group=${gateway_group}    /response
+	${cephfs_parse}=    Parse Json    ${cephfs_list}
+	[Return]    ${cephfs_parse}
+
+CGI Enable Mds To Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+	Set Request Body    gateway_group=${gateway_group}&cephfs_name=${fs_name}
+    POST    /cgi-bin/ezs3/json/enable_mds_to_cephfs
+    Response Status Code Should Equal    200 OK	
+
+CGI Disable Mds On Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+	Set Request Body    gateway_group=${gateway_group}&cephfs_name=${fs_name}
+    POST    /cgi-bin/ezs3/json/disable_mds_on_cephfs
+    Response Status Code Should Equal    200 OK
+
+CGI Delete Cephfs
+    [Arguments]    ${gateway_group}    ${fs_name}
+	${cephfs_list}=    Create List    ${fs_name}
+    ${scephfs_list_urlencode}=    URL JSON Encode    ${cephfs_list}
+    Set Request Body    gateway_group=${gateway_group}&cephfs_list=${scephfs_list_urlencode}
+    POST    /cgi-bin/ezs3/json/delete_cephfs
+    Response Status Code Should Equal    200 OK
+	
+CGI Iscsi Add Target
+    [Arguments]    ${gateway_group}    ${target_id}
+	Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_add_target?gateway_group=${gateway_group}&target_id=${target_id}
+	
+CGI Iscsi List Targets
+    [Arguments]    ${gateway_group}
+	${target_list}=    Get Return Json    /cgi-bin/ezs3/json/iscsi_list_targets?gateway_group=${gateway_group}    /response/targets/target
+	${target_parse}=    Parse Json    ${target_list}
+	[Return]    ${target_parse}
+	
+CGI Iscsi Add
+    [Arguments]    ${gateway_group}    ${iscsi_id}    ${size}    ${pool}    ${target_id}    ${allow_all}=true    ${allowed_initiators}=     ${allowed_initiator_groups}=    ${logical_bs}=512    ${physical_bs}=4096    ${qos_enabled}=false    ${snapshot_enabled}=false    
+    Return Code Should Be 0    /cgi-bin/ezs3/json/iscsi_add?allow_all=${allow_all}&allowed_initiator_groups=${allowed_initiator_groups}&allowed_initiators=${allowed_initiators}&gateway_group=${gateway_group}&iscsi_id=${iscsi_id}&logical_bs=${logical_bs}&physical_bs=${physical_bs}&pool=${pool}&qos_enabled=${qos_enabled}&size=${size}&snapshot_enabled=${snapshot_enabled}&target_id=${target_id}
+
+CGI Iscsi List
+    [Arguments]    ${gateway_group}    ${target_id}
+	${iscsi_list}=    Get Return Json    /cgi-bin/ezs3/json/iscsi_list?gateway_group=${gateway_group}&target_id=${target_id}&rw=true    /response/entry
+	${iscsi_parse}=    Parse Json    ${iscsi_list}
+	[Return]    ${iscsi_parse}
+	
+CGI Rbd Volume Cache Create
+    [Arguments]    ${host}    ${rbd_image_name}    ${cache_disk}
+	Return Code Should be 0    /cgi-bin/ezs3/json/rbd_volume_cache_create?host=${host}&rbd_img=${rbd_image_name}&cache_path=%2Fdev%2F${cache_disk}
+
+CGI Rbd Volume Cache Delete
+    [Arguments]    ${host}    ${cache_disk}
+	Return Code Should be 0    /cgi-bin/ezs3/json/rbd_volume_cache_delete?host=${host}&cache_names=%5B%22CACHE_${cache_disk}%22%5D
+	
+CGI Iscsi Remove Target
+    [Arguments]    ${gateway_group}    ${target_id}
+	Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_remove_target?gateway_group=${gateway_group}&target_id=${target_id}
+	
+CGI Iscsi Multi Disable
+    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
+	Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_disable?gateway_group=${gateway_group}&iscsi_id_list=${iscsi_id}&target_id=${target_id}
+
+CGI Iscsi Multi Remove
+    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
+	Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_remove?gateway_group=${gateway_group}&iscsi_id_list=${iscsi_id}&target_id=${target_id}
+
+CGI Iscsi Multi Enable
+    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
+	Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_enable?gateway_group=${gateway_group}&iscsi_id_list=${iscsi_id}&target_id=${target_id}

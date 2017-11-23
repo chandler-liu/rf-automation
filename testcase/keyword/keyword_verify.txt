@@ -202,7 +202,69 @@ Check iSCIS Volume can not Access
     Wait Until Keyword Succeeds    30 sec    5 sec    SSH Output Should Not Contain    iscsiadm -m discovery -t st -p ${iscsi_target_ip}    ${iscsi_target_name}
     Execute Command    iscsiadm -m node -o delete
 
-
+Check Target Exist
+    [Arguments]    ${gateway_group}    ${target_id}
+    ${target_parse}=    CGI Iscsi List Targets   ${gateway_group}
+    ${length}=    Get Length    ${target_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${target_exist}=    Run Keyword IF    '${target_parse[${INDEX}]['name']}' == '${target_id}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${target_parse[${INDEX}]['name']}' == '${target_id}'
+    \    log    ${target_parse[${INDEX}]['name']}
+    Should Be True    ${target_exist}
+	
+Check Target Nonexist
+    [Arguments]    ${gateway_group}    ${target_id}
+    ${target_parse}=    CGI Iscsi List Targets   ${gateway_group}
+	${target_exist}=    Set Variable    False
+    ${length}=    Get Length    ${target_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${target_exist}=    Run Keyword IF    '${target_parse[${INDEX}]['name']}' == '${target_id}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${target_parse[${INDEX}]['name']}' == '${target_id}'
+    \    log    ${target_parse[${INDEX}]['name']}
+    Should Not Be True    ${target_exist}
+	
+Check Iscsi Exist
+    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
+	${iscsi_parse}=    CGI Iscsi List   ${gateway_group}    ${target_id}
+    ${length}=    Get Length    ${iscsi_parse}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${iscsi_exist}=    Run Keyword IF    '${iscsi_parse[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+	\    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${iscsi_parse[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+	\    log    ${iscsi_parse[${INDEX}]['scsi_id']}
+    Should Be True    ${iscsi_exist}
+	
+Check Iscsi Nonexist
+    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
+	${iscsi_parse}=    CGI Iscsi List   ${gateway_group}    ${target_id}
+    ${length}=    Get Length    ${iscsi_parse}
+	${iscsi_exist}=    Set Variable    False
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${iscsi_exist}=    Run Keyword IF    '${iscsi_parse[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+	\    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${iscsi_parse[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+	\    log    ${iscsi_parse[${INDEX}]['scsi_id']}
+    Should Not Be True    ${iscsi_exist}	
+	
+Check Iscsi State
+    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}    ${state}=on
+	${check_state}=    Set Variable If
+    ...    '${state}' == 'on'         1
+    ...    '${state}' == 'off'         0
+	${iscsi_list}=    CGI Iscsi List    ${gateway_group}    target_id=${target_id}
+    ${length}=    Get Length    ${iscsi_list}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${iscsi_state}=    Run Keyword If    '${iscsi_list[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+    \    ...    Set Variable    ${iscsi_list[${INDEX}]['enable']}
+    \    Exit For Loop If    '${iscsi_list[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+    Should Be Equal As Strings    ${iscsi_state}    ${check_state}  
+	
 ##############################################################################################
 # NAS operation
 ##############################################################################################
@@ -251,3 +313,41 @@ Check Shared Folder Nonexist
 	\    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
 	\    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['ens160']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Not Contain    ${get_share_folder}    ${name}
+
+Check Cephfs Exist
+    [Arguments]    ${gateway_group}    ${fs_name}
+    ${cephfs_parse}=    CGI List Ceph Filesystems    ${gateway_group}
+    ${length}=    Get Length    ${cephfs_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${cephfs_exist}=    Run Keyword IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    log    ${cephfs_parse[${INDEX}]['name']}
+    Should Be True    ${cephfs_exist}
+
+Check Cephfs Nonexist
+    [Arguments]    ${gateway_group}    ${fs_name}
+    ${cephfs_parse}=    CGI List Ceph Filesystems    ${gateway_group}
+    ${length}=    Get Length    ${cephfs_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${cephfs_exist}=    Run Keyword IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    log    ${cephfs_parse[${INDEX}]['name']}
+    Should Not Be True    ${cephfs_exist}
+
+Check Cephfs State
+    [Arguments]    ${gateway_group}    ${fs_name}    ${status}=online
+    ${cephfs_parse}=    CGI List Ceph Filesystems    ${gateway_group}
+    ${length}=    Get Length    ${cephfs_parse}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${cephfs_status}=    Run Keyword IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    ...    Set Variable    ${cephfs_parse[${INDEX}]['status']}
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${cephfs_parse[${INDEX}]['name']}' == '${fs_name}'
+    \    log    ${cephfs_parse[${INDEX}]['name']}
+    \    log    ${cephfs_parse[${INDEX}]['status']}
+    Should Be Equal As Strings    ${cephfs_status}    ${status}    
+	
