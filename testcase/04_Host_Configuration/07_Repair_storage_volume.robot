@@ -2,6 +2,8 @@
 Documentation     This suite includes cases related to general cases about repair storage volume
 Suite Setup       Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 Resource          ../00_commonconfig.txt
+#Resource          ../00_commonkeyword.txt
+Resource          00_hostconfigurationkeywords.txt
 Resource          ../keyword/keyword_verify.txt
 Resource          ../keyword/keyword_system.txt
 Resource          ../keyword/keyword_cgi.txt

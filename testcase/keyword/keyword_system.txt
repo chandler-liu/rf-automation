@@ -100,81 +100,6 @@ Enable Gateway
     ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     CGI Gateway Role Enable    storage_ip=${storage_ip}    public_iface=${public_network}
 
-Disable Gateway
-    [Arguments]    ${storage_ip}
-	CGI Gateway Role Disable    storage_ip=${storage_ip}
-	
-Enable RRS
-    [Arguments]    ${public_ip}    ${storage_ip}
-    ${public_network}=    Do SSH CMD    ${public_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 ${public_ip} | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-    CGI Node Role Enable RRS    storage_ip=${storage_ip}    public_iface=${public_network}
-
-Disable RRS
-    [Arguments]    ${storage_ip}
-	CGI Node Role Disable RRS    storage_ip=${storage_ip}
-	
-Get Role Status	
-    [Arguments]    ${storage_ip}    ${role}
-	[Documentation]    Role and status like this:
-    ...    Role include "gw", "mon", "mds", "rrs", "osd"
-	${role_info}=    CGI Node Roles    hosts=${storage_ip}
-    ${role_state}=    Set Variable    ${role_info[0]['${role}']}
-    [Return]    ${role_state}
-	
-First Enable GW
-    [Documentation]    To enable/disable GW service, premise condition is GW has not enabled
-    log    Enable GW	
-    Enable Gateway    @{PUBLICIP}[1]    @{STORAGEIP}[1]
-	log    Check wheather GW enabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[1]    gw    enabled
-	log    Disable GW
-	Disable Gateway    @{STORAGEIP}[1]
-	log    Check wheather GW disabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[1]    gw    disabled
-	log    Enable GW again
-	Enable Gateway    @{PUBLICIP}[1]    @{STORAGEIP}[1]
-	log    Check wheather GW enabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[1]    gw    enabled
-	
-First Disable GW
-    [Documentation]    To enable/disable GW service, premise condition is GW has been enabled
-	log    GW is enabled, to disable it
-	log    Disable GW
-	Disable Gateway    @{STORAGEIP}[1]
-	log    Check wheather GW disabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[1]    gw    disabled
-	log    Enable GW again
-	Enable Gateway    @{PUBLICIP}[1]    @{STORAGEIP}[1]
-	log    Check wheather GW enabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[1]    gw    enabled
-	
-First Enable RRS
-    [Documentation]    To enable/disable RRS service, premise condition is RRS has not enabled
-    log    Enable RRS	
-    Enable RRS    @{PUBLICIP}[0]    @{STORAGEIP}[0]
-	log    Check wheather RRS enabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[0]    rrs    enabled
-	log    Disable RRS
-	Disable RRS    @{STORAGEIP}[0]
-	log    Check wheather RRS disabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[0]    rrs    disabled
-	log    Enable RRS again
-	Enable RRS    @{PUBLICIP}[0]    @{STORAGEIP}[0]
-	log    Check wheather RRS enabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[0]    rrs    enabled
-	
-First Disable RRS
-    [Documentation]    To enable/disable RRS service, premise condition is RRS has been enabled
-	log    RRS is enabled, to disable it
-	log    Disable RRS
-	Disable RRS    @{STORAGEIP}[0]
-	log    Check wheather RRS disabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[0]    rrs    disabled
-	log    Enable RRS again
-	Enable RRS    @{PUBLICIP}[0]    @{STORAGEIP}[0]
-	log    Check wheather RRS enabled success or not
-	Wait Until Keyword Succeeds    3 min    5 sec    Check Role Status    @{STORAGEIP}[0]    rrs    enabled
-	
 Create Pool
     [Arguments]    ${pool_name}    ${pool_type}    ${r}=2    ${k}=2    ${m}=1
     CGI Common Pool Create    pool_name=${pool_name}    pool_type=${pool_type}    r=${r}    k=${k}    m=${m}
@@ -472,74 +397,26 @@ Get Client Initiator Name
     [Return]    ${client_initiator}
 
 Get RBD Image Name
-    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
-    ${iscsi_list}=    CGI iSCSI List    ${gateway_group}    ${target_id}
-    ${length}=    Get Length    ${iscsi_list}
+    [Arguments]    ${target_id}    ${volume_name}
+    ${iscsi_list}=    CGI iSCSI List    target_id=${target_id}
+    ${rbd_entry}=    Get From Dictionary    ${iscsi_list}    entry
+    ${length}=    Get Length    ${rbd_entry}
     :FOR    ${INDEX}    IN RANGE    0    ${length}
-    \    ${rbd_image_name}=    Run Keyword If    '${iscsi_list[${INDEX}]['scsi_id']}' == '${iscsi_id}'
-    \    ...    Set Variable    ${iscsi_list[${INDEX}]['rbd_img']}
-    \    Exit For Loop If    '${iscsi_list[${INDEX}]['scsi_id']}' == '${iscsi_id}'
+    \    ${rbd_image_name}=    Run Keyword If    '${rbd_entry[${INDEX}]['scsi_id']}' == '${volume_name}'
+    \    ...    Set Variable    ${rbd_entry[${INDEX}]['rbd_img']}
+    \    Exit For Loop If    '${rbd_entry[${INDEX}]['scsi_id']}' == '${volume_name}'
     [Return]    ${rbd_image_name}
 
-Get Iscsi State
-    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
-	${iscsi_list}=    CGI Iscsi List    ${gateway_group}    target_id=${target_id}
-    ${length}=    Get Length    ${iscsi_list}
-    :FOR    ${INDEX}    IN RANGE    0    ${length}
-    \    ${iscsi_state}=    Run Keyword If    '${iscsi_list[${INDEX}]['scsi_id']}' == '${iscsi_id}'
-    \    ...    Set Variable    ${iscsi_list[${INDEX}]['enable']}
-    \    Exit For Loop If    '${iscsi_list[${INDEX}]['scsi_id']}' == '${iscsi_id}'
-    [Return]    ${iscsi_state}
-	
-Create Target
-    [Arguments]    ${gateway_group}    ${target_id}
-    CGI Iscsi Add Target    ${gateway_group}    ${target_id}
-	Wait Until Keyword Succeeds    4 min    5 sec    Check Target Exist    ${gateway_group}    ${target_id}
-
-Remove Target
-    [Arguments]    ${gateway_group}    ${target_id}
-	CGI Iscsi Remove Target    ${gateway_group}    ${target_id}
-	Wait Until Keyword Succeeds    4 min    5 sec    Check Target Nonexist    ${gateway_group}    ${target_id}
-	
-Add Iscsi Volume
-    [Arguments]    ${gateway_group}    ${iscsi_id}    ${size}    ${pool}    ${target_id}    ${allow_all}=true    ${allowed_initiators}=     ${allowed_initiator_groups}=    ${logical_bs}=512    ${physical_bs}=4096    ${qos_enabled}=false    ${snapshot_enabled}=false    
-    CGI Iscsi Add    ${gateway_group}    ${iscsi_id}    ${size}    ${pool}    ${target_id}    ${allow_all    ${allowed_initiators}     ${allowed_initiator_groups}    ${logical_bs}    ${physical_bs}    ${qos_enabled}    ${snapshot_enabled}   
-    Wait Until Keyword Succeeds    4 min    5 sec    Check Iscsi Exist    ${gateway_group}    ${target_id}    ${iscsi_id}
-	
-Disable Iscsi Volume
-    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
-	CGI Iscsi Multi Disable    ${gateway_group}    ${target_id}    ${iscsi_id}
-	Wait Until Keyword Succeeds    4 min    5 sec    Check Iscsi State    ${gateway_group}    ${target_id}    ${iscsi_id}    off
-	
-Enable Iscsi Volume
-    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
-	CGI Iscsi Multi Enable    ${gateway_group}    ${target_id}    ${iscsi_id}
-	Wait Until Keyword Succeeds    4 min    5 sec    Check Iscsi State    ${gateway_group}    ${target_id}    ${iscsi_id}    on
-
-Remove Iscsi Volume
-    [Arguments]    ${gateway_group}    ${target_id}    ${iscsi_id}
-	CGI Iscsi Multi Remove    ${gateway_group}    ${target_id}    ${iscsi_id}
-	Wait Until Keyword Succeeds    4 min    5 sec    Check Iscsi Nonexist    ${gateway_group}    ${target_id}    ${iscsi_id}
-	
-Add SAN Cache
-    [Arguments]    ${host}    ${rbd_image_name}    ${cache_disk}
-	CGI Rbd Volume Cache Create    ${host}    ${rbd_image_name}    ${cache_disk}
-    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    eio_cli info    Source Device
-	
-Disable SAN Cache
-    [Arguments]    ${host}    ${cache_disk}
-	CGI Rbd Volume Cache Delete    ${host}    ${cache_disk}
-	Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    eio_cli info    No caches Found
 
 ##############################################################################################
 # NAS operation
 ##############################################################################################
 Add Shared Folder
-    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${s3fs_user}=    ${mode}=sync    ${hidden}=false
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${mode}=sync    ${hidden}=false
     ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=false    ${guest_only}=false    ${user_list}=    ${cephfs}=cephfs    ${pool}=data
     ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_windows_host}=false    ${migrate_path}=    ${migrate_copyup}=open
     ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=
-    CGI Create Shared Folder    ${name}    ${gateway_group}    ${nfs}    ${smb}    ${read_only}    ${s3_folder}    ${bucket}    ${s3fs_user}    ${mode}    ${hidden}
+    CGI Create Shared Folder    ${name}    ${gateway_group}    ${nfs}    ${smb}    ${read_only}    ${s3_folder}    ${bucket}    ${mode}    ${hidden}
     ...    ${write_list}    ${smb_allowed_hosts}    ${nfs_allowed_hosts}    ${guest_ok}    ${guest_only}    ${user_list}    ${cephfs}    ${pool}
     ...    ${migrate_folder}    ${migrate_gw_ip}    ${migrate_server}    ${migrate_fs_type}    ${migrate_windows_host}    ${migrate_path}    ${migrate_copyup}
     ...    ${migrate_account}    ${migrate_passwd}    ${migrate_cifsacl}    ${migrate_fs_options}
@@ -551,23 +428,6 @@ Delete Shared Folder
 	CGI Delete Multi Shared Folder    ${name}    ${gateway_group}
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist UI   ${name}    ${gateway_group}
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist    ${name}    ${gateway_group}
-
-Create Cephfs
-    [Arguments]    ${gateway_group}    ${fs_name}    ${data_pool}    ${mdata_pool}    ${enable_fscache}=false    ${selected_gateway}=@{STORAGEIP}[1]    ${selected_cache_disk}=sda4    ${cache_size}=    ${cache_use_whole_disk}=false
-    CGI Create Cephfs    ${gateway_group}    ${fs_name}    ${data_pool}    ${mdata_pool}    ${enable_fscache}    ${selected_gateway}    ${selected_cache_disk}    ${cache_size}    ${cache_use_whole_disk}
-    Wait Until Keyword Succeeds    6 min    5 sec    Check Cephfs Exist    ${gateway_group}    ${fs_name}
 	
-Enable Cephfs
-    [Arguments]    ${gateway_group}    ${fs_name}
-	CGI Enable Mds To Cephfs    ${gateway_group}    ${fs_name}
-	Wait Until Keyword Succeeds    6 min    5 sec    Check Cephfs State    ${gateway_group}    ${fs_name}
-
-Disable Cephfs
-    [Arguments]    ${gateway_group}    ${fs_name}
-	CGI Disable Mds On Cephfs    ${gateway_group}    ${fs_name}
-    Wait Until Keyword Succeeds    6 min    5 sec    Check Cephfs State    ${gateway_group}    ${fs_name}    offline
 	
-Delete Cephfs
-    [Arguments]    ${gateway_group}    ${fs_name}
-	CGI Delete Cephfs    ${gateway_group}    ${fs_name}
-    Wait Until Keyword Succeeds    6 min    5 sec    Check Cephfs Nonexist    ${gateway_group}    ${fs_name}
+	
