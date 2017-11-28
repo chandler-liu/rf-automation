@@ -199,8 +199,8 @@ Set file QoS under sharefolder
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=4k --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=${mount_point}/fio.tst --direct=1 --group_reporting --output=fio.result
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    After set QoS: ${randwrite_iops}
-    Should Be True    ${randwrite_iops} <= ${write_maxiops}
     Execute Command Successfully    umount ${mount_point}
+    Should Be True    ${randwrite_iops} <= ${write_maxiops}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...           AND             Switch Connection    @{PUBLICIP}[0]
     ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
