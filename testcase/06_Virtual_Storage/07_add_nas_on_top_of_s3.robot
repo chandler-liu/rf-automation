@@ -5,7 +5,7 @@ Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}
 ...               AND    Open Connection    127.0.0.1    alias=127.0.0.1
 ...               AND    Login    ${LOCALUSER}    ${LOCALPASS}
 ...               AND    Create S3 Account    ${account_name}
-Suite Teardown    Run Keywords    Delete S3 Account    ${account_name}
+Suite Teardown    Run Keywords    Delete S3 Account and Clean s3cfg    ${account_name}
 ...               AND    Delete Samba user    ${vs_name}    ${samba_user}
 ...               AND    Switch Connection   127.0.0.1
 ...               AND    Execute Command Successfully    rm -rf /mnt/*
@@ -121,11 +121,13 @@ Create S3 Account
     [Arguments]    ${user_name}
     Return Code Should be 0    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=
 
-Delete S3 Account
+Delete S3 Account and Clean s3cfg
     [Arguments]    ${user_name}
     Set Request Body    user_ids=%5B%22${user_name}%22%5D
     POST    /cgi-bin/ezs3/json/del_multi_user
     Response Status Code Should Equal    200 OK
+	log    Start to clean .s3cfg
+	DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    onnode all rm -rf /root/.s3cfg
 
 Setup S3cmd Config
     [Arguments]    ${access_key}    ${secret_key}
