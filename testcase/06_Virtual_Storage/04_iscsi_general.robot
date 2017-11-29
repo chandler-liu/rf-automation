@@ -85,7 +85,7 @@ QoS of iops takes effect
     ...    Sc-558:QoS of iops takes effect
     [Tags]    FAST
     Switch Connection    127.0.0.1
-    ${sdx} =    Execute Command    iscsiadm -m session -P 3 > /tmp/iscsi_debug;iscsiadm -m session -P 3|grep -A 50 ${iscsi_target_name}|awk '/Attached scsi disk/ {print $4}'
+    ${sdx} =    Execute Command    iscsiadm -m session -P 3 > /tmp/iscsi_debug;iscsiadm -m session -P 3|grep -A 50 @{PUBLICIP}[0] |awk '/Attached scsi disk/ {print $4}'
     Should Match    ${sdx}    sd*
     # Before set QoS
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=4k --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=/dev/${sdx} --direct=1 --group_reporting --output=fio.result
@@ -110,7 +110,7 @@ QoS of bandwidth takes effect
     ...    Sc-559:QoS of bandwidth takes effect
     [Tags]    FAST
     Switch Connection    127.0.0.1
-    ${sdx} =    Execute Command    iscsiadm -m session -P 3 > /tmp/iscsi_debug;iscsiadm -m session -P 3|grep -A 50 ${iscsi_target_name}|awk '/Attached scsi disk/ {print $4}'
+    ${sdx} =    Execute Command    iscsiadm -m session -P 3 > /tmp/iscsi_debug;iscsiadm -m session -P 3|grep -A 50 @{PUBLICIP}[0] |awk '/Attached scsi disk/ {print $4}'
     Should Match    ${sdx}    sd*
     # Before set QoS
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=1M --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=/dev/${sdx} --direct=1 --group_reporting --output=fio.result
