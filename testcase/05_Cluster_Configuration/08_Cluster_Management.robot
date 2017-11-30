@@ -50,7 +50,8 @@ Incremental recovery in case OSD down and up
     Stop OSD & Start OSD Check Reweight Change
     [Teardown]    Run Keywords    Cluster Disable Incremental Recovery
     ...    AND    Delete Shared Folder    gateway_group=Default    name=${shared_folder_name}
-    ...    AND    SSH Output Should Contain    /etc/init.d/ceph start osd.0    Starting Ceph osd.0
+    ...    AND    Run Keyword If Test Failed    SSH Output Should Contain    /etc/init.d/ceph start osd.0    Starting Ceph osd.0
+    ...    AND    Wait Until Keyword Succeeds    4 min    5 sec    Check Cluster Health
 
 *** Keywords ***
 Cluster Enable Maintenance Mode
@@ -79,6 +80,7 @@ Wait Cluster Status Is Health_OK
     Wait Until Keyword Succeeds    4 min    5 sec    Check Cluster Health
 
 Disable The OSD Gracefully
+    Wait Until Keyword Succeeds    4 min    5 sec    Check Cluster Health
     Run Keyword    Disable OSD    storage_ip=@{STORAGEIP}[0]    osd_name=${osd_name}    force=false
 
 Stop OSD & Start OSD Check Reweight Change

@@ -144,12 +144,11 @@ Configure storage pool for share folder
     [Tags]    TOFT
     ${new_pool} =    Set Variable    pool1
 	${new_metapool} =    Set Variable    metapool1
-    ${osd_ids} =    Set Variable    0
+    ${osd_ids} =    Set Variable    0+1+2
     ${folder_name} =    Set Variable    folder1
 	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
 	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
-	Assign Pool to Virtual Storage    vs_name=${vs_name}    pool_name=${new_metapool}%2C${new_pool}%2CDefault
 	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}
 	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
 	Enable Cephfs    ${vs_name}    ${fs_name}
@@ -160,11 +159,11 @@ Configure storage pool for share folder
     Write    cd /vol/${folder_name}
     Write    dd if=/dev/zero of=1.tst bs=1K count=1 conv=fsync
     Wait Until Keyword Succeeds    3x    3s    Read Until    copied
-    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep ${new_pool}|awk {'print \$3'}    1024
+    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal    ceph df|grep -w ${new_pool}|awk {'print \$3'}    1024
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
 	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
-	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=down
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=offline
 	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
 	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
 	...    AND    Delete Pool    ${new_pool}
@@ -200,8 +199,8 @@ Set file QoS under sharefolder
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=4k --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=${mount_point}/fio.tst --direct=1 --group_reporting --output=fio.result
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    After set QoS: ${randwrite_iops}
-    Should Be True    ${randwrite_iops} <= ${write_maxiops}
     Execute Command Successfully    umount ${mount_point}
+    Should Be True    ${randwrite_iops} <= ${write_maxiops}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...           AND             Switch Connection    @{PUBLICIP}[0]
     ...           AND             Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v    ${true}

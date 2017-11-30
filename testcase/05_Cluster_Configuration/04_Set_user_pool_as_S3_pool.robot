@@ -14,11 +14,11 @@ Check default S3 pool
     ${bucket_name}=    Set Variable    s3://bucketAutomation
     Create Bucket    ${bucket_name}
     log    Get objects in pool
-    ${objects_before}=    Get Objects By Pool    .rgw.buckets
+    ${objects_before}=    Get Objects By Pool    .rgw.buckets.data
     log    Start to put data to bucket
     Input Data To Bucket
     log    Get objects in pool again
-    ${objects_after}=    Get Objects By Pool    .rgw.buckets
+    ${objects_after}=    Get Objects By Pool    .rgw.buckets.data
     log    Check default S3 pool
     Should be True    ${objects_after}>${objects_before}
 
@@ -34,6 +34,7 @@ Set user pool as S3 pool against default pool
     log    Set user pool as S3 pool
     Return Code Should Be 0    /cgi-bin/ezs3/json/pool_enable_s3?pool_name=${pool_name}
     Wait Until Keyword Succeeds    6 min    5 sec    Get S3 Pool State    ${pool_name}
+	Sleep    10 sec
     Create Bucket    ${bucket_name}
     log    Get objects in pool
     ${objects_before}=    Get Objects By Pool    ${pool_name}
@@ -49,4 +50,4 @@ Set user pool as S3 pool against default pool
 Set Default To S3 Pool And Delete User Pool
     log    To delete pool, need to Set other pool as S3 pool
     Return Code Should Be 0    /cgi-bin/ezs3/json/pool_enable_s3?pool_name=Default
-    Run Keyword    Delete Pool    S3-pool
+	Run Keyword    Delete Pool    S3-pool

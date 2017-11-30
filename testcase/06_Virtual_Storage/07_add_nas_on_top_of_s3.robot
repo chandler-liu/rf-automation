@@ -5,8 +5,11 @@ Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}
 ...               AND    Open Connection    127.0.0.1    alias=127.0.0.1
 ...               AND    Login    ${LOCALUSER}    ${LOCALPASS}
 ...               AND    Create S3 Account    ${account_name}
-Suite Teardown    Run Keywords    Close All Connections    # Close SSH connections
-...               AND    Delete S3 Account    ${account_name}
+Suite Teardown    Run Keywords    Delete S3 Account and Clean s3cfg    ${account_name}
+...               AND    Delete Samba user    ${vs_name}    ${samba_user}
+...               AND    Switch Connection   127.0.0.1
+...               AND    Execute Command Successfully    rm -rf /mnt/*
+...               AND    Close All Connections
 Library           OperatingSystem
 Library           SSHLibrary
 Library           HttpLibrary.HTTP
@@ -23,6 +26,7 @@ ${folder_cifs_name}    s3_cifs
 ${bucket_name}    bucket1
 ${nfs_mount_point}    /mnt/nfs
 ${cifs_mount_point}    /mnt/cifs
+${samba_user}    samba1
 
 *** Test Cases ***
 Add NFS on top of S3
@@ -37,7 +41,9 @@ Add NFS on top of S3
     Execute Command Successfully    s3cmd mb s3://${bucket_name}
     Execute Command Successfully    touch /tmp/nfs_flag;
     Execute Command Successfully    s3cmd put /tmp/nfs_flag s3://${bucket_name}
-    Add Shared Folder    name=${folder_nfs_name}    gateway_group=${vs_name}    pool=    s3_folder=true    bucket=${bucket_name}    nfs=true
+    Add Samba User    vs_id=${vs_name}    user_id=${samba_user}    password=1    confirm_password=1    display_name=${samba_user}
+    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    pdbedit -L | grep -w ${samba_user}    ${false}
+    Add Shared Folder    name=${folder_nfs_name}    gateway_group=${vs_name}    pool=    s3_folder=true    s3fs_user=${samba_user}    bucket=${bucket_name}    s3fs_user=${samba_user}    nfs=true
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v | grep ${folder_nfs_name}    ${false}
     Switch Connection   127.0.0.1
     Execute Command Successfully    mkdir -p ${nfs_mount_point}; mount -t nfs @{PUBLICIP}[0]:/vol/${folder_nfs_name} ${nfs_mount_point}
@@ -46,12 +52,12 @@ Add NFS on top of S3
 Add CIFS on top of S3
     [Documentation]    Testlink ID: Sc-503:Add CIFS on top of S3
     [Tags]    FAST
-    Add Shared Folder    name=${folder_cifs_name}    gateway_group=${vs_name}    pool=    s3_folder=true    bucket=${bucket_name}    smb=true    guest_ok=true
+    Add Shared Folder    name=${folder_cifs_name}    gateway_group=${vs_name}    pool=    s3_folder=true    bucket=${bucket_name}    s3fs_user=${samba_user}    smb=true    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]
     Execute Command Successfully    touch /tmp/cifs_flag; s3cmd put /tmp/cifs_flag s3://${bucket_name}
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/samba/smb.conf|grep ${folder_cifs_name}    ${false}
     Switch Connection   127.0.0.1
-    Execute Command Successfully    mkdir -p ${cifs_mount_point}; mount -t cifs -o guest //@{PUBLICIP}[0]/${folder_cifs_name} ${cifs_mount_point}
+    Execute Command Successfully    mkdir -p ${cifs_mount_point}; mount -t cifs -o username=${samba_user},passwd=1 //@{PUBLICIP}[0]/${folder_cifs_name} ${cifs_mount_point}
     SSH Output Should Contain    ls ${cifs_mount_point}    cifs_flag
 
 Check create/read/write/delete files in NFS
@@ -115,11 +121,13 @@ Create S3 Account
     [Arguments]    ${user_name}
     Return Code Should be 0    /cgi-bin/ezs3/json/add_user?user_id=${user_name}&display_name=${user_name}&email=${user_name}%40qq.com&password=1&confirm_password=1&type=&dn=
 
-Delete S3 Account
+Delete S3 Account and Clean s3cfg
     [Arguments]    ${user_name}
     Set Request Body    user_ids=%5B%22${user_name}%22%5D
     POST    /cgi-bin/ezs3/json/del_multi_user
     Response Status Code Should Equal    200 OK
+	log    Start to clean .s3cfg
+	DO SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    onnode all rm -rf /root/.s3cfg
 
 Setup S3cmd Config
     [Arguments]    ${access_key}    ${secret_key}

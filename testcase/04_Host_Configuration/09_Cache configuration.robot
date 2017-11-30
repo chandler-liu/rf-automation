@@ -7,6 +7,7 @@ Suite Teardown    Run Keywords    Switch Connection    @{PUBLICIP}[1]
 Resource          ../00_commonconfig.txt
 Resource          ../00_commonkeyword.txt
 Resource          00_hostconfigurationkeywords.txt
+Resource          ../06_Virtual_Storage/00_virtual_storage_keyword.txt
 
 *** Test Cases ***
 Enable/Disable FS cache
@@ -14,8 +15,30 @@ Enable/Disable FS cache
     [Tags]    FAST
     log    Start to enable FS cache
     ${cache_disk}=    Set Variable    sdd
-    Add FS Cache    ${cache_disk}
-    [Teardown]    Disable FS Cache
+    ${new_pool} =    Set Variable    pool4
+	${new_metapool} =    Set Variable    metapool4
+    ${osd_ids} =    Set Variable    0+1+2
+	${fs_name} =    Set Variable    cephfs4
+	${vs_name} =    Set Variable    Default
+	${folder_name} =    Set Variable    folder4
+    Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
+	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
+	Create Cephfs    ${vs_name}    ${fs_name}    ${new_pool}    ${new_metapool}    enable_fscache=true    selected_cache_disk=${cache_disk}    cache_use_whole_disk=true    cache_size=40
+	Wait Until Keyword Succeeds    3 min    5 sec    Get Cephfs    ${vs_name}    ${fs_name}
+	Enable Cephfs    ${vs_name}    ${fs_name}
+	Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}
+	Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    pool=${new_pool}    nfs=true    cephfs=${fs_name}
+	Wait Until Keyword Succeeds    6 min    5 sec    Check If SSH Output Is Empty    exportfs -v    ${false}
+	log    Check enable FS cache result
+    Wait Until Keyword Succeeds    4 min    5 sec    SSH Output Should Contain    lsblk | grep /var/cache/fscache    /var/cache/fscache
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
+	...    AND    Disable Cephfs    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Status    ${vs_name}    ${fs_name}    status=offline
+	...    AND    Delete Cephfs    ${vs_name}    ${fs_name}
+	...    AND    Wait Until Keyword Succeeds    6 min    5 sec    Get Cephfs Out    ${vs_name}    ${fs_name}
+	...    AND    Delete Pool    ${new_pool}
+	...    AND    Delete Pool    ${new_metapool}
 
 Add SAN Volume Cache when volume is enabled
     [Documentation]    TestLink ID: Sc-127:Add SAN Volume Cache when volume is enabled

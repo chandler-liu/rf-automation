@@ -4,71 +4,80 @@
         "version":         "7.0",
         "pxe_mac":         "00:50:56:a7:0f:e4",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera70/vesamenu.c32",
-            "vmlinuz":     "bigtera70/vmlinuz.14",
-            "initrd":      "bigtera70/initrd.aoecdrom.14.gz",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e2.0"
         },
-        "netconf": {
-            "pub_ip":      "172.17.59.105",
-            "pub_mask":    "255.255.255.0",
-            "pub_dev":     "ens160",
-            "pub_gw":      "172.17.59.1",
-            "dns_ip":      "114.114.114.114",
-            "stor_ip":     "192.168.100.105",
-            "stor_mask":   "255.255.255.0",
-            "stor_dev":    "ens192"
-        }
+        "netconf": [
+            {
+                "iface":       "ens160",
+                "address":     "172.17.59.105",
+                "netmask":     "255.255.254.0",
+                "gateway":     "172.17.59.254",
+                "dns-nameservers": "114.114.114.114"
+            },
+            {
+                "iface":       "ens192",
+                "address":     "192.168.100.105",
+                "netmask":     "255.255.255.0"
+            }
+        ]
     },
     {
         "hostname":        "auto-70-2",
         "version":         "7.0",
         "pxe_mac":         "00:50:56:a7:bf:55",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera70/vesamenu.c32",
-            "vmlinuz":     "bigtera70/vmlinuz.14",
-            "initrd":      "bigtera70/initrd.aoecdrom.14.gz",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e2.0"
         },
-        "netconf": {
-            "pub_ip":      "172.17.59.106",
-            "pub_mask":    "255.255.255.0",
-            "pub_dev":     "ens160",
-            "pub_gw":      "172.17.59.1",
-            "dns_ip":      "114.114.114.114",
-            "stor_ip":     "192.168.100.106",
-            "stor_mask":   "255.255.255.0",
-            "stor_dev":    "ens192"
-        }
+        "netconf": [
+            {
+                "iface":       "ens160",
+                "address":     "172.17.59.106",
+                "netmask":     "255.255.254.0",
+                "gateway":     "172.17.59.254",
+                "dns-nameservers": "114.114.114.114"
+            },
+            {
+                "iface":       "ens192",
+                "address":     "192.168.100.106",
+                "netmask":     "255.255.255.0"
+            }
+        ]
     },
     {
         "hostname":        "auto-70-3",
         "version":         "7.0",
         "pxe_mac":         "00:0c:29:49:c8:ea",
         "pxe_filename":    "pxelinux.7",
+        "os_disk":         "/dev/sda",
         "pxelinux.cfg":    {
-            "vesamenu":    "bigtera70/vesamenu.c32",
-            "vmlinuz":     "bigtera70/vmlinuz.14",
-            "initrd":      "bigtera70/initrd.aoecdrom.14.gz",
+            "bootpath":    "bigtera70",
             "pxeint":      "eth2",
             "httpurl":     "192.168.200.1",
             "aoecdrom":    "e2.0"
         },
-        "netconf": {
-            "pub_ip":      "172.17.59.107",
-            "pub_mask":    "255.255.255.0",
-            "pub_dev":     "ens160",
-            "pub_gw":      "172.17.59.1",
-            "dns_ip":      "114.114.114.114",
-            "stor_ip":     "192.168.100.107",
-            "stor_mask":   "255.255.255.0",
-            "stor_dev":    "ens192"
-        }
+        "netconf": [
+            {
+                "iface":       "ens160",
+                "address":     "172.17.59.107",
+                "netmask":     "255.255.254.0",
+                "gateway":     "172.17.59.254",
+                "dns-nameservers": "114.114.114.114"
+            },
+            {
+                "iface":       "ens192",
+                "address":     "192.168.100.107",
+                "netmask":     "255.255.255.0"
+            }
+        ]
     }
 ]

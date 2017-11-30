@@ -7,7 +7,7 @@ d-i netcfg/enable boolean false
 d-i time/zone string Asia/Shanghai
 d-i partman-auto/init_automatically_partition string some_device
 d-i partman-auto/method string regular
-d-i partman-auto/disk string /dev/sda
+d-i partman-auto/disk string OS_DISK_TOKEN
 d-i partman/early_command string \
     if [ -d /sys/firmware/efi ]; then                                           \
         debconf-set partman-auto/expert_recipe                                  \

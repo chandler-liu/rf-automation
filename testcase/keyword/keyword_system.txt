@@ -267,11 +267,11 @@ Reformat OSD
     Wait Until Keyword Succeeds    4 min    5 sec    Check OSD State    ${storage_ip}    ${osd_name}    REFORMATING
 	
 Stop OSD At Backend
-    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph stop osd.0    Exit Code: 0x00
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph stop osd.0    successfully
 
 Start OSD At Backend
-	Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph start osd.0    starting
-	log    Check osd status
+    Wait Until Keyword Succeeds    3 min    5 sec    SSH Output Should Contain    /etc/init.d/ceph start osd.0    starting
+    log    Check osd status
     Wait Until Keyword Succeeds    20 min    20 sec    SSH Output Should Contain    ceph osd tree | grep osd.0    up
 
 ##############################################################################################

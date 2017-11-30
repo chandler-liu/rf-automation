@@ -11,11 +11,23 @@ Add Replicted Pool
     Return Code Should be 0    /cgi-bin/ezs3/json/pool_add_node?pool_id=${pool_name}&node_ids=${osd_ids}
 
 Add Shared Folder
-    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${mode}=sync    ${hidden}=false
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${s3_folder}=false    ${bucket}=    ${s3fs_user}=    ${mode}=sync    ${hidden}=false
     ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=false    ${guest_only}=false    ${user_list}=    ${cephfs}=cephfs    ${pool}=data
     ...    ${migrate_folder}=false    ${migrate_gw_ip}=    ${migrate_server}=    ${migrate_fs_type}=cifs    ${migrate_windows_host}=false    ${migrate_path}=    ${migrate_copyup}=open
     ...    ${migrate_account}=    ${migrate_passwd}=    ${migrate_cifsacl}=false    ${migrate_fs_options}=    
-    Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&s3_folder=${s3_folder}&bucket=${bucket}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}&cephfs=${cephfs}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_windows_host=${migrate_windows_host}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+    Return Code Should be 0    /cgi-bin/ezs3/json/create_shared_folder?name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&s3_folder=${s3_folder}&bucket=${bucket}&s3fs_user=${s3fs_user}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}&cephfs=${cephfs}&pool=${pool}&migrate_folder=${migrate_folder}&migrate_gw_ip=${migrate_gw_ip}&migrate_server=${migrate_server}&migrate_fs_type=${migrate_fs_type}&migrate_windows_host=${migrate_windows_host}&migrate_path=${migrate_path}&migrate_copyup=${migrate_copyup}&migrate_account=${migrate_account}&migrate_passwd=${migrate_passwd}&migrate_cifsacl=${migrate_cifsacl}&migrate_fs_options=${migrate_fs_options}
+
+Add Samba User
+    [Arguments]    ${vs_id}    ${user_id}    ${password}    ${confirm_password}    ${display_name}
+    Return Code Should be 0    /cgi-bin/ezs3/json/add_vs_user?vs_id=${vs_id}&user_id=${user_id}&password=${password}&confirm_password=${confirm_password}&display_name=${display_name}
+
+Delete Samba user
+    [Arguments]    ${vs_id}    ${user_id}
+    ${user_ids}=    Create List    ${user_id}
+    ${user_ids_urlencode}=    URL JSON Encode    ${user_ids}
+    Set Request Body    vs_id=${vs_id}&user_ids=${user_ids_urlencode}
+    POST    /cgi-bin/ezs3/json/del_multi_vs_user
+    Response Status Code Should Equal    200 OK
 
 Add Virtual Storage
     [Arguments]    ${vs_name}    ${vs_pool}    ${vs_gateway}
@@ -78,9 +90,9 @@ Enable iSCSI LUN
     Return Code Should be 0    /cgi-bin/ezs3/json/iscsi_multi_enable?gateway_group=${vs_name}&iscsi_id_list=${iscsi_lun_name}&target_id=${iscsi_target_name}
 
 Modify Shared Folder
-    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync
-    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${user_list}=
-    Post Return Code Should be 0    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&user_list=${user_list}    /cgi-bin/ezs3/json/edit_shared_folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true    ${read_only}=false    ${mode}=sync    ${hidden}=false
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=true    ${guest_only}=false    ${user_list}=
+    Post Return Code Should be 0    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}    /cgi-bin/ezs3/json/edit_shared_folder
 
 Modify iSCSI LUN
     [Arguments]    ${allow_all}=true    ${allowed_initiator_groups}=    ${allowed_initiators}=    ${gateway_group}=Default    ${iscsi_id}=    
@@ -94,9 +106,9 @@ Remove Virtual Storage
     Return Code Should be 0    /cgi-bin/ezs3/json/gwgroup_delete?name=${vs_name}
 
 Create Cephfs
-    [Arguments]    ${gateway_group}    ${fs_name}    ${data_pool}    ${mdata_pool}    ${enable_fscache}=false    ${selected_gateway}=@{STORAGEIP}[1]    ${selected_cache_disk}=/dev/sda4    ${cache_size}=    ${cache_use_whole_disk}=false
+    [Arguments]    ${gateway_group}    ${fs_name}    ${data_pool}    ${mdata_pool}    ${enable_fscache}=false    ${selected_gateway}=@{STORAGEIP}[1]    ${selected_cache_disk}=sda4    ${cache_size}=    ${cache_use_whole_disk}=false
     ${selected_cache_disk_urlencode}=    URL JSON Encode    ${selected_cache_disk}
-    Set Request Body    gateway_group=${gateway_group}&fs_name=${fs_name}&data_pool=${data_pool}&mdata_pool=${mdata_pool}&enable_fscache=${enable_fscache}&selected_gateway=${selected_gateway}&selected_cache_disk=${selected_cache_disk_urlencode}&cache_size=${cache_size}&cache_use_whole_disk=${cache_use_whole_disk}    
+    Set Request Body    gateway_group=${gateway_group}&fs_name=${fs_name}&data_pool=${data_pool}&mdata_pool=${mdata_pool}&enable_fscache=${enable_fscache}&selected_gateway=${selected_gateway}&selected_cache_disk=%2Fdev%2F${selected_cache_disk}&cache_size=${cache_size}&cache_use_whole_disk=${cache_use_whole_disk}    
     POST    /cgi-bin/ezs3/json/create_cephfs
     Response Status Code Should Equal    200 OK
 
@@ -147,7 +159,7 @@ Get Cephfs Out
     Should Not Be True    ${cephfs_exist}
 
 Get Cephfs Status
-    [Arguments]    ${gateway_group}    ${fs_name}    ${status}=active
+    [Arguments]    ${gateway_group}    ${fs_name}    ${status}=online
     ${cephfs_list}=    Get Return Json    /cgi-bin/ezs3/json/list_ceph_filesystems?gateway_group=${gateway_group}    /response
     ${cephfs_parse}=    Parse Json    ${cephfs_list}
     ${length}=    Get Length    ${cephfs_parse}
