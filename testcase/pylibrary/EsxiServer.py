@@ -382,7 +382,7 @@ class EsxiServer:
                 print('Virthal Machine {} total have {} virtual disk(s)\n'.format(vm.name,vm.summary.config.numVirtualDisks))
         return True
 
-    def _print_vm_info(self, vm, depth=1):
+    def PrintVmInfo(self, vm, depth=1):
         """
         Print information for a particular virtual machine or recurse into a folder
         or vApp with depth protection
@@ -396,7 +396,7 @@ class EsxiServer:
                 return
             vmList = vm.childEntity
             for c in vmList:
-                PrintVmInfo(c, depth+1)
+                self.PrintVmInfo(c, depth+1)
             return
 
         # if this is a vApp, it likely contains child VMs
@@ -404,7 +404,7 @@ class EsxiServer:
         if isinstance(vm, vim.VirtualApp):
             vmList = vm.vm
             for c in vmList:
-                PrintVmInfo(c, depth + 1)
+                self.PrintVmInfo(c, depth + 1)
             return
 
         summary = vm.summary
@@ -434,7 +434,7 @@ class EsxiServer:
                 vmList = vmFolder.childEntity
                 for vm in vmList:
                     if (vmnames == None) or (vm.name in vmnames):
-                        self._print_vm_info(vm)
+                        self.PrintVmInfo(vm)
         return True
 
 def main():
