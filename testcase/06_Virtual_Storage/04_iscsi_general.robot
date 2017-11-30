@@ -86,7 +86,7 @@ QoS of iops takes effect
     [Tags]    FAST
     Switch Connection    127.0.0.1
     ${sdx} =    Execute Command    iscsiadm -m session -P 3 > /tmp/iscsi_debug;iscsiadm -m session -P 3|grep -A 50 @{PUBLICIP}[0] |awk '/Attached scsi disk/ {print $4}'
-    Wait Until Keyword Succeeds    30s    5s    Should Match    ${sdx}    sd*
+    Should Match    ${sdx}    sd*
     # Before set QoS
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=4k --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=/dev/${sdx} --direct=1 --group_reporting --output=fio.result
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
@@ -111,7 +111,7 @@ QoS of bandwidth takes effect
     [Tags]    FAST
     Switch Connection    127.0.0.1
     ${sdx} =    Execute Command    iscsiadm -m session -P 3 > /tmp/iscsi_debug;iscsiadm -m session -P 3|grep -A 50 @{PUBLICIP}[0] |awk '/Attached scsi disk/ {print $4}'
-    Wait Until Keyword Succeeds    30s    5s    Should Match    ${sdx}    sd*
+    Should Match    ${sdx}    sd*
     # Before set QoS
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=1M --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=/dev/${sdx} --direct=1 --group_reporting --output=fio.result
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
