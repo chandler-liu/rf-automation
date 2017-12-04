@@ -220,12 +220,13 @@ Check Shared Folder Exist UI
     Should Be True    ${share_folder_exist}
 	
 Check Shared Folder Exist
-	[Arguments]    ${name}    ${gateway_group}
-	@{gw_list}=    CGI List All Nodes GW    ${gateway_group}
-	${length}=    Get Length    ${gw_list}
-	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-	\    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['ens160']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
+    [Arguments]    ${name}    ${gateway_group}
+    @{gw_list}=    CGI List All Nodes GW    ${gateway_group}
+    ${length}=    Get Length    ${gw_list}
+    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+    \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Contain    ${get_share_folder}    ${name}
 
 	
@@ -242,12 +243,13 @@ Check Shared Folder Nonexist UI
     \    Exit For Loop IF    '${share_folder_list[${INDEX}]['name']}' == '${name}'
     \    log    ${share_folder_list[${INDEX}]['name']}
     Should Not Be True    ${share_folder_exist}
-	
+
 Check Shared Folder Nonexist
-	[Arguments]    ${name}    ${gateway_group}
-	@{gw_list}=    CGI List All Nodes GW    ${gateway_group}
-	${length}=    Get Length    ${gw_list}
-	:FOR    ${INDEX}    IN RANGE    0    ${length}
-	\    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-	\    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['ens160']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
-    \    Should Not Contain    ${get_share_folder}    ${name}
+    [Arguments]    ${name}    ${gateway_group}
+    @{gw_list}=    CGI List All Nodes GW    ${gateway_group}
+    ${length}=    Get Length    ${gw_list}
+    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+:FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+    \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
+    \    Should Not Contain    ${get_share_folder}    ${name}	
