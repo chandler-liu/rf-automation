@@ -1,9 +1,9 @@
 #!/bin/bash
 
 # Initiate default parameter
-serverflag=0 # 0 represents 172.17.59.120, 1 represents 125.227.238.56, 2 represents 192.168.163.254
 downloadisoflag=1
 installisoflag=1
+buildserver=172.17.59.124
 md5server=192.168.168.6
 isopath=/iso
 scriptrootpath=/work/automation-test/rf-automation-7.0
@@ -13,14 +13,11 @@ product=virtualstor_scaler_master
 
 usage()
 {
-    echo -e "usage:\n$0 [-h] [-d downisoflag] [-i installflag] [-s buildserverflag] [-p {product_name}]"
+    echo -e "usage:\n$0 [-h] [-d downisoflag] [-i installflag] [-p {product_name}]"
     echo "  -d      0: not download iso before execute testcases"
     echo "          1: download iso before execute testcases [default]"
     echo "  -i      0: skip iso installation testcases"
     echo "          1: install iso before execute other testcases [default]"
-    echo "  -s      0: use 172.17.59.120 as build server [default]"
-    echo "          1: use 125.227.238.56 as build server"
-    echo "          2: use 192.168.163.254 as build server"
     echo "  -p      {product_name}"
     echo "  -h      display this help"
 }
@@ -32,9 +29,6 @@ while [ "$1" != "" ]; do
                                 ;;
         -i | --installflag )    shift
                                 installisoflag=$1
-                                ;;
-        -s | --buildserver )    shift
-                                serverflag=$1
                                 ;;
         -p | --product )        shift
                                 product=$1
@@ -60,44 +54,13 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     rm -rf *.iso
     rm -rf iso
     rm -rf trusty/$product
-    case $serverflag in
-        0 ) dailyfolder=`ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@172.17.59.120 "ls /vol/share/Builds/buildwindow/trusty/$product/builds/"|tail -n 1`
-            ;;
-        1 ) # Register first
-            # wget -q -O - --no-check-certificate https://$buildserver/HeyITsMyIP.html
-            # sleep 300
-            dailyfolder=`wget -q -O - --no-check-certificate https://125.227.238.56/trusty/$product/builds/ |grep "201"|tail -n 1|cut -b 28-46` # 125.227.238.56's
-            ;;
-        2 ) dailyfolder=`wget -q -O - --no-check-certificate http://192.168.163.254/iso/trusty/$product/builds/ |grep "201"|tail -n 1|cut -b 74-92` # 192.168.163.254's
-            ;;
-        * ) echo ":< Server flag is not found!"
-            exit 1
-    esac
-
+    dailyfolder=`ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no root@${buildserver} "ls /vol/share/Builds/buildwindow/trusty/$product/builds/"|tail -n 1`
     if [ -z $dailyfolder ]; then
         echo "Fail to find build path!!!"
         retry=$((retry+1)) && continue
     fi
     
-    case $serverflag in
-        1 ) wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  https://125.227.238.56/trusty/$product/builds/$dailyfolder/
-            ;;
-        2 ) wget --no-check-certificate -r -np -nH --accept=*iso --tries=0 -c  http://192.168.163.254/iso/trusty/$product/builds/$dailyfolder/
-            ;;
-    esac
-
-    if [ $? != 0 ]; then
-        echo "Download ISO fail!!!"
-        retry=$((retry+1)) && continue
-    fi
-
-    case $serverflag in
-        0 ) scp root@172.17.59.120:/vol/share/Builds/buildwindow/trusty/$product/builds/$dailyfolder/*.iso .
-            ;;
-        1 ) cp trusty/$product/builds/$dailyfolder/*.iso .
-            ;;
-        2 ) cp iso/trusty/$product/builds/$dailyfolder/*.iso .
-    esac
+    scp root@${buildserver}:/vol/share/Builds/buildwindow/trusty/$product/builds/$dailyfolder/*.iso .
 
     ## Check md5sum ##
     echo "Start to check md5 of `ls *.iso`"
