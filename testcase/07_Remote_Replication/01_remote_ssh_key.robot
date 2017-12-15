@@ -26,12 +26,14 @@ Add public key of remote cluster
     ${content_url} =    Evaluate    '${content_raw}'.replace('+','%2B').replace('/','%2F').replace('=','%3D')
     ${content_url} =    Set Variable    ssh-dss+${content_url}
     Add Remote SSH Key    ${name_url}    ${content_url}
+	Switch Connection    @{PUBLICIP}[0]
+	${ssh_host_name} =    Execute Command    cat ~/.ssh/authorized_keys | awk '{print $NF}'
+	Should Contain    ${ssh_host_name}    ${name_raw}
     
 Display public key of local cluster
     [Documentation]    Testlink ID:
     ...    Sc-663:Display public key of local cluster
     [Tags]    FAST
-    Switch Connection    @{PUBLICIP}[0]
     ${local_public_key} =    Execute Command    cat ~/.ssh/id_dsa.pub | awk '{print $2}'
     ${public_key} =    Get Local Public Key Content
     Should Contain    ${public_key}    ${local_public_key}
