@@ -27,7 +27,7 @@ Add public key of remote cluster
     ${content_url} =    Set Variable    ssh-dss+${content_url}
     Add Remote SSH Key    ${name_url}    ${content_url}
 	Switch Connection    @{PUBLICIP}[0]
-	Wait Until Keyword Succeeds    3x    2s    SSH Output Should Contain    cat ~/.ssh/authorized_keys | awk '{print $NF}'    ${name_raw}
+	Wait Until Keyword Succeeds    3m    2s    SSH Output Should Contain    cat ~/.ssh/authorized_keys | awk '{print $NF}'    ${name_raw}
     
 Display public key of local cluster
     [Documentation]    Testlink ID:
@@ -54,7 +54,9 @@ Delete select public key(s)
     ${name_url} =    Evaluate    '${name_raw}'.replace('@','%40')
     Delete Remote SSH Key    ${name_url}
     Remote Public Key Should Be Empty
-    Sleep    5
+	Switch Connection    @{PUBLICIP}[0]
+	Wait Until Keyword Succeeds    3m    2s    SSH Output Should Not Contain    cat ~/.ssh/authorized_keys | awk '{print $NF}'    ${name_raw}
+	Switch Connection    ${DUMMYRRSIP}
     ${rc}=    Execute Command    ssh @{PUBLICIP}[0] "echo 'Test RRS Key'"    return_stdout=False    return_rc=True
     Should Be Equal As Integers    ${rc}    255
 
