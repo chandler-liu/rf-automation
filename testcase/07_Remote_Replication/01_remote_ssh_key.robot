@@ -27,8 +27,7 @@ Add public key of remote cluster
     ${content_url} =    Set Variable    ssh-dss+${content_url}
     Add Remote SSH Key    ${name_url}    ${content_url}
 	Switch Connection    @{PUBLICIP}[0]
-	${ssh_host_name} =    Execute Command    cat ~/.ssh/authorized_keys | awk '{print $NF}'
-	Should Contain    ${ssh_host_name}    ${name_raw}
+	Wait Until Keyword Succeeds    3x    2s    SSH Output Should Contain    cat ~/.ssh/authorized_keys | awk '{print $NF}'    ${name_raw}
     
 Display public key of local cluster
     [Documentation]    Testlink ID:
