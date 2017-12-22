@@ -14,7 +14,7 @@ ENV_Check
     : FOR    ${ip}    IN    @{PUBLICIP}
     \    log    Modify apache.conf file on ${ip}
     \    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    sed \ -i 's/KeepAlive On/KeepAlive Off/' \ /etc/apache2/apache2.conf; /etc/init.d/apache2 restart
-    \    Do SSH CMD    127.0.0.1    root    1    sshpass -p p@ssw0rd scp /work/automation-test/rf-automation-7.0/testcase/${ip}nc.sh root@${ip}:/root
+    \    Do SSH CMD    127.0.0.1    ${LOCALUSER}    ${LOCALPASS}    sshpass -p p@ssw0rd scp /work/automation-test/rf-automation-7.0/testcase/${ip}nc.sh root@${ip}:/root
 	\    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    chmod +x ${ip}nc.sh
 	\    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    echo /root/${ip}nc.sh >> /etc/rc.local
 	\    Do SSH CMD    ${ip}    ${USERNAME}    ${PASSWORD}    bash /root/${ip}nc.sh
