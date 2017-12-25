@@ -429,5 +429,27 @@ Delete Shared Folder
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist UI   ${name}    ${gateway_group}
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist    ${name}    ${gateway_group}
 	
+Add Samba Account
+    [Arguments]    ${vs_id}    ${user_id}    ${password}    ${confirm_password}    ${display_name}
+	CGI Add Vs User    ${vs_id}    ${user_id}    ${password}    ${confirm_password}    ${display_name}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Samba Account Exist    ${vs_id}    ${user_id}
 	
+Edit Shared Folder
+    [Arguments]    ${name}    ${gateway_group}=Default    ${nfs}=true    ${smb}=true   ${read_only}=false     ${mode}=sync    ${hidden}=false
+    ...    ${write_list}=    ${smb_allowed_hosts}=    ${nfs_allowed_hosts}=    ${guest_ok}=false    ${guest_only}=false    ${user_list}=
+	CGI Edit Shared Folder    ${name}    ${gateway_group}    ${nfs}    ${smb}    ${read_only}    ${mode}    ${hidden}    ${write_list}    ${smb_allowed_hosts}    ${nfs_allowed_hosts}    ${guest_ok}    ${guest_only}    ${user_list}
 	
+Client Mount CIFS Folder
+    [Arguments]    ${cifs_mount_point}    ${user_id}    ${password}    ${folder_name}
+    Switch Connection    127.0.0.1
+	Execute Command Successfully    mkdir -p ${cifs_mount_point}; mount -t cifs -o username=${user_id},password=${password} //@{PUBLICIP}[0]/${folder_name} ${cifs_mount_point}
+
+Client Umont CIFS Folder
+    [Arguments]    ${cifs_mount_point}
+	Switch Connection    127.0.0.1
+	Execute Command Successfully    umount ${cifs_mount_point}
+
+Delete Samba Account
+    [Arguments]    ${vs_id}    ${user_id}
+	CGI Del Multi Vs User    ${vs_id}    ${user_id}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Samba Account Nonexist    ${vs_id}    ${user_id}

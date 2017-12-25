@@ -249,7 +249,68 @@ Check Shared Folder Nonexist
     @{gw_list}=    CGI List All Nodes GW    ${gateway_group}
     ${length}=    Get Length    ${gw_list}
     ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
-:FOR    ${INDEX}    IN RANGE    0    ${length}
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
     \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Not Contain    ${get_share_folder}    ${name}	
+
+Check Samba Account Exist
+    [Arguments]    ${vs_id}    ${user_id}
+	@{gw_list}=    CGI List All Nodes GW    ${vs_id}
+	${length}=    Get Length    ${gw_list}
+    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/passwd | grep -w ${user_id}
+	\    Should Be Equal As Strings    ${user_id}    ${account_out_put}
+	
+Check Samba Account Exist UI
+    [Arguments]    ${vs_id}    ${user_id}
+	Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+	${samba_account_list}=    CGI Vs User List    ${vs_id}
+	${length}=    Get Length    ${samba_account_list}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${samba_account_exist}=    Run Keyword IF    '${samba_account_list[${INDEX}]['account']}' == '${user_id}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${samba_account_list[${INDEX}]['account']}' == '${user_id}'
+    \    log    ${samba_account_list[${INDEX}]['account']}
+    Should Be True    ${samba_account_exist}
+	
+Check Samba Account Exist ACL UI
+    [Arguments]    ${vs_id}    ${user_id}    ${folder_name}
+	Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+	${share_folder_list}=    CGI List Shared Folder    ${vs_id}
+	${length}=    Get Length    ${share_folder_list}
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${samba_account_exist_acl}=    Run Keyword IF    '${share_folder_list[${INDEX}]['name']}' == '${folder_name}' and '${user_id}' in '${share_folder_list[${INDEX}]['allow-list']}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${share_folder_list[${INDEX}]['name']}' == '${folder_name}' and '${user_id}' in '${share_folder_list[${INDEX}]['allow-list']}'
+    \    log    ${share_folder_list[${INDEX}]['name']}
+	\    log    ${share_folder_list[${INDEX}]['allow-list']}
+    Should Be True    ${samba_account_exist_acl}
+	
+Check Samba Account Nonexist
+    [Arguments]    ${vs_id}    ${user_id}
+	@{gw_list}=    CGI List All Nodes GW    ${vs_id}
+	${length}=    Get Length    ${gw_list}
+    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/passwd | grep -w ${user_id}
+	\    Should Not Be Equal As Strings    ${user_id}    ${account_out_put}
+	
+Check Samba Account Nonexist UI
+    [Arguments]    ${vs_id}    ${user_id}
+	Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${DEFAULT WEB USERNAME}    ${DEFAULT WEB PASSWORD}
+	${samba_account_list}=    CGI Vs User List    ${vs_id}
+	${length}=    Get Length    ${samba_account_list}
+	${samba_account_exist}=    Set Variable IF     '${length}'=='0'    False
+	:FOR    ${INDEX}    IN RANGE    0    ${length}
+	\    ${samba_account_exist}=    Run Keyword IF    '${samba_account_list[${INDEX}]['account']}' == '${user_id}'
+    \    ...    Set Variable    True
+    \    ...    ELSE    Set Variable    False
+    \    Exit For Loop IF    '${samba_account_list[${INDEX}]['account']}' == '${user_id}'
+    \    log    ${samba_account_list[${INDEX}]['account']}
+    Should Not Be True    ${samba_account_exist}

@@ -254,3 +254,27 @@ CGI Host Nic List
 	${host_nic_parse}=    Parse Json    ${host_nic_list}
 	[Return]    ${host_nic_parse}
 	
+CGI Add Vs User
+    [Arguments]    ${vs_id}    ${user_id}    ${password}    ${confirm_password}    ${display_name}
+	Return Code Should be 0    /cgi-bin/ezs3/json/add_vs_user?vs_id=${vs_id}&user_id=${user_id}&password=${password}&confirm_password=${confirm_password}&display_name=${display_name}
+	
+CGI Vs User List
+    [Arguments]    ${vs_id}
+	${samba_account_list}=    Get Return Json    /cgi-bin/ezs3/json/vs_user_list?vs_id=${vs_id}    /response/user
+	${samba_account_parse}=    Parse Json    ${samba_account_list}
+	[Return]    ${samba_account_parse}
+	
+CGI Edit Shared Folder
+    [Arguments]    ${name}    ${gateway_group}    ${nfs}    ${smb}    ${read_only}    ${mode}    ${hidden}
+    ...    ${write_list}    ${smb_allowed_hosts}    ${nfs_allowed_hosts}    ${guest_ok}    ${guest_only}    ${user_list}
+    ${edit_shared_folder_body}=    Set Variable    name=${name}&gateway_group=${gateway_group}&nfs=${nfs}&smb=${smb}&read_only=${read_only}&mode=${mode}&hidden=${hidden}&write_list=${write_list}&smb_allowed_hosts=${smb_allowed_hosts}&nfs_allowed_hosts=${nfs_allowed_hosts}&guest_ok=${guest_ok}&guest_only=${guest_only}&user_list=${user_list}
+    ${edit_shared_folder_url}=    Set Variable    /cgi-bin/ezs3/json/edit_shared_folder
+    Post Return Code Should be 0    ${edit_shared_folder_body}    ${edit_shared_folder_url}
+	
+CGI Del Multi Vs User
+    [Arguments]    ${vs_id}    ${user_id}
+	@{user_id_list}=    Create List    ${user_id}
+    ${user_id_list_urlencode}=    URL JSON Encode    ${user_id_list}
+	${del_samba_account_body}=    Set Variable    vs_id=${vs_id}&user_ids=${user_id_list_urlencode}
+	${del_samba_account_url}=    Set Variable    /cgi-bin/ezs3/json/del_multi_vs_user
+	Post Return Code Should be 0    ${del_samba_account_body}    ${del_samba_account_url}
