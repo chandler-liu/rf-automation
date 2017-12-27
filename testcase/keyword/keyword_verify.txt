@@ -261,7 +261,7 @@ Check Samba Account Exist
     ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/passwd | grep -w ${user_id}
+	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/passwd | grep -w ${user_id} | awk -F ':' '{print $1}'
 	\    Should Be Equal As Strings    ${user_id}    ${account_out_put}
 	
 Check Samba Account Exist UI
@@ -291,6 +291,17 @@ Check Samba Account Exist ACL UI
 	\    log    ${share_folder_list[${INDEX}]['allow-list']}
     Should Be True    ${samba_account_exist_acl}
 	
+Check Samba Account Exist ACL
+    [Arguments]    ${vs_id}    ${user_id}    ${folder_name}
+	@{gw_list}=    CGI List All Nodes GW    ${vs_id}
+	${length}=    Get Length    ${gw_list}
+    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    :FOR    ${INDEX}    IN RANGE    0    ${length}
+    \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
+	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/samba/smb.conf | grep -w '\[${folder_name}\]' -A 15 | grep -w ${user_id} | awk '{print $4}'
+	\    Should Be Equal As Strings    ${user_id}    ${account_out_put}
+
+	
 Check Samba Account Nonexist
     [Arguments]    ${vs_id}    ${user_id}
 	@{gw_list}=    CGI List All Nodes GW    ${vs_id}
@@ -298,7 +309,7 @@ Check Samba Account Nonexist
     ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/passwd | grep -w ${user_id}
+	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/passwd | grep -w ${user_id} | awk -F ':' '{print $1}'
 	\    Should Not Be Equal As Strings    ${user_id}    ${account_out_put}
 	
 Check Samba Account Nonexist UI

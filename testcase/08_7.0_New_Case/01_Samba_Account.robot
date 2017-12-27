@@ -38,21 +38,20 @@ Add A CIFS Shared Folder
     Run Keyword    Add Shared Folder    name=${folder_name}
 	
 Add The Samba Account To Allow List
-    Run Keyword    Edit Shared Folder    name=${folder_name}    ${user_list}=${account_name}
+    Run Keyword    Edit Shared Folder    name=${folder_name}    user_list=${account_name}
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Samba Account Exist ACL UI    ${vs_name}    ${account_name}    ${folder_name}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Samba Account Exist ACL    ${vs_name}    ${account_name}    ${folder_name}
 	
 Client Mount Folder Successfully
-	Run Keyword    Client Mount CIFS Folder    ${cifs_mount_point}    ${user_id}    ${account_password}    ${folder_name}
+	Run Keyword    Client Mount CIFS Folder    ${cifs_mount_point}    ${account_name}    ${account_password}    ${folder_name}
 	
 Client Umount Folder
     Run Keyword    Client Umont CIFS Folder    ${cifs_mount_point}
 	
 Remove The Folder
-    [Arguments]    ${folder_name}
 	Run Keyword    Delete Shared Folder    ${vs_name}    ${folder_name}
 	
 Remove The Account
-    [Arguments]    ${account_name}
 	Run Keyword    Delete Samba Account    ${vs_name}    ${account_name}
-	Wait Until Keyword Succeeds    4 min    5 sec    Check Samba Account Exist UI    ${vs_name}    ${account_name}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Samba Account Nonexist UI    ${vs_name}    ${account_name}
 	
