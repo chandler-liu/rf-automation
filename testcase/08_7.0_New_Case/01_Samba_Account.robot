@@ -3,6 +3,7 @@ Documentation     This suite includes cases related to Samba Account
 Suite Setup       Run Keywords    Open HTTP Connection And Log In    @{PUBLICIP}[0]    ${UIADMIN}    ${UIPASS}
 ...               AND    Open All SSH Connections    ${USERNAME}    ${PASSWORD}    @{PUBLICIP}
 ...               AND    Open Connection    127.0.0.1    alias=127.0.0.1
+...               AND    Login    ${LOCALUSER}    ${LOCALPASS}
 Suite Teardown    Close All Connections
 Resource          ../00_commonconfig.txt
 Resource          ../keyword/keyword_verify.txt
