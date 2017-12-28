@@ -298,7 +298,7 @@ Check Samba Account Exist ACL
     ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/samba/smb.conf | grep -w '\[${folder_name}\]' -A 15 | grep -w ${user_id} | awk '{print $4}'
+	\    ${account_out_put}=    DO SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    cat /etc/samba/smb.conf | grep -w '\\[${folder_name}\\]' -A 15 | grep -w ${user_id} | awk '{print $4}'
 	\    Should Be Equal As Strings    ${user_id}    ${account_out_put}
 
 	
