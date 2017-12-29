@@ -98,9 +98,10 @@ QoS of iops takes effect
 	Execute Command Successfully    iscsiadm -m node -o delete
     Enable iSCSI QoS    gateway_group=${vs_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name}    size=${iscsi_lun_size}    
     ...               read_maxbw=${read_maxbw_bytes}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw_bytes}    write_maxiops=${write_maxiops}
-    Switch Connection    @{PUBLICIP}[0]
-    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/read_maxiops    ${read_maxiops}
-    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/write_maxiops    ${write_maxiops}
+    : FOR    ${ip}    IN    @{PUBLICIP}
+	\    Switch Connection    ${ip}
+    \    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/read_maxiops    ${read_maxiops}
+    \    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/write_maxiops    ${write_maxiops}
     # After set QoS
     Switch Connection    127.0.0.1
 	SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
@@ -127,9 +128,10 @@ QoS of bandwidth takes effect
 	Execute Command Successfully    iscsiadm -m node -o delete
     Enable iSCSI QoS    gateway_group=${vs_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name}    size=${iscsi_lun_size}    
     ...               read_maxbw=${read_maxbw_bytes}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw_bytes}    write_maxiops=${write_maxiops}
-    Switch Connection    @{PUBLICIP}[0]
-    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/read_maxbw    ${read_maxbw_bytes}
-    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/write_maxbw    ${write_maxbw_bytes}
+    : FOR    ${ip}    IN    @{PUBLICIP}
+	\    Switch Connection    ${ip}
+    \    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/read_maxbw    ${read_maxbw_bytes}
+    \    Wait Until Keyword Succeeds    30s    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/write_maxbw    ${write_maxbw_bytes}
     # After set QoS
     Switch Connection    127.0.0.1
 	SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
