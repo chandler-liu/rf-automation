@@ -94,6 +94,7 @@ QoS of iops takes effect
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    Before set QoS: ${randwrite_iops}
     Should Be True    ${randwrite_iops} > ${write_maxiops}
+	Execute Command    iscsiadm -m node --logout -T ${iscsi_target_name}
 	Execute Command Successfully    iscsiadm -m node -o delete
     Enable iSCSI QoS    gateway_group=${vs_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name}    size=${iscsi_lun_size}    
     ...               read_maxbw=${read_maxbw_bytes}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw_bytes}    write_maxiops=${write_maxiops}
@@ -122,6 +123,7 @@ QoS of bandwidth takes effect
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    Before set QoS: ${randwrite_iops}
     Should Be True    ${randwrite_iops} > ${write_maxbw_M}
+	Execute Command    iscsiadm -m node --logout -T ${iscsi_target_name}
 	Execute Command Successfully    iscsiadm -m node -o delete
     Enable iSCSI QoS    gateway_group=${vs_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name}    size=${iscsi_lun_size}    
     ...               read_maxbw=${read_maxbw_bytes}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw_bytes}    write_maxiops=${write_maxiops}
