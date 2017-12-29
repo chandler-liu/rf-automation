@@ -94,6 +94,7 @@ QoS of iops takes effect
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    Before set QoS: ${randwrite_iops}
     Should Be True    ${randwrite_iops} > ${write_maxiops}
+	Execute Command Successfully    iscsiadm -m node -o delete
     Enable iSCSI QoS    gateway_group=${vs_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name}    size=${iscsi_lun_size}    
     ...               read_maxbw=${read_maxbw_bytes}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw_bytes}    write_maxiops=${write_maxiops}
     Switch Connection    @{PUBLICIP}[0]
@@ -101,6 +102,8 @@ QoS of iops takes effect
     SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/write_maxiops    ${write_maxiops}
     # After set QoS
     Switch Connection    127.0.0.1
+	SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
+	Wait Until Keyword Succeeds    30s    5s    Check If Disk Output Is Empty    iscsiadm -m session -P 3 | grep ${sdx}    ${false}
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=4k --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=/dev/${sdx} --direct=1 --group_reporting --output=fio.result
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    After set QoS: ${randwrite_iops}
@@ -119,6 +122,7 @@ QoS of bandwidth takes effect
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    Before set QoS: ${randwrite_iops}
     Should Be True    ${randwrite_iops} > ${write_maxbw_M}
+	Execute Command Successfully    iscsiadm -m node -o delete
     Enable iSCSI QoS    gateway_group=${vs_name}    iscsi_id=${iscsi_lun_name}    target_id=${iscsi_target_name}    size=${iscsi_lun_size}    
     ...               read_maxbw=${read_maxbw_bytes}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw_bytes}    write_maxiops=${write_maxiops}
     Switch Connection    @{PUBLICIP}[0]
@@ -126,6 +130,8 @@ QoS of bandwidth takes effect
     SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/write_maxbw    ${write_maxbw_bytes}
     # After set QoS
     Switch Connection    127.0.0.1
+	SSH Output Should Contain    iscsiadm -m discovery -t st -p @{PUBLICIP}[0]    ${iscsi_target_name}
+	Wait Until Keyword Succeeds    30s    5s    Check If Disk Output Is Empty    iscsiadm -m session -P 3 | grep ${sdx}    ${false}
     Execute Command Successfully    fio --name=randwrite --rw=randwrite --bs=1M --size=100M --runtime=20 --ioengine=libaio --iodepth=16 --numjobs=1 --filename=/dev/${sdx} --direct=1 --group_reporting --output=fio.result
     ${randwrite_iops} =    Execute Command    cat fio.result | sed -ne 's/.*iops=\\(.*\\),.*/\\1/p'
     Log    After set QoS: ${randwrite_iops}
