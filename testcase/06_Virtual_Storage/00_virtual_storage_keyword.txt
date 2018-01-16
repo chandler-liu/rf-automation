@@ -66,10 +66,10 @@ Delete Shared Folder
     Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${folder_name}&gateway_group=${vs_name}
 	@{gw_list}=    CGI List All Nodes GW    ${vs_name}
     ${length}=    Get Length    ${gw_list}
-    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
+    ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${USERNAME}    ${PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-    \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph config-key get "sds.${vs_name}.shared_folders" | grep ${folder_name}
+    \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${USERNAME}    ${PASSWORD}    ceph config-key get "sds.${vs_name}.shared_folders" | grep ${folder_name}
     \    Should Not Contain    ${get_share_folder}    ${folder_name}	
 
 CGI List All Nodes GW
