@@ -75,8 +75,8 @@ One time replication task for shared folders
     ...    @{PUBLICIP}[-1]
     Get Replication Task Status    ${task_id}
     Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
@@ -161,7 +161,7 @@ Create a recurrent replication task for shared folders
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
     [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
@@ -185,7 +185,7 @@ Create a recurrent replication task for S3 buckets
     ...    @{PUBLICIP}[-1]    dst=${bucket_name}    schedule=${schedule}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
@@ -209,8 +209,8 @@ Delete selected replication task(s)
     ...    @{PUBLICIP}[-1]
     Get Replication Task Status    ${task_id2}
     ${task_id}=    Set Variable    ${task_id1}%2C${task_id2}
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
@@ -239,7 +239,7 @@ Edit a selected replication task
     ...    schedule=${new_schedule}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}    3
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}

@@ -461,15 +461,19 @@ Search Initiator Group
 
 Enable Special ACL on Volume
     [Arguments]    ${allow_all}=true    ${allowed_initiators}=    ${volume_name}=${iscsi_volume_name}
+	Disable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${volume_name}
     Modify iSCSI LUN    allow_all=${allow_all}    gateway_group=${vs_name}    allowed_initiators=${allowed_initiators}    iscsi_id=${volume_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_volume_size}
-
+	Enable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${volume_name}
+	
 Enable ACL Group on Volume
     [Arguments]    ${allow_all}=false    ${allowed_initiator_groups}=    ${allowed_initiators}=    ${volume_name}=${iscsi_volume_name}
     ${initiator_group}=    Search Initiator Group    group_name=${allowed_initiator_groups}
     ${initiator_group_key}=    Get Dictionary Keys    ${initiator_group}
     ${allowed_initiator_groups_uuid}=    Set Variable    ${initiator_group_key[0]}
+	Disable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${volume_name}
     Modify iSCSI LUN    allow_all=${allow_all}    gateway_group=${vs_name}    allowed_initiator_groups=${allowed_initiator_groups_uuid}    allowed_initiators=${allowed_initiators}    iscsi_id=${volume_name}    target_id=${iscsi_target_name_urlencoding}    size=${iscsi_volume_size}
-
+	Enable iSCSI LUN    ${vs_name}    ${iscsi_target_name_urlencoding}    ${volume_name}
+	
 Enable iSCSI volume
     [Arguments]    ${volume_name}=${iscsi_volume_name}
     ${rbd_image}=    Get RBD Image Name    target_id=${iscsi_target_name}    volume_name=${volume_name}
