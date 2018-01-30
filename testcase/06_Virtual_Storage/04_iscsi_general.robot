@@ -169,14 +169,18 @@ Delete iSCSI target
 Enable iSCSI QoS
     [Arguments]    ${gateway_group}    ${iscsi_id}    ${read_maxbw}    ${read_maxiops}    ${write_maxbw}    ${write_maxiops}
     ...            ${size}    ${target_id}
+	Disable iSCSI LUN    ${gateway_group}    ${iscsi_target_name_urlencoding}    ${iscsi_id}
     Modify iSCSI LUN    gateway_group=${gateway_group}    iscsi_id=${iscsi_id}    target_id=${target_id}    size=${size}    qos_enabled=true    read_maxbw=${read_maxbw}    read_maxiops=${read_maxiops}    write_maxbw=${write_maxbw}    write_maxiops=${write_maxiops} 
-    Switch Connection    @{PUBLICIP}[0]
+    Enable iSCSI LUN    ${gateway_group}    ${iscsi_target_name_urlencoding}    ${iscsi_id}
+	Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    4x    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/qos    1
 
 Disable iSCSI QoS
     [Arguments]    ${gateway_group}    ${iscsi_id}    ${size}    ${target_id}
+	Disable iSCSI LUN    ${gateway_group}    ${iscsi_target_name_urlencoding}    ${iscsi_id}
     Modify iSCSI LUN    gateway_group=${gateway_group}    iscsi_id=${iscsi_id}    target_id=${target_id}    size=${size}    qos_enabled=false
-    Switch Connection    @{PUBLICIP}[0]
+    Enable iSCSI LUN    ${gateway_group}    ${iscsi_target_name_urlencoding}    ${iscsi_id}
+	Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    4x    5s    SSH Output Should Be Equal   cat /sys/bus/rbd/devices/0/qos    0
 
 Check If Disk Output Is Empty
