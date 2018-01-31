@@ -37,6 +37,7 @@ ${read_maxiops}                     50
 ${write_maxbw_M}                    5
 ${write_maxbw_bytes}                5242750
 ${write_maxiops}                    50
+
 #Global Variables
 
 *** Test Cases ***
@@ -70,18 +71,6 @@ Create Initiator Group and Add Initiators At The Same Time
     [Tags]    TOFT
     Create iSCSI Initiator Group with Initiators
 
-Delete Null Group after Group Assign to Enable iSCSI Volume
-    [Documentation]    Testlink ID:
-    ...    Sc-853:Delete null group after group assign to enable iSCSI Volume
-    [Tags]    TOFT
-    Can Delete Null Group Asigned to Enable iSCSI Volume
-
-Delete Initiator Group after Group Assign to Enable iSCSI Volume
-    [Documentation]    Testlink ID:
-    ...    Sc-856:Delete initiator group after group assign to enable iSCSI volume
-    [Tags]    FAST
-    Can Delete Group Asigned to Enable iSCSI Volume
-
 Delete Non-Null Initiator Group after Group Assign to Disabled iSCSI Volume
     [Documentation]    Testlink ID:
     ...    Sc-857:Delete non-null group after group assign to disabled iSCSI volume
@@ -99,12 +88,6 @@ Delete Non-Null Initiator Group Before Group Assigned
     ...    Sc-861:Delete non-null group before group assigned
     [Tags]    TOFT
     Can Delete Non-Null Initiator Group Without Assigned
-
-Apply Initiator Group to Enable iSCSI Volume
-    [Documentation]    Testlink ID:
-    ...    Sc-862:Apply initiator group to enable iSCSI volume
-    [Tags]    FAST
-    Can Apply Initiator Group to Enable iSCSI Volume
 
 Initiator Group Can Apply When The Standard Initiator ACL Already Exist
     [Documentation]    Testlink ID:
@@ -390,13 +373,15 @@ Check iSCIS Volume can Access and has disk
 	Execute Command Successfully   iscsiadm -m node -o delete
 
 Initiator Group Create
-    [Arguments]    ${group_name}=    ${protocol}=    ${initiator_list}=[]
+    [Arguments]    ${group_name}=    ${protocol}=    
+	@{initiator_list}=    Create List
     ${initiator_list_urlencode}=    URL JSON Encode    ${initiator_list}
     ${post_request}=    Set Variable    gateway_group=${gateway_group}&group_name=${group_name}&protocol=${protocol}&initiator_list=${initiator_list_urlencode}
     Post Return Code Should be 0    ${post_request}    /cgi-bin/ezs3/json/initiator_group_create
 
 Edit Initiator Group
-    [Arguments]    ${group_name}=    ${protocol}=    ${initiator_list}=[]
+    [Arguments]    ${group_name}=    ${protocol}=
+	@{initiator_list}=    Create List
     ${initiator_group}=    Search Initiator Group    group_name=${group_name}
     ${initiator_group_key}=    Get Dictionary Keys    ${initiator_group}
     ${group_id}=    Set Variable    ${initiator_group_key[0]}
