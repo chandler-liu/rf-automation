@@ -70,7 +70,7 @@ Delete Shared Folder
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
     \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${USERNAME}    ${PASSWORD}    ceph config-key get "sds.${vs_name}.shared_folders" | grep ${folder_name}
-    \    Wait Until Keyword Succeeds    12 min    10 sec    Should Not Contain    ${get_share_folder}    ${folder_name}	
+    \    Should Not Contain    ${get_share_folder}    ${folder_name}	
 
 CGI List All Nodes GW
 	[Arguments]    ${gateway_group}
