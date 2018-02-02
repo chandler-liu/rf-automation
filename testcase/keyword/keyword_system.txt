@@ -427,7 +427,7 @@ Delete Shared Folder
 	[Arguments]    ${gateway_group}    ${name}
 	CGI Delete Multi Shared Folder    ${name}    ${gateway_group}
 	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist UI   ${name}    ${gateway_group}
-	Wait Until Keyword Succeeds    12 min    5 sec    Check Shared Folder Nonexist    ${name}    ${gateway_group}
+	Wait Until Keyword Succeeds    4 min    5 sec    Check Shared Folder Nonexist    ${name}    ${gateway_group}
 	
 Add Samba Account
     [Arguments]    ${vs_id}    ${user_id}    ${password}    ${confirm_password}    ${display_name}

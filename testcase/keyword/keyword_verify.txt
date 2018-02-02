@@ -251,7 +251,7 @@ Check Shared Folder Nonexist
     ${nic_name}=    Do SSH CMD    @{PUBLICIP}[0]   ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ifconfig | grep -i -B 1 @{PUBLICIP}[0] | grep -v 'inet' | awk -F " " '{print $1}' | sed s'/ //'g
     :FOR    ${INDEX}    IN RANGE    0    ${length}
     \    ${ssh_ip}=    CGI Host Nic List    ${gw_list[${INDEX}]['ip']}
-    \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ceph config-key get "sds.${gateway_group}.shared_folders" | grep ${name}
+    \    ${get_share_folder}=    Do SSH CMD    ${ssh_ip['${nic_name}']['ipv4']}    ${DEFAULT SSH USERNAME}    ${DEFAULT SSH PASSWORD}    ls /vol
     \    Should Not Contain    ${get_share_folder}    ${name}	
 
 Check Samba Account Exist
