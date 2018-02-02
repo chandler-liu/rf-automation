@@ -213,6 +213,7 @@ Can Apply Initiator Group with Same ACL on Volume
     Enable Initiator Groups on Volume
     Check Initiator Group assign Successly
     Check iSCIS Volume can Access and has disk
+    Disable iSCSI volume    volume_name=${iscsi_volume_name}
     Delete All Initiator Group
     Remove iSCSI Volume
 
@@ -226,6 +227,7 @@ Can Apply Initiator Group without Same ACL on Volume
     Enable Initiator Groups on Volume
     Check Initiator Group assign Successly
     Check iSCIS Volume can Access and has disk
+    Disable iSCSI volume    volume_name=${iscsi_volume_name}
     Delete All Initiator Group
     Remove iSCSI Volume
 
@@ -374,14 +376,12 @@ Check iSCIS Volume can Access and has disk
 
 Initiator Group Create
     [Arguments]    ${group_name}=    ${protocol}=    ${initiator_arg}=
-	@{initiator_list}=    Create List    ${initiator_arg}
-    ${initiator_list_urlencode}=    URL JSON Encode    ${initiator_list}
+    ${initiator_list_urlencode}=    URL JSON Encode    ${initiator_arg}
     ${post_request}=    Set Variable    gateway_group=${gateway_group}&group_name=${group_name}&protocol=${protocol}&initiator_list=${initiator_list_urlencode}
     Post Return Code Should be 0    ${post_request}    /cgi-bin/ezs3/json/initiator_group_create
 
 Edit Initiator Group
-    [Arguments]    ${group_name}=    ${protocol}=
-	@{initiator_list}=    Create List
+    [Arguments]    ${group_name}=    ${protocol}=    ${initiator_list}=
     ${initiator_group}=    Search Initiator Group    group_name=${group_name}
     ${initiator_group_key}=    Get Dictionary Keys    ${initiator_group}
     ${group_id}=    Set Variable    ${initiator_group_key[0]}
