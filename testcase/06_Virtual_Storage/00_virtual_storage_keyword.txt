@@ -65,7 +65,7 @@ Delete Shared Folder
     [Arguments]    ${vs_name}    ${folder_name}
     Return Code Should be 0    /cgi-bin/ezs3/json/delete_multi_shared_folder?name_list=${folder_name}&gateway_group=${vs_name}
     ${get_share_folder}=    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}    ceph config-key get "sds.${vs_name}.shared_folders" | grep ${folder_name}
-    Wait Until Keyword Succeeds    12 min    10 sec    Check Shared Folder Recycle    ${vs_name}    ${folder_name}	 
+    Wait Until Keyword Succeeds    12 min    10 sec    Check Shared Folder Recycle	
 	
 Check Shared Folder Recycle
 	[Arguments]    ${vs_name}    ${folder_name}	
