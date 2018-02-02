@@ -132,7 +132,7 @@ Create FC Initiator Group without Initiators
     Delete All Initiator Group
 
 Create iSCSI Initiator Group with Initiators
-    Initiator Group Create    group_name=${iscsi_group01}    protocol=iscsi    initiator_list=${iscsi_initiator_name_list}
+    Initiator Group Create    group_name=${iscsi_group01}    protocol=iscsi    initiator_arg=${iscsi_initiator_name_list}
     Check Initiator Group Create Successly    group_name=${iscsi_group01}
     Check Test Initiator in Initiator Group
     Delete All Initiator Group
@@ -373,8 +373,8 @@ Check iSCIS Volume can Access and has disk
 	Execute Command Successfully   iscsiadm -m node -o delete
 
 Initiator Group Create
-    [Arguments]    ${group_name}=    ${protocol}=    
-	@{initiator_list}=    Create List
+    [Arguments]    ${group_name}=    ${protocol}=    ${initiator_arg}=
+	@{initiator_list}=    Create List    ${initiator_arg}
     ${initiator_list_urlencode}=    URL JSON Encode    ${initiator_list}
     ${post_request}=    Set Variable    gateway_group=${gateway_group}&group_name=${group_name}&protocol=${protocol}&initiator_list=${initiator_list_urlencode}
     Post Return Code Should be 0    ${post_request}    /cgi-bin/ezs3/json/initiator_group_create
