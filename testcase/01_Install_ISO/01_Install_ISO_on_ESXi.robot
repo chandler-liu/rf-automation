@@ -37,7 +37,7 @@ Destroy and Reinstall VM
 Make Sure All Nodes are Installed and Ready
     [Documentation]  Check if http can work to determine if install is finished
     :FOR    ${ip}   IN    @{PUBLICIP}
-    \       Wait Until Keyword Succeeds  30m  30s  GET  https://${ip}:8080
+    \       Wait Until Keyword Succeeds  40m  30s  GET  https://${ip}:8080
     \       Wait Until Keyword Succeeds  2m  5s  Open Connection    ${ip}
     \       Wait Until Keyword Succeeds  2m  5s  Login    ${USERNAME}    ${PASSWORD}
     \       Execute Command Successfully  ${debug_cmd}
