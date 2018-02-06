@@ -21,7 +21,7 @@ Create NFS share folder
     [Documentation]    Testlink ID:
     ...    Sc-432:Create NFS share folder
     [Tags]    RAT
-    ${folder_name} =    Set Variable    nfsfolder
+    ${folder_name} =    Set Variable    nfsfolder621
     ${mount_point} =    Set Variable    /mnt/nfs
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Assign Gateway to Virtual Storage    ${vs_name}    @{STORAGEIP}[0]
@@ -36,7 +36,7 @@ Create CIFS share folder
     [Documentation]    Testlink ID:
     ...    Sc-433:Create CIFS share folder
     [Tags]    RAT
-    ${folder_name} =    Set Variable    cifsfolder
+    ${folder_name} =    Set Variable    cifsfolder622
     ${mount_point} =    Set Variable    /mnt/cifs
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    smb=true    guest_ok=true
     Switch Connection    @{PUBLICIP}[0]
@@ -52,7 +52,7 @@ Create share folder for both NFS and CIFS
     [Documentation]    Testlink ID:
     ...    Sc-434:Create share folder for both NFS and CIFS
     [Tags]    FAST
-    ${folder_name} =    Set Variable    nfscifsfolder
+    ${folder_name} =    Set Variable    nfscifsfolder623
     ${nfs_mount_point} =    Set Variable    /mnt/nfs
     ${cifs_mount_point} =    Set Variable    /mnt/cifs
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    smb=true    guest_ok=true
@@ -76,7 +76,7 @@ Enable share folder
     [Documentation]    Testlink ID:
     ...    Sc-435:Enable share folder
     [Tags]    FAST
-    ${folder_name} =    Set Variable    nfsfolder
+    ${folder_name} =    Set Variable    nfsfolder624
     ${mount_point} =    Set Variable    /mnt/nfs
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Disable Shared Folder    name_list=${folder_name}    gateway_group=${vs_name}
@@ -94,7 +94,7 @@ Disable share folder
     [Documentation]    Testlink ID:
     ...    Sc-436:Disable share folder
     [Tags]    FAST
-    ${folder_name} =    Set Variable    nfsfolder
+    ${folder_name} =    Set Variable    nfsfolder625
     ${mount_point} =    Set Variable    /mnt/nfs
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
     Switch Connection    @{PUBLICIP}[0]
@@ -113,7 +113,7 @@ Delete share folder
     [Documentation]    Testlink ID:
     ...    Sc-437:Delete share folder
     [Tags]    FAST
-    ${folder_name} =    Set Variable    nfsfolder
+    ${folder_name} =    Set Variable    nfsfolder626
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    smb=true
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
@@ -129,7 +129,7 @@ Configure NFS server accessing model
     [Documentation]    Testlink ID:
     ...    Sc-438:Configure NFS server accessing model
     [Tags]    TOFT
-    ${folder_name} =    Set Variable    sync_async_folder
+    ${folder_name} =    Set Variable    sync_async_folder627
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true    mode=sync
     Switch Connection    @{PUBLICIP}[0]
     Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    cat /etc/exports | grep ",sync,"    ${false}
@@ -145,7 +145,7 @@ Configure storage pool for share folder
     ${new_pool} =    Set Variable    pool1
 	${new_metapool} =    Set Variable    metapool1
     ${osd_ids} =    Set Variable    0+1+2
-    ${folder_name} =    Set Variable    folder1
+    ${folder_name} =    Set Variable    folder628
 	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
 	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}
@@ -173,7 +173,7 @@ Set file QoS under sharefolder
     [Documentation]    Testlink ID:
     ...    Sc-446:Setting file QoS under sharefolder
     [Tags]    FAST
-    ${folder_name} =    Set Variable    nfsfolder
+    ${folder_name} =    Set Variable    nfsfolder629
     ${mount_point} =    Set Variable    /mnt/nfs
     ${read_maxbw} =    Set Variable    5242880   # 5M
     ${write_maxbw} =    Set Variable    5242880   # 5M

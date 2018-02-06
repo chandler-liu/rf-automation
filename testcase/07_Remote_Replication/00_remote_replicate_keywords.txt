@@ -12,7 +12,15 @@ ${iscsi_lun_size}    1073741824    # 1G
 ${dest_pool}      Default
 # share folder
 ${folder_name}    nas_source
+${recurrent_folder_name}    recurrent_nas_source
+${recurrent_S3_folder_name}    recurrent_S3_nas_source
+${delete_task_folder_name}    delete_task_nas_source
+${edit_task_folder_name}    edit_task_nas_source
+${S3_folder_name}    S3_nas_source
 ${dest_folder_name}    nas_dest
+${recurrent_dest_folder_name}    recurrent_nas_dest
+${delete_task_dest_folder_name}    delete_task_nas_dest
+${edit_task_dest_folder_name}    edit_task_nas_dest
 
 *** Keywords ***
 Check Schedule Task

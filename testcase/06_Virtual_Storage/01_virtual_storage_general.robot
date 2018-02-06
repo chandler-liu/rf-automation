@@ -25,7 +25,7 @@ Create a new virtual storage and a new shared folder on it.
     [Documentation]    Testlink ID:
     ...    Sc-411:Create a new virtual storage and a new shared folder on it.
     [Tags]    FAST
-    ${folder_name} =    Set Variable    folder1
+    ${folder_name} =    Set Variable    folder611
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}
     [Teardown]    Delete Shared Folder    ${vs_name}    ${folder_name}
 
@@ -47,7 +47,7 @@ Add gateway for virtual storage
     [Documentation]    Testlink ID:
     ...    Sc-414:Add gateway for virtual storage
     [Tags]    FAST    
-    ${folder_name} =    Set Variable    folder1
+    ${folder_name} =    Set Variable    folder613
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}
     Switch Connection    @{PUBLICIP}[1]
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    exportfs -v    ${true}
@@ -63,7 +63,7 @@ Remove gateway for virtual storage
     ...    Sc-415:Remove gateway for virtual storage
     ...    Have dependency on the last case
     [Tags]    FAST    
-    ${folder_name} =    Set Variable    folder1
+    ${folder_name} =    Set Variable    folder614
     Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}
     Switch Connection    @{PUBLICIP}[1]
     Wait Until Keyword Succeeds    30s    5s    Check If SSH Output Is Empty    exportfs -v    ${false}
@@ -81,7 +81,7 @@ Add pool for virtual storage
     ${new_pool} =    Set Variable    pool1
 	${new_metapool} =    Set Variable    metapool1
     ${osd_ids} =    Set Variable    0+1+2
-    ${folder_name} =    Set Variable    folder1
+    ${folder_name} =    Set Variable    folder615
 	${fs_name} =    Set Variable    cephfs1
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
 	Add Replicted Pool    pool_name=${new_metapool}    rep_num=2    osd_ids=${osd_ids}

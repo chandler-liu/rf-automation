@@ -85,9 +85,9 @@ One time replication task for shared folders
 One time replication task for S3 buckets
     [Documentation]    TestLink ID: Sc-668:One time replication task for S3 buckets
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${S3_folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${S3_folder_name}    ${false}
     log    Create S3 account, create bucket and input some data to bucket
     @{key_list}=    Create Bucket and Input Data
     ${bucket_name_url}=    Set Variable    @{key_list}[0]
@@ -98,7 +98,7 @@ One time replication task for S3 buckets
     ${task_id}=    Create Replication Task    nas-s3-automation    fstos3    ${vs_name}    ${akey}    ${skey}
     ...    @{PUBLICIP}[-1]    dst=${bucket_name}
     Get Replication Task Status    ${task_id}
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${S3_folder_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log
     ...    AND    Delete Replication Task    ${task_id}
 
@@ -146,33 +146,33 @@ Create a recurrent replication task for iSCSI/FC volumes
 Create a recurrent replication task for shared folders
     [Documentation]    TestLink ID: Sc-670:Create a recurrent replication task for shared folders
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${recurrent_folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${recurrent_folder_name}
     ...    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
+    ...    AND    Add Shared Folder    name=${recurrent_dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${recurrent_dest_folder_name}
     ...    ${false}
     ${schedule}=    Set Variable    *%2F1+*+*+*+*
     ${task_id}=    Create Replication Task    nas-nas-schedule-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]    schedule=${schedule}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${recurrent_folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${recurrent_dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${true}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${recurrent_folder_name}    ${true}
 
 Create a recurrent replication task for S3 buckets
     [Documentation]    TestLink ID: Sc-671:Create a recurrent replication task for S3 buckets
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${recurrent_S3_folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${recurrent_S3_folder_name}    ${false}
     log    Create S3 account, create bucket and input some data to bucket
     @{key_list}=    Create Bucket and Input Data
     ${bucket_name_url}=    Set Variable    @{key_list}[0]
@@ -185,22 +185,22 @@ Create a recurrent replication task for S3 buckets
     ...    @{PUBLICIP}[-1]    dst=${bucket_name}    schedule=${schedule}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
-    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${recurrent_S3_folder_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${true}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${recurrent_S3_folder_name}    ${true}
 
 Delete selected replication task(s)
     [Documentation]    TestLink ID: Sc-672:Delete selected replication task(s)
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${delete_task_folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${delete_task_folder_name}    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
+    ...    AND    Add Shared Folder    name=${delete_task_dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${delete_task_dest_folder_name}
     ...    ${false}
     ${task_id1}=    Create Replication Task    nas-nas-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]
@@ -209,23 +209,23 @@ Delete selected replication task(s)
     ...    @{PUBLICIP}[-1]
     Get Replication Task Status    ${task_id2}
     ${task_id}=    Set Variable    ${task_id1}%2C${task_id2}
-    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${delete_task_folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${delete_task_dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${true}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${delete_task_folder_name}    ${true}
 
 Edit a selected replication task
     [Documentation]    TestLink ID: Sc-674:Edit a selected replication task
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${edit_task_folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}    ${false}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${edit_task_folder_name}    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
+    ...    AND    Add Shared Folder    name=${edit_task_dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${edit_task_dest_folder_name}
     ...    ${false}
     ${task_name}=    Set Variable    nas-nas-modify-schedule-automation
     ${schedule}=    Set Variable    *%2F1+*+*+*+*
@@ -239,7 +239,7 @@ Edit a selected replication task
     ...    schedule=${new_schedule}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}    3
-    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${edit_task_folder_name}
+    ...    AND    Delete Shared Folder    ${dest_vs_name}    ${edit_task_dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}
