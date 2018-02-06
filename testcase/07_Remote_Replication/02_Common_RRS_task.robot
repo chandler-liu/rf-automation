@@ -72,7 +72,7 @@ One time replication task for shared folders
     ${dst_file}=    Set Variable    /vol/${dest_folder_name}/rrs_automation_test.txt
     Execute Command Successfully    echo RRS_automation_test>${source_file}
     ${task_id}=    Create Replication Task    nas-nas-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]
+    ...    @{PUBLICIP}[-1]    source_folder=${folder_name}    dest_folder=${dest_folder_name}
     Get Replication Task Status    ${task_id}
     Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${folder_name}
@@ -96,7 +96,7 @@ One time replication task for S3 buckets
     ${skey}=    Set Variable    @{key_list}[2]
     ${user_name}=    Set Variable    @{key_list}[3]
     ${task_id}=    Create Replication Task    nas-s3-automation    fstos3    ${vs_name}    ${akey}    ${skey}
-    ...    @{PUBLICIP}[-1]    dst=${bucket_name}
+    ...    @{PUBLICIP}[-1]    dst=${bucket_name}    source_folder=${S3_folder_name}
     Get Replication Task Status    ${task_id}
     [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${S3_folder_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log
@@ -157,7 +157,7 @@ Create a recurrent replication task for shared folders
     ...    ${false}
     ${schedule}=    Set Variable    *%2F1+*+*+*+*
     ${task_id}=    Create Replication Task    nas-nas-schedule-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]    schedule=${schedule}
+    ...    @{PUBLICIP}[-1]    schedule=${schedule}    source_folder=${recurrent_folder_name}    dest_folder=${recurrent_dest_folder_name}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
     [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${recurrent_folder_name}
@@ -182,7 +182,7 @@ Create a recurrent replication task for S3 buckets
     ${user_name}=    Set Variable    @{key_list}[3]
     ${schedule}=    Set Variable    *%2F1+*+*+*+*
     ${task_id}=    Create Replication Task    nas-s3-schedule-automation    fstos3    ${vs_name}    ${akey}    ${skey}
-    ...    @{PUBLICIP}[-1]    dst=${bucket_name}    schedule=${schedule}
+    ...    @{PUBLICIP}[-1]    dst=${bucket_name}    schedule=${schedule}    source_folder=${recurrent_S3_folder_name}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${recurrent_S3_folder_name}
@@ -203,10 +203,10 @@ Delete selected replication task(s)
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${delete_task_dest_folder_name}
     ...    ${false}
     ${task_id1}=    Create Replication Task    nas-nas-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]
+    ...    @{PUBLICIP}[-1]    source_folder=${delete_task_folder_name}    dest_folder=${delete_task_dest_folder_name}
     Get Replication Task Status    ${task_id1}
     ${task_id2}=    Create Replication Task    nas-nas-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]
+    ...    @{PUBLICIP}[-1]    source_folder=${delete_task_folder_name}    dest_folder=${delete_task_dest_folder_name}
     Get Replication Task Status    ${task_id2}
     ${task_id}=    Set Variable    ${task_id1}%2C${task_id2}
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${delete_task_folder_name}
@@ -230,13 +230,13 @@ Edit a selected replication task
     ${task_name}=    Set Variable    nas-nas-modify-schedule-automation
     ${schedule}=    Set Variable    *%2F1+*+*+*+*
     ${task_id}=    Create Replication Task    ${task_name}    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]    schedule=${schedule}
+    ...    @{PUBLICIP}[-1]    schedule=${schedule}    source_folder=${edit_task_folder_name}    dest_folder=${edit_task_dest_folder_name}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}
     log    Edit this replication task, set schedule from 1Miniute to 2Miniutes
     ${new_schedule}=    Set Variable    *%2F2+*+*+*+*
     Create Replication Task    ${task_name}    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}    @{PUBLICIP}[-1]
-    ...    schedule=${new_schedule}
+    ...    schedule=${new_schedule}    source_folder=${edit_task_folder_name}    dest_folder=${edit_task_dest_folder_name}
     Get Replication Task Status    ${task_id}
     Check Schedule Task    ${task_id}    3
     [Teardown]    Run Keywords    Delete Shared Folder    ${vs_name}    ${edit_task_folder_name}

@@ -14,25 +14,25 @@ Resource          00_remote_replicate_keywords.txt
 UI should refresh the progress
     [Documentation]    TestLink ID: Sc-697:UI should refresh the progress
     [Tags]    RAT
-    [Setup]    Run Keywords    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
+    [Setup]    Run Keywords    Add Shared Folder    name=${refresh_folder_name}    gateway_group=${vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${refresh_folder_name}
     ...    ${false}
     ...    AND    Add Virtual Storage    ${dest_vs_name}    ${dest_pool}    @{STORAGEIP}[-1]
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
+    ...    AND    Add Shared Folder    name=${refresh_dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${refresh_dest_folder_name}
     ...    ${false}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    log    Create automation test file usd dd command in /vol/${folder_name}/
-    ${source_file}=    Set Variable    /vol/${folder_name}/rrs_progress_test.dd
-    ${dst_file}=    Set Variable    /vol/${dest_folder_name}/rrs_progress_test.dd
+    log    Create automation test file usd dd command in /vol/${refresh_folder_name}/
+    ${source_file}=    Set Variable    /vol/${refresh_folder_name}/rrs_progress_test.dd
+    ${dst_file}=    Set Variable    /vol/${refresh_dest_folder_name}/rrs_progress_test.dd
     Execute Command Successfully    dd if=/dev/zero of=${source_file} bs=1M count=100 oflag=direct
     ${task_id}=    Create Replication Task    nas-nas-progress-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]
+    ...    @{PUBLICIP}[-1]    source_folder=${refresh_folder_name}    dest_folder=${refresh_dest_folder_name}
     Wait Until Keyword Succeeds    4m    5s    Get Replication Task Status For UI    ${task_id}
     Wait Until Keyword Succeeds    30s    5s    MD5 Check    ${source_file}    ${dst_file}
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${refresh_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${refresh_dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete Replication Task    ${task_id}

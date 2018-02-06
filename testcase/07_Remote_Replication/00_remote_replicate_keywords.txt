@@ -21,6 +21,9 @@ ${dest_folder_name}    nas_dest
 ${recurrent_dest_folder_name}    recurrent_nas_dest
 ${delete_task_dest_folder_name}    delete_task_nas_dest
 ${edit_task_dest_folder_name}    edit_task_nas_dest
+${restore_folder_name}    restore_folder
+${refresh_folder_name}    refresh_folder
+${refresh_dest_folder_name}    refresh_folder_dest
 
 *** Keywords ***
 Check Schedule Task
@@ -91,13 +94,13 @@ Create Bucket and Input Data
 Create Replication Task
     [Arguments]    ${task_name}    ${task_type}    ${dst_vs}    ${akey}    ${skey}    ${server}
     ...    ${src}=    ${dst}=    ${bucket_owner}=    ${dst_pool}=    ${src_vs}=Default    ${useoplog}=0
-    ...    ${schedule}=now    ${autoconf}=0
+    ...    ${schedule}=now    ${autoconf}=0    ${source_folder}=    ${dest_folder}=
     ${src}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    ${iscsi_target_name_urlencoding}%2F${iscsi_lun_name}
-    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${folder_name}
-    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${folder_name}
+    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${source_folder}
+    ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${source_folder}
     log    ${src}
     ${dst}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    ${dest_iscsi_target_name_urlencoding}%2F${dest_iscsi_lun_name}
-    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${dest_folder_name}
+    ...    ELSE IF    '${task_type}'=='fstofs'    Set Variable    ${dest_folder}
     ...    ELSE IF    '${task_type}'=='fstos3'    Set Variable    ${dst}
     log    dst is ${dst}
     ${task_type}    Run Keyword If    '${task_type}'=='rbdtorbd'    Set Variable    replication%3Arbd%3Arbd
@@ -116,9 +119,9 @@ Create Replication Task
 Create RestorationTask
     [Arguments]    ${task_name}    ${task_type}    ${dst_vs}    ${akey}    ${skey}    ${server}
     ...    ${src}=    ${dst}=    ${bucket_owner}=    ${dst_pool}=    ${src_vs}=Default    ${useoplog}=0
-    ...    ${schedule}=now    ${autoconf}=0
+    ...    ${schedule}=now    ${autoconf}=0    ${source_folder}=
     log    src is ${src}
-    ${dst}    Run Keyword If    '${task_type}'=='s3tofs'    Set Variable    ${folder_name}
+    ${dst}    Run Keyword If    '${task_type}'=='s3tofs'    Set Variable    ${source_folder}
     ...    ELSE IF    '${task_type}'=='s3tos3'    Set Variable    ${dst}
     log    dst is ${dst}
     ${task_type}    Run Keyword If    '${task_type}'=='s3tofs'    Set Variable    restoration%3As3%3Afs

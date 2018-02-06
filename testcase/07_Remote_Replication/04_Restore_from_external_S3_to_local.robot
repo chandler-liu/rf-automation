@@ -41,8 +41,8 @@ Restore to local shared folder
     [Documentation]    estLink ID: Sc-690:Restore to local shared folder
     [Tags]    RAT
     [Setup]    Run Keywords    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
+    ...    AND    Add Shared Folder    name=${restore_folder_name}    gateway_group=${vs_name}    nfs=true
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${restore_folder_name}
     ...    ${false}
     log    Create S3 account, create bucket and input some data to bucket
     @{key_list}=    Create Bucket and Input Data
@@ -53,11 +53,11 @@ Restore to local shared folder
     ${user_name}=    Set Variable    @{key_list}[3]
     log    Start to create a Restore Task, from remote S3 to local share folder
     ${task_id}=    Create RestorationTask    remotes3-localfs-automation    s3tofs    ${vs_name}    ${akey}    ${skey}
-    ...    @{PUBLICIP}[-1]    src=${bucket_name}
+    ...    @{PUBLICIP}[-1]    src=${bucket_name}    source_folder=${restore_folder_name}
     Get Replication Task Status    ${task_id}
     log    ---------- to sleep 180s ------------
     sleep    180
-    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
+    [Teardown]    Run Keywords    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${restore_folder_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log
     ...    AND    Delete Replication Task    ${task_id}
 
