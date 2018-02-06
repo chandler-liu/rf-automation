@@ -30,12 +30,12 @@ No side effect to legacy replications
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Disable iSCSI LUN    ${dest_vs_name}
     ...    ${dest_iscsi_target_name_urlencoding}    ${dest_iscsi_lun_name}
     ...    AND    Switch Connection    @{PUBLICIP}[0]
-    ...    AND    Add Shared Folder    name=${folder_name}    gateway_group=${vs_name}    nfs=true
-    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${folder_name}
+    ...    AND    Add Shared Folder    name=${legacy_folder_name}    gateway_group=${vs_name}    nfs=true
+    ...    AND    Wait Until Keyword Succeeds    1m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${legacy_folder_name}
     ...    ${false}
-    ...    AND    Add Shared Folder    name=${dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
+    ...    AND    Add Shared Folder    name=${legacy_dest_folder_name}    gateway_group=${dest_vs_name}    nfs=true
     ...    AND    Switch Connection    @{PUBLICIP}[-1]
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Check If SSH Output Is Empty    exportfs -v|grep ${legacy_dest_folder_name}
     ...    ${false}
     log    Create three RRS Task,nas-nas; iscsi-iscsi;nas-s3
     log    prepare, to create S3 account, create bucket and input some data to bucket
@@ -49,9 +49,9 @@ No side effect to legacy replications
     ${iscsi_task_id}=    Create Replication Task    iscsi-iscsi-automation    rbdtorbd    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
     ...    @{PUBLICIP}[-1]
     ${nas_task_id}=    Create Replication Task    nas-nas-automation    fstofs    ${dest_vs_name}    ${EMPTY}    ${EMPTY}
-    ...    @{PUBLICIP}[-1]
+    ...    @{PUBLICIP}[-1]    source_folder=${legacy_folder_name}    dest_folder=${legacy_dest_folder_name}
     ${to_s3_task_id}=    Create Replication Task    nas-s3-automation    fstos3    ${vs_name}    ${akey}    ${skey}
-    ...    @{PUBLICIP}[-1]    dst=${bucket_name}
+    ...    @{PUBLICIP}[-1]    dst=${bucket_name}    source_folder=${legacy_folder_name}
     log    To get three RRS Task running info
     Get Replication Task Status    ${iscsi_task_id}
     Get Replication Task Status    ${nas_task_id}
@@ -70,7 +70,7 @@ No side effect to legacy replications
     ...    AND    Wait Until Keyword Succeeds    1m    5s    Delete iSCSI Target    ${vs_name}
     ...    ${iscsi_target_name_urlencoding}
     ...    AND    Delete Replication Task    ${task_id}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${folder_name}
-    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${dest_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${vs_name}    ${legacy_folder_name}
+    ...    AND    Wait Until Keyword Succeeds    2m    5s    Delete Shared Folder    ${dest_vs_name}    ${legacy_dest_folder_name}
     ...    AND    Wait Until Keyword Succeeds    2m    5s    Remove Virtual Storage    ${dest_vs_name}
     ...    AND    Delete User and Clean s3cfg    ${user_name}    ${bucket_name_url}    /var/log/ceph/ceph.log

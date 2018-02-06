@@ -24,6 +24,8 @@ ${edit_task_dest_folder_name}    edit_task_nas_dest
 ${restore_folder_name}    restore_folder
 ${refresh_folder_name}    refresh_folder
 ${refresh_dest_folder_name}    refresh_folder_dest
+${legacy_folder_name}    legacy_folder
+${legacy_dest_folder_name}    legacy_folder_dest
 
 *** Keywords ***
 Check Schedule Task
