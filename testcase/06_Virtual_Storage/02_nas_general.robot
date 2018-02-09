@@ -142,8 +142,8 @@ Configure storage pool for share folder
     [Documentation]    Testlink ID:
     ...    Sc-439:Configure sotrage pool for share folder
     [Tags]    TOFT
-    ${new_pool} =    Set Variable    pool1
-	${new_metapool} =    Set Variable    metapool1
+    ${new_pool} =    Set Variable    pool62
+	${new_metapool} =    Set Variable    metapool62
     ${osd_ids} =    Set Variable    0+1+2
     ${folder_name} =    Set Variable    folder628
 	${fs_name} =    Set Variable    cephfs1

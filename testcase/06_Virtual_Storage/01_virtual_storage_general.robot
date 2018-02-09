@@ -117,7 +117,7 @@ Remove pool for virtual storage
     ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}    /response/gateway_group
     Should Contain    ${ret}    ${new_pool}
     Wait Until Keyword Succeeds    15s    5s    Delete Pool    ${new_pool}
-    ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}    /response/gateway_group
+    ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}&get_support_rbd_info=false   /response/gateway_group
     Should Not Contain    ${ret}    ${new_pool}
 
 Remove virtual storage
