@@ -114,7 +114,7 @@ Remove pool for virtual storage
     ${osd_ids} =    Set Variable    0+1+2
     Add Replicted Pool    pool_name=${new_pool}    rep_num=2    osd_ids=${osd_ids}
     Assign Pool to Virtual Storage    vs_name=${vs_name}    pool_name=${new_pool}%2CDefault
-    ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}    /response/gateway_group
+    ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}&get_support_rbd_info=false    /response/gateway_group
     Should Contain    ${ret}    ${new_pool}
     Wait Until Keyword Succeeds    15s    5s    Delete Pool    ${new_pool}
     ${ret} =    Get Json Path Value    /cgi-bin/ezs3/json/sds_get_pool?gateway_group=${vs_name}&get_support_rbd_info=false   /response/gateway_group
