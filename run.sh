@@ -65,7 +65,7 @@ while [ $downloadisoflag -eq 1 -a $retry -lt 3 ]; do
     ## Check md5sum ##
     echo "Start to check md5 of `ls *.iso`"
     isomd5sum=`md5sum *.iso | awk '{print $1}'`
-    expectedmd5sum=`ssh chandler@$md5server "md5sum /var/lib/jenkins/jobs/$product/builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
+    expectedmd5sum=`ssh chandler@$md5server "md5sum /var/lib/jenkins/jobs//builds/$dailyfolder/archive/*.iso" | awk '{print $1}'`
     if [ -z "$expectedmd5sum" ]
     then
         echo ":< Cannot retrieve md5sum of ISO from $md5server!"
@@ -90,9 +90,9 @@ sudo killall vblade
 echo "Start to mount `ls *.iso`"
 sudo /usr/sbin/vblade 2 0 ens192 $isopath/*.iso &
 if [ $installisoflag -eq 1 ];then
-    pybot --logLevel DEBUG -d $scriptrootpath/report $scriptrootpath/testcase
+    pybot --logLevel TRACE -d $scriptrootpath/report $scriptrootpath/testcase
 else
-    pybot --logLevel DEBUG -e install -d $scriptrootpath/report $scriptrootpath/testcase
+    pybot --logLevel TRACE -e install -d $scriptrootpath/report $scriptrootpath/testcase
 fi
 
 # Rocord automation build for jenkins report
