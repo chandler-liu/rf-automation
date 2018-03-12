@@ -32,4 +32,4 @@ Start to add cache partition
 Check if add cache partition success
     Wait Until Keyword Succeeds    4 min    5 sec    Do SSH CMD    @{PUBLICIP}[0]    ${USERNAME}    ${PASSWORD}
     ...    lsblk | grep -i ${osd_name} | wc -l    True    2
-    
+	sleep    20
